@@ -1,25 +1,8 @@
 const mysql = require('mysql2');
-const connectionLimit = 12;
+const appConfig = require('../config/appConfig');
 
-const anokha_db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'anokha',
-    waitForConnections: true,
-    connectionLimit: connectionLimit,
-    queueLimit: 0
-});
-
-const anokha_transactions_db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'anokha_transactions',
-    waitForConnections: true,
-    connectionLimit: connectionLimit,
-    queueLimit: 0
-});
+const anokha_db = mysql.createPool(appConfig.pool_db.anokha_db);
+const anokha_transactions_db = mysql.createPool(appConfig.pool_db.anokha_transactions_db);
 
 module.exports = [
     anokha_db,

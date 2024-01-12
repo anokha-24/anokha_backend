@@ -1,21 +1,11 @@
 const mysql = require('mysql2');
 
-const establishConnection = () => {
-    const anokha_db = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'password',
-        database: 'anokha',
-        multipleStatements: true
-    });
+const appConfig = require('../config/appConfig');
 
-    const anokha_transactions_db = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'password',
-        database: 'anokha_transactions',
-        multipleStatements: true
-    });
+const establishConnection = () => {
+    const anokha_db = mysql.createConnection(appConfig.db.anokha_db);
+
+    const anokha_transactions_db = mysql.createConnection(appConfig.db.anokha_transactions_db);
 
     anokha_db.connect((err) => {
         if (err) {
