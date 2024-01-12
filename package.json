@@ -1,0 +1,16 @@
+{
+  "name": "anokha_backend_2024",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "start"
+  },
+  "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "mysql2": "^3.7.0"
+  }
+}
