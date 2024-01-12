@@ -4,7 +4,8 @@ const dataValidator = require('../middleware/validator/dataValidator');
 module.exports = {
     testConnection: async (req, res) => {
         res.status(200).json({
-            "MESSAGE": "It's Working. 👍🏻"
+            "MESSAGE": "It's Working. 👍🏻",
+            "WHO": "User"
         });
         return;
     }
