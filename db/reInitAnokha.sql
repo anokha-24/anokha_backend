@@ -1,11 +1,32 @@
-CREATE TABLE managerRole (
+DROP TABLE IF EXISTS managerLoginLogs;
+DROP TABLE IF EXISTS studentLoginLogs;
+DROP TABLE IF EXISTS crewMembers;
+DROP TABLE IF EXISTS crewDetails;
+DROP TABLE IF EXISTS starredEvents;
+DROP TABLE IF EXISTS visitLogs;
+DROP TABLE IF EXISTS eventAttendanceData;
+DROP TABLE IF EXISTS eventRegistrationGroupData;
+DROP TABLE IF EXISTS eventRegistrationData;
+DROP TABLE IF EXISTS eventOrganizersData;
+DROP TABLE IF EXISTS eventData;
+DROP TABLE IF EXISTS forgotPasswordManager;
+DROP TABLE IF EXISTS forgotPasswordStudent;
+DROP TABLE IF EXISTS studentRegister;
+DROP TABLE IF EXISTS studentData;
+DROP TABLE IF EXISTS tagFaculty;
+DROP TABLE IF EXISTS managerData;
+DROP TABLE IF EXISTS tagData;
+DROP TABLE IF EXISTS departmentData;
+DROP TABLE IF EXISTS managerRole;
+
+CREATE TABLE IF NOT EXISTS managerRole (
     roleId INTEGER PRIMARY KEY AUTO_INCREMENT,
     roleName VARCHAR(255) NOT NULL UNIQUE,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE departmentData (
+CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 
     departmentName VARCHAR(255) NOT NULL UNIQUE, 
     departmentAbbreviation VARCHAR(255) NOT NULL UNIQUE,
@@ -13,7 +34,7 @@ CREATE TABLE departmentData (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tagData (
+CREATE TABLE IF NOT EXISTS tagData (
     tagId INTEGER PRIMARY KEY AUTO_INCREMENT,
     tagName VARCHAR(255) NOT NULL UNIQUE,
     tagAbbreviation VARCHAR(255) NOT NULL UNIQUE,
@@ -22,7 +43,7 @@ CREATE TABLE tagData (
 );
 
 
-CREATE TABLE managerData (
+CREATE TABLE IF NOT EXISTS managerData (
     managerId INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerFullName VARCHAR(255) NOT NULL,
     managerEmail VARCHAR(255) NOT NULL UNIQUE,
@@ -40,7 +61,7 @@ CREATE TABLE managerData (
     CHECK (managerAccountStatus IN ("0", "1"))
 );
 
-CREATE TABLE tagFaculty (
+CREATE TABLE IF NOT EXISTS tagFaculty (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     tagId INTEGER NOT NULL,
     managerId INTEGER NOT NULL,
@@ -50,7 +71,7 @@ CREATE TABLE tagFaculty (
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
-CREATE TABLE studentData (
+CREATE TABLE IF NOT EXISTS studentData (
     studentId INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentFullName VARCHAR(255) NOT NULL,
     studentEmail VARCHAR(255) NOT NULL UNIQUE,
@@ -70,7 +91,7 @@ CREATE TABLE studentData (
 
 -- studentAccountStatus: 0 = BLOCKED, 1 = REGISTERED, PENDING PASSPORT , 2 = PASSPORT DONE
 
-CREATE TABLE studentRegister (
+CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentEmail VARCHAR(255) NOT NULL UNIQUE,
     otp CHAR(6) NOT NULL,
@@ -78,7 +99,7 @@ CREATE TABLE studentRegister (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE forgotPasswordStudent (
+CREATE TABLE IF NOT EXISTS forgotPasswordStudent (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
     otp CHAR(6) NOT NULL,
@@ -87,7 +108,7 @@ CREATE TABLE forgotPasswordStudent (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
 
-CREATE TABLE forgotPasswordManager (
+CREATE TABLE IF NOT EXISTS forgotPasswordManager (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerId INTEGER NOT NULL,
     otp CHAR(6) NOT NULL,
@@ -96,7 +117,7 @@ CREATE TABLE forgotPasswordManager (
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
-CREATE TABLE eventData (
+CREATE TABLE IF NOT EXISTS eventData (
     eventId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventName VARCHAR(255) NOT NULL,
     eventDescription VARCHAR(255) NOT NULL,
@@ -135,7 +156,7 @@ CREATE TABLE eventData (
 );
 -- eventStatus: 0 = CANCELLED FROM ANOKHA, 1 = ACTIVE, 2 = CLOSED FOR REGISTRATIONS
 
-CREATE TABLE eventOrganizersData (
+CREATE TABLE IF NOT EXISTS eventOrganizersData (
     eventId INTEGER NOT NULL,
     managerId INTEGER NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,7 +166,7 @@ CREATE TABLE eventOrganizersData (
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
-CREATE TABLE eventRegistrationData (
+CREATE TABLE IF NOT EXISTS eventRegistrationData (
     registrationId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,
     studentId INTEGER NOT NULL,
@@ -173,7 +194,7 @@ CREATE TABLE eventRegistrationData (
 -- 6 -> EVENT WAS CANCELLED, refund done.
 -- 7 -> EVENT WAS CANCELLED, refund also rejected.
 
-CREATE TABLE eventRegistrationGroupData (
+CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
     registrationId INTEGER NOT NULL,
     studentId INTEGER NOT NULL,
     roleDescription VARCHAR(255) DEFAULT NULL,
@@ -184,7 +205,7 @@ CREATE TABLE eventRegistrationGroupData (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
 
-CREATE TABLE eventAttendanceData (
+CREATE TABLE IF NOT EXISTS eventAttendanceData (
     attendanceId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,
     studentId INTEGER NOT NULL,
@@ -196,7 +217,7 @@ CREATE TABLE eventAttendanceData (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)   
 );
 
-CREATE TABLE visitLogs (
+CREATE TABLE IF NOT EXISTS visitLogs (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
     entryTime TIMESTAMP,
@@ -206,7 +227,7 @@ CREATE TABLE visitLogs (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
 
-CREATE TABLE starredEvents (
+CREATE TABLE IF NOT EXISTS starredEvents (
     studentId INTEGER NOT NULL,
     eventId INTEGER NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -215,19 +236,33 @@ CREATE TABLE starredEvents (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
 
-CREATE TABLE crewDetails (
+CREATE TABLE IF NOT EXISTS crewDetails (
     crewId INTEGER PRIMARY KEY AUTO_INCREMENT,
     crewName VARCHAR(255) NOT NULL
 ); 
 
-CREATE TABLE crewMembers (
+CREATE TABLE IF NOT EXISTS crewMembers (
     memberEmail VARCHAR(255) PRIMARY KEY,
     managerName VARCHAR(255) NOT NULL,
     crewId INTEGER NOT NULL,
+    memberImageURL VARCHAR(255) NOT NULL,
     departmentId INTEGER NOT NULL,
     roleDescription VARCHAR(255) NOT NULL,
     FOREIGN KEY (departmentId) REFERENCES departmentData(departmentId),
     FOREIGN KEY (crewId) REFERENCES crewDetails(crewId)
 );
 
+CREATE TABLE IF NOT EXISTS studentLoginLogs(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    studentId INTEGER NOT NULL,
+    loginTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (studentId) REFERENCES studentData(studentId)
+);
+
+CREATE TABLE IF NOT EXISTS managerLoginLogs(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    managerId INTEGER NOT NULL,
+    loginTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (managerId) REFERENCES managerData(managerId)
+);
 
