@@ -6,18 +6,28 @@ const appConfig = {
     AUTH_URL_PREFIX: '/api/auth',
     USER_URL_PREFIX: '/api/user',
     ADMIN_URL_PREFIX: '/api/admin',
+    mailer:{
+        obj: {
+            service: 'Gmail',
+            auth: {
+                user: 'auth.amrita.placements@gmail.com',
+                pass: 'huhrfndypcwuaxtn'
+            }
+        },
+        name: 'Amrita Placement Tracker'
+    },
     db: {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: 'sql003',
             database: 'anokha',
             multipleStatements: true
         },
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: 'sql003',
             database: 'anokha_transactions',
             multipleStatements: true
         },
@@ -26,7 +36,7 @@ const appConfig = {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: 'sql003',
             database: 'anokha',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
@@ -35,7 +45,7 @@ const appConfig = {
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: 'sql003',
             database: 'anokha_transactions',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
