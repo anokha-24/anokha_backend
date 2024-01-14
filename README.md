@@ -24,3 +24,8 @@ npm i
 ```
 npm start
 ```
+
+## Developers
+
+`Ashwin Narayanan S`
+`Abhinav Ramakrishnan`
