@@ -2,7 +2,7 @@ const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
-const otpTokenValidator = require('../middleware/auth/otp/tokenValidator');
+const [otpTokenValidator,studentResetPasswordValidator] = require('../middleware/auth/otp/tokenValidator');
 const tokenGenerator = require('../middleware/auth/login/tokenGenerator');
 const tokenValidator = require('../middleware/auth/login/tokenValidator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
@@ -68,6 +68,9 @@ module.exports = {
                     //generate OTP
                     const otp = generateOTP();
 
+                    // sha256 hash the password.
+                    req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+
                     //generate OTP token Payload
                     const secret_token = await otpTokenGenerator({
                         "studentFullName": req.body.studentFullName,
@@ -81,6 +84,7 @@ module.exports = {
                         "isInCampus": isInCampus
                     });
 
+                    await db_connection.query("DELETE FROM studentRegister WHERE studentEmail = ?", [req.body.studentEmail]);
                     //insert OTP into studentRegister
                     await db_connection.query("INSERT INTO studentRegister (studentEmail, otp) VALUES (?,?)", [req.body.studentEmail, otp]);
 
@@ -121,7 +125,7 @@ module.exports = {
         otpTokenValidator,
         async (req, res) => {
             //validate Request
-            if (!(dataValidator.isValidOtp(req.body.otp) && validator.isEmail(req.body.studentEmail))) {
+            if (!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.studentEmail))) {
                 res.status(400).json({
                     "MESSAGE": "Invalid Data"
                 });
@@ -146,7 +150,7 @@ module.exports = {
                         await db_connection.query("UNLOCK TABLES");
                         await db_connection.query("LOCK TABLES studentRegister WRITE, studentData WRITE");
                         //verify OTP
-                        const [check] = await db_connection.query(`Delete from studentRegister where studentEmail = ? and otp = ?`, [req.body.studentEmail, req.body.otp]);
+                        const [check] = await db_connection.query(`DELETE FROM studentRegister WHERE studentEmail = ? AND otp = ?`, [req.body.studentEmail, req.body.otp]);
                         if (check.affectedRows === 0) {
                             await db_connection.query(`UNLOCK TABLES`);
                             return res.status(400).send({ "MESSAGE": "Invalid OTP!" });
@@ -161,9 +165,8 @@ module.exports = {
                             else {
                                 req.body.studentAccountStatus = "1";
                             }
-                            // sha256 hash the password.
-                            req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
-
+                            
+                            //insert user into studentData
                             await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
                             await db_connection.query("UNLOCK TABLES");
                             res.status(200).json({
@@ -212,40 +215,40 @@ module.exports = {
                         
                         //check if credentials are correct
                         const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ? and studentPassword = ?`, [req.body.studentEmail, req.body.studentPassword]);
-                        
+                        await db_connection.query("UNLOCK TABLES");
+
                         //if credentials are incorrect
                         if (student.length === 0) {
-                            await db_connection.query(`UNLOCK TABLES`);
                             return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
                         }
                         //if credentials are correct
                         else {
-                            
+
                             //if account is blocked
                             if (student.studentAccountStatus === "0") {
-                                await db_connection.query(`UNLOCK TABLES`);
                                 return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
                             }
+                            else{
 
-                            await db_connection.query("UNLOCK TABLES");
-
-                            //generate token and send student details as response
-                            const token = await tokenGenerator({
-                                "studentEmail": req.body.studentEmail
-                            });
-                            res.status(200).json({
-                                "MESSAGE": "User Login Successful!",
-                                "SECRET_TOKEN": token,
-                                "studentFullName":student[0].studentFullName,
-                                "studentEmail":student[0].studentEmail,
-                                "studentPhone":student[0].studentPhone,
-                                "needPassport":student[0].needPassport,
-                                "studentAccountStatus":student[0].studentAccountStatus,
-                                "studentCollegeName":student[0].studentCollegeName,
-                                "studentCollegeCity":student[0].studentCollegeCity,
-                                "isInCampus":student[0].isInCampus
-                            });
-                            return;
+                                //generate token and send student details as response
+                                const token = await tokenGenerator({
+                                    "studentEmail": req.body.studentEmail,
+                                    "studentId": student[0].studentId
+                                });
+                                res.status(200).json({
+                                    "MESSAGE": "User Login Successful!",
+                                    "SECRET_TOKEN": token,
+                                    "studentFullName":student[0].studentFullName,
+                                    "studentEmail":student[0].studentEmail,
+                                    "studentPhone":student[0].studentPhone,
+                                    "needPassport":student[0].needPassport,
+                                    "studentAccountStatus":student[0].studentAccountStatus,
+                                    "studentCollegeName":student[0].studentCollegeName,
+                                    "studentCollegeCity":student[0].studentCollegeCity,
+                                    "isInCampus":student[0].isInCampus
+                                });
+                                return;
+                            }
                         }
                 }
                 catch (err) {
@@ -264,5 +267,125 @@ module.exports = {
             }
         },
 
-
+        /*{
+            "studentEmail": ""
+        }*/
+        forgotPasswordStudent: async (req, res) => {
+            if(!dataValidator.isValidEmail(req.body.studentEmail)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Data"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try {
+                    await db_connection.query("LOCK TABLES studentData READ,forgotPasswordStudent WRITE");
+                    const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
+                    if(student.length === 0){
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(400).json({
+                            "MESSAGE": "Account Does Not Exist!"
+                        });
+                        return;
+                    }
+                    else{
+                        await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ?`, [student[0].studentId]);
+                        const otp = generateOTP();
+                        const otp_token = await otpTokenGenerator({
+                            "studentEmail": student[0].studentEmail,
+                            "studentId": student[0].studentId
+                        });
+                        await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp]);
+                        await db_connection.query("UNLOCK TABLES");
+                        mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
+                        res.status(200).json({
+                            "MESSAGE": "Check Email for Password Reset OTP!",
+                            "SECRET_TOKEN": otp_token
+                        });
+                        return;
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - forgotPasswordStudent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                    return;
+                }
+                finally {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        },
+    
+        /*{
+            "otp": "",
+            "studentEmail": "",
+            "studentPassword": ""
+        }*/
+        resetPasswordStudent: [
+            studentResetPasswordValidator,
+            async (req, res) => {
+            if(!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.studentEmail) && dataValidator.isValidPassword(req.body.studentPassword))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Data"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try {
+                    await db_connection.query("LOCK TABLES forgotPasswordStudent WRITE, studentData WRITE");
+                    
+                    const [verify] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
+                    
+                    //if user does not exist
+                    if(verify.length === 0){
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(400).json({
+                            "MESSAGE": "Account Does Not Exist!"
+                        });
+                        return;
+                    }
+                    
+                    //check if OTP is correct
+                    const [student] = await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ? and otp = ?`, [verify[0].studentId, req.body.otp]);
+                    if(student.affectedRows === 0){
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(400).json({
+                            "MESSAGE": "Invalid OTP!"
+                        });
+                        return;
+                    }
+                    
+                    else{
+                        //sha256 hash the password
+                        req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+                        await db_connection.query("UPDATE studentData SET studentPassword = ? WHERE studentId = ?", [req.body.studentPassword, verify[0].studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(200).json({
+                            "MESSAGE": "Password Reset Successful!"
+                        });
+                        return;
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - resetPasswordStudent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                    return;
+                }
+                finally {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }],
 }

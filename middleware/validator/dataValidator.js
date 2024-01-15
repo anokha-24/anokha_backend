@@ -9,6 +9,14 @@ module.exports = {
         return false;
     },
 
+    // Email should be valid.
+    isValidEmail: (email) => {
+        if (email.length>0 && email.length <=255 && validator.isEmail(email)) {
+            return true;
+        }
+        return false;
+    },
+
     // OTP Should be exactly 6 digits and numeric only.
     isValidOtp: (otp) => {
         if (validator.isNumeric(otp) && validator.isLength(otp, { min: 6, max: 6 })) {

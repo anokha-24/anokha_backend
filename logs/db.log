@@ -88,3 +88,49 @@ function toLocaleString() { [native code] } | [ERROR]: Error: Query was empty
 function toLocaleString() { [native code] } | [ERROR]: Error: Query was empty
 function toLocaleString() { [native code] } | [ERROR]: Error: Query was empty
 function toLocaleString() { [native code] } | [ERROR]: Error: Query was empty
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: Cannot drop table 'managerdata' referenced by a foreign key constraint 'managerloginlogs_ibfk_1' on table 'managerloginlogs'.
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+INSERT INTO studentData (studentFullName, studentEmail,' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+
+INSERT INTO studentData (studentFullName, studentEmai' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--password = ark123@890
+
+INSERT INTO studentData (studentFullName, studentEmai' at line 3
+function toLocaleString() { [native code] } | [ERROR]: Error: Cannot drop table 'managerdata' referenced by a foreign key constraint 'managerloginlogs_ibfk_1' on table 'managerloginlogs'.

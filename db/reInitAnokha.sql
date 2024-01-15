@@ -266,3 +266,10 @@ CREATE TABLE IF NOT EXISTS managerLoginLogs(
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
+
+-- INSERT STUDENT DATA
+-- password = ark123@890
+
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
+

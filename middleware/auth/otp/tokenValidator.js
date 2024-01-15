@@ -14,7 +14,7 @@ async function otpTokenValidator(req, res, next) {
         return;
     }
 
-    const public_key = fs.readFileSync('middleware/RSA/private_key.pem');
+    const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
         const payLoad = await verify(token, public_key);
         if (payLoad["secret_key"] == secret_key) {
@@ -46,40 +46,40 @@ async function otpTokenValidator(req, res, next) {
 }
 
 
-// async function resetPasswordValidator(req, res, next) {
-//     const tokenHeader = req.headers.authorization;
-//     const token = tokenHeader && tokenHeader.split(' ')[1];
+async function studentResetPasswordValidator(req, res, next) {
+    const tokenHeader = req.headers.authorization;
+    const token = tokenHeader && tokenHeader.split(' ')[1];
 
-//     if (tokenHeader == null || token == null) {
-//         res.status(401).send({
-//             "ERROR": "No Token. Warning."
-//         });
-//         return;
-//     }
+    if (tokenHeader == null || token == null) {
+        res.status(401).send({
+            "ERROR": "No Token. Warning."
+        });
+        return;
+    }
 
-//     const public_key = fs.readFileSync('../../RSA/public_key.pem');
-//     try {
-//         const payLoad = await verify(token, public_key);
-//         if (payLoad["secret_key"] == secret_key) {
-//             req.authorization_tier = payLoad["userRole"];
-//             req.body.userEmail = payLoad["userEmail"];
-//             next();
-//             return;
-//         } else {
-//             res.status(401).send({
-//                 "ERROR": "Unauthorized access. Warning."
-//             });
-//             return;
-//         }
-//     } catch (err) {
-//         res.status(401).send({
-//             "ERROR": "Unauthorized access. Warning."
-//         });
-//         return;
-//     }
+    const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
+    try {
+        const payLoad = await verify(token, public_key);
+        if (payLoad["secret_key"] == secret_key) {
+            req.body.studentEmail = payLoad["studentEmail"];
+            req.body.studentId = payLoad["studentId"];
+            next();
+            return;
+        } else {
+            res.status(401).send({
+                "ERROR": "Unauthorized access. Warning."
+            });
+            return;
+        }
+    } catch (err) {
+        res.status(401).send({
+            "ERROR": "Unauthorized access. Warning."
+        });
+        return;
+    }
 
-// }
+}
 
-module.exports = [otpTokenValidator];
+module.exports = [otpTokenValidator,studentResetPasswordValidator];
 
 
