@@ -1,6 +1,6 @@
 const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
-const [ anokha_db, anokha_transactions_db ] = require('../connection/poolConnection');
+const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
 const otpTokenValidator = require('../middleware/auth/otp/tokenValidator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
@@ -28,35 +28,35 @@ module.exports = {
     }
     */
 
-    registerStudent: async(req, res) => {  
+    registerStudent: async (req, res) => {
         //validate Request
-        if(!dataValidator.isValidStudentRegistration(req.body)) {
+        if (!dataValidator.isValidStudentRegistration(req.body)) {
             res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });;
             return;
         }
         //if request is valid
-        else{
+        else {
             const db_connection = await anokha_db.promise().getConnection();
-            try{
+            try {
                 //check if user already exists
                 await db_connection.query("LOCK TABLES studentData READ, studentRegister WRITE");
                 const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
-                if(result.length > 0){
+                if (result.length > 0) {
                     await db_connection.query("UNLOCK TABLES");
                     res.status(400).json({
-                        "MESSAGE": "User Already Exists!"
+                        "MESSAGE": "Student Already Exists!"
                     });
                     return;
                 }
-                //if user does not exist
-                else{
+                // if user does not exist
+                else {
                     var needPassport = "1";
                     var isInCampus = "0";
                     const studentAccountStatus = "1";
-                    //check if user is needs passport
-                    if(!dataValidator.needPassport(req.body.studentEmail)){
+                    // check if user is needs passport
+                    if (!dataValidator.needPassport(req.body.studentEmail)) {
                         //if user needs passport
                         needPassport = "0";
                         isInCampus = "1";
@@ -89,13 +89,13 @@ module.exports = {
                     mailer.studentRegistered(req.body.studentFullName, req.body.studentEmail, otp)
 
                     res.status(200).json({
-                        "SECRET_TOKEN":secret_token,
+                        "SECRET_TOKEN": secret_token,
                         "MESSAGE": "User Registered Successfully, Check Email for OTP!"
                     });
                     return;
-                }                
+                }
             }
-            catch(err){
+            catch (err) {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerUser - ${err}\n`);
@@ -104,7 +104,7 @@ module.exports = {
                 });
                 return;
             }
-            finally{
+            finally {
                 await db_connection.query("UNLOCK TABLES");
                 db_connection.release();
             }
@@ -113,73 +113,73 @@ module.exports = {
 
     verifyStudent: [
         otpTokenValidator,
-        async(req, res) => {
-        //validate Request
-        if(!(dataValidator.isValidOtp(req.body.otp)&&validator.isEmail(req.body.studentEmail))){
-            res.status(400).json({
-                "MESSAGE": "Invalid Data"
-            });
-            return;
-        }
-        //if request is valid
-        else{
-            const db_connection = await anokha_db.promise().getConnection();
-            try{
-                //check if user already exists
-                await db_connection.query("LOCK TABLES studentData READ");
-                const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
-                if(result.length > 0){
-                    await db_connection.query("UNLOCK TABLES");
-                    res.status(400).json({
-                        "MESSAGE": "User Already Exists!"
-                    });
-                    return;
-                }
-                //if user does not exist
-                else{
-                    await db_connection.query("UNLOCK TABLES");
-                    await db_connection.query("LOCK TABLES studentRegister WRITE, studentData WRITE");
-                    //verify OTP
-                    const [check] = await db_connection.query(`Delete from studentRegister where studentEmail = ? and otp = ?`, [req.body.studentEmail, req.body.otp]);
-                    if (check.affectedRows === 0) {
-                        await db_connection.query(`UNLOCK TABLES`);
-                        return res.status(400).send({ "MESSAGE": "Invalid OTP!" });
-                    }
-                    //if OTP is valid
-                    else{
-                        //if user doesn't need passport
-                        if(!dataValidator.needPassport(req.body.studentEmail)){
-                            req.body.studentAccountStatus = "2";
-                        }
-                        //if user needs passport
-                        else{
-                            req.body.studentAccountStatus = "1";
-                        }
-                        // sha256 hash the password.
-                        req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
-                        
-                        await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
-                        await db_connection.query("UNLOCK TABLES");
-                        res.status(200).json({
-                            "MESSAGE": "User Registration Verified Successfully!"
-                        });
-                        return;
-                    }
-                }                
-            }
-            catch(err){
-                console.log(err);
-                const time = new Date();
-                fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - verifyStudent - ${err}\n`);
-                res.status(500).json({
-                    "MESSAGE": "Internal Server Error"
+        async (req, res) => {
+            //validate Request
+            if (!(dataValidator.isValidOtp(req.body.otp) && validator.isEmail(req.body.studentEmail))) {
+                res.status(400).json({
+                    "MESSAGE": "Invalid Data"
                 });
                 return;
             }
-            finally{
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
+            //if request is valid
+            else {
+                const db_connection = await anokha_db.promise().getConnection();
+                try {
+                    //check if user already exists
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
+                    if (result.length > 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(400).json({
+                            "MESSAGE": "User Already Exists!"
+                        });
+                        return;
+                    }
+                    //if user does not exist
+                    else {
+                        await db_connection.query("UNLOCK TABLES");
+                        await db_connection.query("LOCK TABLES studentRegister WRITE, studentData WRITE");
+                        //verify OTP
+                        const [check] = await db_connection.query(`Delete from studentRegister where studentEmail = ? and otp = ?`, [req.body.studentEmail, req.body.otp]);
+                        if (check.affectedRows === 0) {
+                            await db_connection.query(`UNLOCK TABLES`);
+                            return res.status(400).send({ "MESSAGE": "Invalid OTP!" });
+                        }
+                        //if OTP is valid
+                        else {
+                            //if user doesn't need passport
+                            if (!dataValidator.needPassport(req.body.studentEmail)) {
+                                req.body.studentAccountStatus = "2";
+                            }
+                            //if user needs passport
+                            else {
+                                req.body.studentAccountStatus = "1";
+                            }
+                            // sha256 hash the password.
+                            req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+
+                            await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
+                            await db_connection.query("UNLOCK TABLES");
+                            res.status(200).json({
+                                "MESSAGE": "User Registration Verified Successfully!"
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - verifyStudent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                    return;
+                }
+                finally {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
             }
-        }
-    }],
+        }],
 }
