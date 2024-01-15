@@ -14,7 +14,7 @@ const appConfig = {
                 pass: 'huhrfndypcwuaxtn'
             }
         },
-        name: 'Amrita Placement Tracker'
+        name: 'Anokha 2024'
     },
     db: {
         anokha_db: {
