@@ -205,30 +205,31 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
-                    //check if user already exists
-                    await db_connection.query("LOCK TABLES studentData READ");
-                    const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
-                    if (result.length === 0) {
-                        await db_connection.query("UNLOCK TABLES");
-                        res.status(400).json({
-                            "MESSAGE": "User Does Not Exists!"
-                        });
-                        return;
-                    }
-                    //if user exist
-                    else {
                         await db_connection.query("LOCK TABLES studentData READ");
 
                         // sha256 hash the password, right now before its being done in frontend itself later.
                         req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
                         
+                        //check if credentials are correct
                         const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ? and studentPassword = ?`, [req.body.studentEmail, req.body.studentPassword]);
+                        
+                        //if credentials are incorrect
                         if (student.length === 0) {
                             await db_connection.query(`UNLOCK TABLES`);
                             return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
                         }
+                        //if credentials are correct
                         else {
+                            
+                            //if account is blocked
+                            if (student.studentAccountStatus === "0") {
+                                await db_connection.query(`UNLOCK TABLES`);
+                                return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
+                            }
+
                             await db_connection.query("UNLOCK TABLES");
+
+                            //generate token and send student details as response
                             const token = await tokenGenerator({
                                 "studentEmail": req.body.studentEmail
                             });
@@ -246,7 +247,6 @@ module.exports = {
                             });
                             return;
                         }
-                    }
                 }
                 catch (err) {
                     console.log(err);
@@ -263,4 +263,6 @@ module.exports = {
                 }
             }
         },
+
+
 }
