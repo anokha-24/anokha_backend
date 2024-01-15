@@ -50,4 +50,14 @@ module.exports = {
         }
         return true;
     },
+
+    isValidStudentLogin: (student) => {
+        if (validator.isEmail(student.studentEmail) &&
+            student.studentPassword.length > 0 && student.studentPassword.length <= 255 &&
+            validator.isLength(student.studentPassword, { min: 8 }) && !validator.contains(student.studentPassword, '-' || "'")) 
+        {
+            return true;
+        }
+        return false;
+    },
 }

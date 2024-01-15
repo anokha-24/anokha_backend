@@ -3,6 +3,8 @@ const dataValidator = require('../middleware/validator/dataValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
 const otpTokenValidator = require('../middleware/auth/otp/tokenValidator');
+const tokenGenerator = require('../middleware/auth/login/tokenGenerator');
+const tokenValidator = require('../middleware/auth/login/tokenValidator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
 const crypto = require('crypto');
@@ -111,6 +113,10 @@ module.exports = {
         }
     },
 
+    /*{
+        "otp": ""
+    }*/
+
     verifyStudent: [
         otpTokenValidator,
         async (req, res) => {
@@ -182,4 +188,79 @@ module.exports = {
                 }
             }
         }],
+
+        /*{
+            "studentEmail": "",
+            "studentPassword": ""
+        }*/
+        loginStudent: async (req, res) => {
+            //validate Request
+            if (!dataValidator.isValidStudentLogin(req.body)) {
+                res.status(400).json({
+                    "MESSAGE": "Invalid Data"
+                });
+                return;
+            }
+            //if request is valid
+            else {
+                const db_connection = await anokha_db.promise().getConnection();
+                try {
+                    //check if user already exists
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
+                    if (result.length === 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        res.status(400).json({
+                            "MESSAGE": "User Does Not Exists!"
+                        });
+                        return;
+                    }
+                    //if user exist
+                    else {
+                        await db_connection.query("LOCK TABLES studentData READ");
+
+                        // sha256 hash the password, right now before its being done in frontend itself later.
+                        req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+                        
+                        const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ? and studentPassword = ?`, [req.body.studentEmail, req.body.studentPassword]);
+                        if (student.length === 0) {
+                            await db_connection.query(`UNLOCK TABLES`);
+                            return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
+                        }
+                        else {
+                            await db_connection.query("UNLOCK TABLES");
+                            const token = await tokenGenerator({
+                                "studentEmail": req.body.studentEmail
+                            });
+                            res.status(200).json({
+                                "MESSAGE": "User Login Successful!",
+                                "SECRET_TOKEN": token,
+                                "studentFullName":student[0].studentFullName,
+                                "studentEmail":student[0].studentEmail,
+                                "studentPhone":student[0].studentPhone,
+                                "needPassport":student[0].needPassport,
+                                "studentAccountStatus":student[0].studentAccountStatus,
+                                "studentCollegeName":student[0].studentCollegeName,
+                                "studentCollegeCity":student[0].studentCollegeCity,
+                                "isInCampus":student[0].isInCampus
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginStudent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                    return;
+                }
+                finally {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        },
 }
