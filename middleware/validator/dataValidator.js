@@ -9,6 +9,7 @@ module.exports = {
         return false;
     },
 
+    // OTP Should be exactly 6 digits and numeric only.
     isValidOtp: (otp) => {
         if (validator.isNumeric(otp) && validator.isLength(otp, { min: 6, max: 6 })) {
             return true;
@@ -18,12 +19,12 @@ module.exports = {
 
     /*
     {
-        "studentFullName":"",
-        "studentEmail":"",
-        "studentPhone":"",
-        "studentPassword":"",
-        "studentCollegeName":"",
-        "studentCollegeCity":"",
+        "studentFullName":"<Max 255 Chars>",
+        "studentEmail":"<Valid Email ID. Max 255 chars.>",
+        "studentPhone":"<10 digit. numeric only. Max 255 chars.>",
+        "studentPassword":"<min 8 chars. Max 255 chars. Password cannot have `-` and `'`>",
+        "studentCollegeName":"<Max 255 chars.>",
+        "studentCollegeCity":"<Max 255 chars.>",
     }
     */
     isValidStudentRegistration: (student) => {
@@ -39,6 +40,10 @@ module.exports = {
         }
         return false;
     },
+
+    /*
+        If email ends with @cb.students.amrita.edu or @cb.amrita.edu, then the user does not need passport. userAccountStatus will be set to 2.
+    */
     needPassport: (email) => {
         if (email.endsWith('@cb.students.amrita.edu') || email.endsWith('@cb.amrita.edu')) {
             return false;

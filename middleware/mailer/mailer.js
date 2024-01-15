@@ -15,7 +15,7 @@ module.exports = {
                 address: appConfig.mailer.obj.auth.user
             },
             to: userEmail,
-            subject: 'OTP Verification for Anokha 2024',
+            subject: '[OTP Verification] - Anokha 2024',
             html: TEMPLATE_STUDENT_REGISTERED(fullName, otp)
         }
 
