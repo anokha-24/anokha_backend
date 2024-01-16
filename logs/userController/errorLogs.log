@@ -1,0 +1,22 @@
+2024-01-16T20:22:55.634Z - getAllEvents - Error: Table 'eventRegistrationData' was not locked with LOCK TABLES
+2024-01-16T20:24:14.574Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:26:51.979Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:30:38.078Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:33:17.288Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:39:36.240Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:41:19.836Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:44:02.682Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:45:19.708Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:50:50.435Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T20:53:25.295Z - getAllEvents - ReferenceError: rows is not defined
+2024-01-16T20:58:10.246Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T21:36:32.196Z - getAllEvents - Error: Table 'eventTagData' was not locked with LOCK TABLES
+2024-01-16T21:37:37.892Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T21:50:53.214Z - getRegisteredEvents - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHEN isGroup = "0"
+
+                UNION
+
+                SELECT
+              ' at line 37
+2024-01-16T21:53:10.286Z - getRegisteredEvents - Error: Table 'eventData' was not locked with LOCK TABLES
+2024-01-16T22:22:24.781Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES

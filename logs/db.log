@@ -134,3 +134,12 @@ function toLocaleString() { [native code] } | [ERROR]: Error: You have an error 
 
 INSERT INTO studentData (studentFullName, studentEmai' at line 3
 function toLocaleString() { [native code] } | [ERROR]: Error: Cannot drop table 'managerdata' referenced by a foreign key constraint 'managerloginlogs_ibfk_1' on table 'managerloginlogs'.
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '"Electrical and Electronics Engineering","EEE");
+INSERT INTO departmentData ("M' at line 1
+function toLocaleString() { [native code] } | [ERROR]: Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CREATE TABLE IF NOT EXISTS studentData (
+    studentId INTEGER PRIMARY KEY AUTO' at line 27
+function toLocaleString() { [native code] } | [ERROR]: Error: Check constraint 'eventdata_chk_1' refers to non-existing column 'eventTagId'.
+function toLocaleString() { [native code] } | [ERROR]: Error: Check constraint 'eventdata_chk_1' is violated.
+function toLocaleString() { [native code] } | [ERROR]: Error: Cannot add or update a child row: a foreign key constraint fails (`anokha`.`starredevents`, CONSTRAINT `starredevents_ibfk_1` FOREIGN KEY (`studentId`) REFERENCES `studentdata` (`studentId`))
+function toLocaleString() { [native code] } | [ERROR]: Error: Duplicate entry 'cb.en.u4cse21001@cb.students.amrita.edu' for key 'studentdata.studentEmail'
+function toLocaleString() { [native code] } | [ERROR]: Error: Column count doesn't match value count at row 1
