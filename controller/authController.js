@@ -106,7 +106,7 @@ module.exports = {
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerUser - ${err}\n`);
                 res.status(500).json({
-                    "MESSAGE": "Internal Server Error"
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
                 return;
             }
@@ -181,7 +181,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - verifyStudent - ${err}\n`);
                     res.status(500).json({
-                        "MESSAGE": "Internal Server Error"
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                     return;
                 }
@@ -256,7 +256,7 @@ module.exports = {
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginStudent - ${err}\n`);
                 res.status(500).json({
-                    "MESSAGE": "Internal Server Error"
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
                 return;
             }
@@ -318,7 +318,7 @@ module.exports = {
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - forgotPasswordStudent - ${err}\n`);
                 res.status(500).json({
-                    "MESSAGE": "Internal Server Error"
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
                 return;
             }
@@ -393,7 +393,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - resetPasswordStudent - ${err}\n`);
                     res.status(500).json({
-                        "MESSAGE": "Internal Server Error"
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                     return;
                 }

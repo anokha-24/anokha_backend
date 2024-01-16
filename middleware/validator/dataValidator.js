@@ -80,5 +80,20 @@ module.exports = {
             return false;
         }
         return true;
-    }
+    },
+
+    isValidToggleStarredEventRequest: async (req) =>{
+        if(req.body.eventId==undefined || req.body.eventId == null || isNaN(req.body.eventId)){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES eventData READ");
+        const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId=?",[req.body.eventId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(event.length==0 || (req.body.isStarred != "0" && req.body.isStarred != "1")){
+            return false;
+        }
+        return true;
+    },
 }

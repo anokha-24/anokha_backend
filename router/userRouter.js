@@ -7,5 +7,6 @@ userRouter.get('/test', userController.testConnection);
 userRouter.get('/getAllEvents',userController.getAllEvents);
 userRouter.get('/getRegisteredEvents',userController.getRegisteredEvents);
 userRouter.get('/getStarredEvents',userController.getStarredEvents);
+userRouter.post('/toggleStarredEvent',userController.toggleStarredEvent);
 
 module.exports = userRouter;

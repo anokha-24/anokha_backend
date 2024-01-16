@@ -16,14 +16,91 @@ module.exports = {
         return;
     },
 
-    
+    /*
+    {
+        eventId: 1,
+        isStarred:"<0/1>"
+    }
+    */
+    toggleStarredEvent: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!await dataValidator.isValidToggleStarredEventRequest(req)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query("LOCK TABLES starredEvents WRITE");
+                    if(req.body.isStarred=="1"){
+                        [check] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?",[req.body.studentId,req.body.eventId]);
+                        if(check.length>0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Starred Event!"
+                            });
+                            return;
+                        }
+                        const query = `INSERT INTO starredEvents (studentId, eventId) VALUES (?, ?);`;
+                        await db_connection.query(query,[req.body.studentId,req.body.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Starred Event!"
+                        });
+                        return;
+                    }
+                    else if(req.body.isStarred=="0"){
+                        const query = `DELETE FROM starredEvents WHERE studentId=? AND eventId=?;`;
+                        await db_connection.query(query,[req.body.studentId,req.body.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Unstarred Event!"
+                        });
+                        return;
+                    }
+                    else{
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - toggleStarredEvent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            
+            }
+        }
+    ],
 
     getStarredEvents:[
         tokenValidator,
         async (req, res) => {
             if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
-                    "ERROR": "Access Restricted!"
+                    "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
@@ -191,7 +268,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getStarredEvents - ${err}\n`);
                     res.status(500).json({
-                        "MESSAGE": "Internal Server Error"
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                     return;
                 }
@@ -208,7 +285,7 @@ module.exports = {
         async (req, res) => {
             if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
-                    "ERROR": "Access Restricted!"
+                    "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
@@ -369,7 +446,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getRegisteredEvents - ${err}\n`);
                     res.status(500).json({
-                        "MESSAGE": "Internal Server Error"
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                     return;
                 }
@@ -386,7 +463,7 @@ module.exports = {
         async (req, res) => {
             if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
-                    "ERROR": "Access Restricted!"
+                    "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
@@ -669,7 +746,7 @@ module.exports = {
                     }
                     else{
                         res.status(401).json({
-                            "ERROR": "Unauthorized access. Warning."
+                            "MESSAGE": "Unauthorized access. Warning."
                         });
                         return;
                     }
@@ -679,7 +756,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEvents - ${err}\n`);
                     res.status(500).json({
-                        "MESSAGE": "Internal Server Error"
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                     return;
                 }
