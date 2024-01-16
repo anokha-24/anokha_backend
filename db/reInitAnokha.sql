@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS eventAttendanceData;
 DROP TABLE IF EXISTS eventRegistrationGroupData;
 DROP TABLE IF EXISTS eventRegistrationData;
 DROP TABLE IF EXISTS eventOrganizersData;
+DROP TABLE IF EXISTS eventTagData;
 DROP TABLE IF EXISTS eventData;
 DROP TABLE IF EXISTS forgotPasswordManager;
 DROP TABLE IF EXISTS forgotPasswordStudent;
@@ -26,6 +27,8 @@ CREATE TABLE IF NOT EXISTS managerRole (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+INSERT INTO managerRole (roleName) VALUES ("Super Admin");
+
 CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 
     departmentName VARCHAR(255) NOT NULL UNIQUE, 
@@ -41,6 +44,34 @@ CREATE TABLE IF NOT EXISTS tagData (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Computer Science", "CS");
+INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Competitive Programming", "CP");
+INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Internet Of Things", "IOT");
+
+
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Electrical and Electronics Engineering","EEE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Mechanical Engineering","MEE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Cyber Security", "CYS");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Mathematics", "MATH");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Electronics and Communication Engineering", "ECE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Computer Science and Engineering", "CSE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Social Work", "MSW");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Civil Engineering", "CIE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Agriculture", "AGRI");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("English", "ENG");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Chemical Engineering", "CHE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Aerospace Engineering", "AEE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Computer Engineering and Networking", "CEN");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Team Media - Club", "TM");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Amrita Centre for Entrepreneurship", "ACE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Department of Science", "SCI");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Nivesha - Club", "NIV");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Department of Mass Communication", "ASCOM");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Elite - Club", "ELITE");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Corporate and Industry Relations", "CIR");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Eventide", "EVN");
+INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Toastmasters - Club", "ATC");
 
 
 CREATE TABLE IF NOT EXISTS managerData (
@@ -61,15 +92,31 @@ CREATE TABLE IF NOT EXISTS managerData (
     CHECK (managerAccountStatus IN ("0", "1"))
 );
 
-CREATE TABLE IF NOT EXISTS tagFaculty (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    tagId INTEGER NOT NULL,
-    managerId INTEGER NOT NULL,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (tagId) REFERENCES tagData(tagId),
-    FOREIGN KEY (managerId) REFERENCES managerData(managerId)
+INSERT INTO managerData (
+    managerFullName, 
+    managerEmail, 
+    managerPhone, 
+    managerPassword, 
+    managerRoleId, 
+    managerDepartmentId
+) VALUES (
+    "Admin WMD",
+    "abhinavramki2@gmail.com", 
+    "9597347594",
+    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+    1,
+    6 
 );
+
+-- CREATE TABLE IF NOT EXISTS tagFaculty (
+--     id INTEGER PRIMARY KEY AUTO_INCREMENT,
+--     tagId INTEGER NOT NULL,
+--     managerId INTEGER NOT NULL,
+--     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     FOREIGN KEY (tagId) REFERENCES tagData(tagId),
+--     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
+-- );
 
 CREATE TABLE IF NOT EXISTS studentData (
     studentId INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -90,6 +137,14 @@ CREATE TABLE IF NOT EXISTS studentData (
 );
 
 -- studentAccountStatus: 0 = BLOCKED, 1 = REGISTERED, PENDING PASSPORT , 2 = PASSPORT DONE
+
+
+-- INSERT STUDENT DATA
+-- password = ark123@890
+
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
+
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -121,6 +176,7 @@ CREATE TABLE IF NOT EXISTS eventData (
     eventId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventName VARCHAR(255) NOT NULL,
     eventDescription VARCHAR(255) NOT NULL,
+    eventMarkdownDescription VARCHAR(5000) NOT NULL,
     eventDate DATE NOT NULL,
     eventTime TIME NOT NULL,
     eventVenue VARCHAR(255) NOT NULL,
@@ -137,15 +193,13 @@ CREATE TABLE IF NOT EXISTS eventData (
     isRefundable CHAR(1) NOT NULL,
     eventStatus CHAR(1) NOT NULL DEFAULT "1",
     needGroupData CHAR(1) NOT NULL DEFAULT "1",
-    eventTagId INTEGER,
     eventDepartmentId INTEGER,
     eventCreatedBy INTEGER NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (eventDepartmentId) REFERENCES departmentData(departmentId),
-    FOREIGN KEY (eventTagId) REFERENCES tagData(tagId),
     FOREIGN KEY (eventCreatedBy) REFERENCES managerData(managerId),
-    CHECK (eventTagId IS NOT NULL OR eventDepartmentId IS NOT NULL),
+    CHECK (eventDepartmentId IS NOT NULL),
     CHECK (isWorkshop IN ("0", "1")),
     CHECK (isTechnical IN ("0", "1")),
     CHECK (isGroup IN ("0", "1")),
@@ -155,6 +209,164 @@ CREATE TABLE IF NOT EXISTS eventData (
     CHECK (needGroupData IN ("0", "1"))
 );
 -- eventStatus: 0 = CANCELLED FROM ANOKHA, 1 = ACTIVE, 2 = CLOSED FOR REGISTRATIONS
+
+INSERT INTO eventData (
+    eventName, 
+    eventDescription, 
+    eventMarkdownDescription, 
+    eventDate, 
+    eventTime, 
+    eventVenue, 
+    eventImageURL, 
+    eventPrice, 
+    maxSeats, 
+    minTeamSize, 
+    maxTeamSize,
+    eventDepartmentId, 
+    isWorkshop, 
+    isTechnical, 
+    isGroup, 
+    isPerHeadPrice, 
+    isRefundable, 
+    eventStatus, 
+    needGroupData, 
+    eventCreatedBy
+) VALUES (
+    "Code Clash", 
+    "Welcome to the Code Clash Championship, where the brightest minds in the world of programming come together to engage in an exhilarating battle of algorithms and logic!", 
+    "# Code Clash Championship
+
+Welcome to the Code Clash Championship, an electrifying event that brings together the sharpest minds in the programming world. Brace yourself for an intense showdown of algorithms and logic, where participants will be tested on their problem-solving skills, coding prowess, and strategic thinking.
+
+## Event Highlights
+
+- **Global Participation:** Engage with participants from around the world, fostering a diverse and competitive environment.
+  
+- **Multi-Round Challenges:** Navigate through multiple rounds featuring a range of algorithmic problems, from fundamental coding tasks to advanced puzzles.
+
+- **Real-time Leaderboard:** Stay on the edge with a dynamic leaderboard, offering instant updates on participant rankings.
+
+- **Time Constraints:** Experience the thrill of time-bound challenges, testing your ability to code efficiently under pressure.
+
+- **Programming Languages:** Showcase your skills in your language of choice. The competition is language-agnostic, focusing on problem-solving abilities.
+
+- **Innovative Problem Statements:** Tackle thought-provoking problems crafted by our expert panel, combining classic algorithms with novel scenarios.
+
+- **Prizes and Recognition:** Compete for exciting prizes and gain recognition from the tech community and potential employers.
+
+- **Networking Opportunities:** Connect with like-minded individuals, share insights, and build a global network within the coding community.
+
+## Who Should Participate
+
+- Enthusiastic programmers
+- Computer science students
+- Software developers
+- Coding aficionados
+- Anyone passionate about honing their coding skills
+
+Gear up for an adrenaline-pumping coding experience where lines of code become your weapons, and logic serves as your armor. Join us at the Code Clash Championship and prove that you have what it takes to be crowned the coding champion!
+", 
+    "2021-03-01", 
+    "10:00:00", 
+    "Anugraha Hall", 
+    "https://anokha.amrita.edu/2023/static/media/anokha_app.07f6b3b86aebf193cfc4.png", 
+    200, 
+    10, 
+    2, 
+    4, 
+    6,
+    "0", 
+    "1", 
+    "1", 
+    "0", 
+    "1", 
+    "1", 
+    "0", 
+    1
+);
+
+INSERT INTO eventData (
+    eventName, 
+    eventDescription, 
+    eventMarkdownDescription, 
+    eventDate, 
+    eventTime, 
+    eventVenue, 
+    eventImageURL, 
+    eventPrice, 
+    maxSeats, 
+    minTeamSize, 
+    maxTeamSize,
+    eventDepartmentId, 
+    isWorkshop, 
+    isTechnical, 
+    isGroup, 
+    isPerHeadPrice, 
+    isRefundable, 
+    eventStatus, 
+    needGroupData, 
+    eventCreatedBy
+) VALUES (
+    "IOT Workshop",
+    "Participants will explore the concepts, technologies, and practical applications of IoT that are transforming the way we interact with the world.", 
+    "# IoT Workshop: Bridging the Physical and Digital Worlds
+
+Welcome to our IoT Workshop, where we dive into the fascinating realm of the Internet of Things (IoT). In this hands-on session, participants will explore the concepts, technologies, and practical applications of IoT that are transforming the way we interact with the world.
+
+## Workshop Highlights
+
+- **Date and Time:** [Insert Date and Time]
+- **Venue:** [Insert Venue]
+- **Duration:** [Insert Duration]
+
+## What to Expect
+
+### Overview
+IoT is revolutionizing industries, connecting devices, and creating smarter, more efficient systems. This workshop is designed for beginners and enthusiasts eager to understand the fundamentals and potential of IoT.
+
+### Key Topics Covered
+1. **Introduction to IoT**
+   - Understanding the basics: sensors, actuators, and connectivity.
+   
+2. **IoT Architecture**
+   - Exploring the layers: perception, network, and application layers.
+
+3. **Protocols and Communication**
+   - Overview of MQTT, CoAP, and HTTP protocols.
+   - Hands-on communication between devices.", 
+    "2021-03-03", 
+    "11:00:00", 
+    "Anugraha Hall", 
+    "https://anokha.amrita.edu/2023/static/media/anokha_app.07f6b3b86aebf193cfc4.png", 
+    100, 
+    100, 
+    1, 
+    1, 
+    6,
+    "1", 
+    "1", 
+    "0", 
+    "1", 
+    "1", 
+    "1", 
+    "0", 
+    1
+);
+
+CREATE TABLE IF NOT EXISTS eventTagData (
+    eventId INTEGER NOT NULL,
+    tagId INTEGER NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (eventId, tagId),
+    FOREIGN KEY (eventId) REFERENCES eventData(eventId),
+    FOREIGN KEY (tagId) REFERENCES tagData(tagId)
+);
+
+INSERT INTO eventTagData (eventId, tagId) VALUES (1, 1);
+INSERT INTO eventTagData (eventId, tagId) VALUES (1, 2);
+INSERT INTO eventTagData (eventId, tagId) VALUES (2, 1);
+INSERT INTO eventTagData (eventId, tagId) VALUES (2, 3);
 
 CREATE TABLE IF NOT EXISTS eventOrganizersData (
     eventId INTEGER NOT NULL,
@@ -194,16 +406,27 @@ CREATE TABLE IF NOT EXISTS eventRegistrationData (
 -- 6 -> EVENT WAS CANCELLED, refund done.
 -- 7 -> EVENT WAS CANCELLED, refund also rejected.
 
+
+-- added eventId field to minimize joins during getAllEvents for logged in Student
+-- added isOwnRegistration field to minimize joins during getAllEvents for logged in Student
 CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
     registrationId INTEGER NOT NULL,
     studentId INTEGER NOT NULL,
+    eventId INTEGER NOT NULL,
     roleDescription VARCHAR(255) DEFAULT NULL,
+    isOwnRegistration CHAR(1) NOT NULL DEFAULT "0",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (registrationId, studentId),
     FOREIGN KEY (registrationId) REFERENCES eventRegistrationData(registrationId),
-    FOREIGN KEY (studentId) REFERENCES studentData(studentId)
+    FOREIGN KEY (studentId) REFERENCES studentData(studentId),
+    FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
+
+INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (1, 1, "0", "simpletransactionid", 1, 200,"teamark", "2");
+INSERT INTO eventRegistrationGroupData (registrationId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1, 1, 1, "Team Leader", "1");
+
+INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (2, 1, "0", "simpletransactionid2", 1, 200,"teamark", "2");
 
 CREATE TABLE IF NOT EXISTS eventAttendanceData (
     attendanceId INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -236,6 +459,8 @@ CREATE TABLE IF NOT EXISTS starredEvents (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
 
+INSERT INTO starredEvents (studentId, eventId) VALUES (1, 1);
+
 CREATE TABLE IF NOT EXISTS crewDetails (
     crewId INTEGER PRIMARY KEY AUTO_INCREMENT,
     crewName VARCHAR(255) NOT NULL
@@ -266,10 +491,4 @@ CREATE TABLE IF NOT EXISTS managerLoginLogs(
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
-
--- INSERT STUDENT DATA
--- password = ark123@890
-
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
 
