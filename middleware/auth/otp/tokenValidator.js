@@ -9,7 +9,7 @@ async function otpTokenValidator(req, res, next) {
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
-            "ERROR": "No Token. Warning."
+            "MESSAGE": "No Token. Warning."
         });
         return;
     }
@@ -32,14 +32,14 @@ async function otpTokenValidator(req, res, next) {
         } else {
             //console.log(payLoad["secret_key"]);
             res.status(401).send({
-                "ERROR": "Unauthorized access. Warning."
+                "MESSAGE": "Unauthorized access. Warning."
             });
             return;
         }
     } catch (err) {
             //console.log(err);
             res.status(401).send({
-                "ERROR": "Unauthorized access. Warning."
+                "MESSAGE": "Unauthorized access. Warning."
             });
         return;
     }
