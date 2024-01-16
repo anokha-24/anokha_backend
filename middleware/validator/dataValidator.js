@@ -1,4 +1,5 @@
 const validator = require('validator');
+const [anokha_db, anokha_transactions_db] = require('../../connection/poolConnection');
 
 module.exports = {
     // Password should be greater than or equal to 8 characters. Cannot have hiphens or quotes.
@@ -37,7 +38,7 @@ module.exports = {
     */
     isValidStudentRegistration: (student) => {
         if (student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
-            validator.isEmail(student.studentEmail) &&
+            validator.isEmail(student.studentEmail) && student.studentEmail.length > 0 && student.studentEmail.length <= 255 &&
             student.studentPhone.length == 10 && validator.isNumeric(student.studentPhone) &&
             student.studentPassword.length > 0 && student.studentPassword.length <= 255 && 
             validator.isLength(student.studentPassword, { min: 8 }) && !validator.contains(student.studentPassword, '-' || "'") &&
@@ -68,4 +69,16 @@ module.exports = {
         }
         return false;
     },
+
+    isValidStudentRequest: async (studentId) =>{
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES studentData READ");
+        const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?",[studentId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(studentData.length==0 || (studentData.length>1 && studentData[0].studentAccountStatus=="0") ){
+            return false;
+        }
+        return true;
+    }
 }
