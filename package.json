@@ -4,7 +4,8 @@
   "description": "Backend | Anokha 2024",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "deploy": "pm2 start index.js -i max --name anokha_backend_2024"
   },
   "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
   "license": "ISC",
