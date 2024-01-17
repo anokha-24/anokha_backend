@@ -44,7 +44,7 @@ module.exports = {
             try {
                 //check if user already exists
                 await db_connection.query("LOCK TABLES studentData READ, studentRegister WRITE");
-                const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
+                const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ? OR studentPhone = ?", [req.body.studentEmail, req.body.studentPhone]);
                 if (result.length > 0) {
                     await db_connection.query("UNLOCK TABLES");
                     res.status(400).json({

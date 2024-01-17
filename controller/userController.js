@@ -65,7 +65,68 @@ module.exports = {
 
     ],
 
-    
+    /*
+    {
+        "studentFullName":"Abhinav Ramakrishnan",
+        "studentPhone":"9597347594",
+        "studentCollegeName":"Amrita Vishwa Vidyapeetham",
+        "studentCollegeCity":"Coimbatore"
+    }
+    */
+    editStudentProfile: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!dataValidator.isValidEditStudentProfile(req.body)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query("LOCK TABLES studentData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentPhone =? AND studentId != ?",[req.body.studentPhone, req.body.studentId]); 
+                    if(check.length>0){
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Phone Number Associated with Another Account!"
+                        });
+                        return;
+                    }
+                    const query = `UPDATE studentData SET studentFullName=?, studentPhone=?, studentCollegeName=?, studentCollegeCity=? WHERE studentId=?`;
+                    await db_connection.query(query,[req.body.studentFullName,req.body.studentPhone,req.body.studentCollegeName,req.body.studentCollegeCity,req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Edited Student Profile."
+                    });
+                    return;
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - editStudentProfile - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+
+    ],
 
     /*
     {

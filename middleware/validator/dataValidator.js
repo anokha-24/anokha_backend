@@ -82,6 +82,17 @@ module.exports = {
         return true;
     },
 
+    isValidEditStudentProfile: (student) => {
+        if (student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
+            student.studentPhone.length == 10 && validator.isNumeric(student.studentPhone) &&
+            student.studentCollegeName.length > 0 && student.studentCollegeName.length <= 255 &&
+            student.studentCollegeCity.length > 0 && student.studentCollegeCity.length <= 255) 
+        {
+            return true;
+        }
+        return false;
+    },
+
     isValidToggleStarredEventRequest: async (req) =>{
         if(req.body.eventId==undefined || req.body.eventId == null || isNaN(req.body.eventId)){
             return false;
