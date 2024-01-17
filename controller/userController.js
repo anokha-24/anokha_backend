@@ -576,6 +576,154 @@ module.exports = {
         }
     ],
 
+    /*
+    {
+        "registrationId": 1
+    }
+    */
+    registeredEventData: [
+        tokenValidator,
+        async (req, res) => {
+            if (!dataValidator.isValidStudentRequest)
+            {
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
+                try{
+                    await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ");
+                    
+                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId = ?",[req.body.registrationId]);
+                    if (event.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+                    if ( event.eventStatus == "0"){
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Event Cancelled from Anokha!"
+                        });
+                        return;
+                    }
+                    if(event.isGroup == "0" || event.needGroupData == "0"){
+                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ",[req.body.registrationId,req.body.studentId]);
+                        if (registration.length == 0) {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            
+                            let trasactionDetails;
+
+                            if(registration[0].isMarketPlacePaymentMode == "1")
+                            {
+                                await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
+                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                transaction_db_connection.query('UNLOCK TABLES');
+                            }
+                            else if (registration[0].isMarketPlacePaymentMode == "0")
+                            {
+                                await transaction_db_connection.query("LOCK TABLES transactionData READ");
+                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                transaction_db_connection.query('UNLOCK TABLES');
+                            }
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Fetched Registered Event Data.",
+                                "txnId": trasactionDetails[0].txnId,
+                                "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
+                                "transactionStatus": trasactionDetails[0].transactionStatus,
+                                "transactionAmount": trasactionDetails[0].amount
+                            });
+                            return;
+                        }
+                    }
+                    else if (event.isGroup == "1" && event.needGroupData == "1"){
+                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE registrationId=? and studentId =? ",[req.body.registrationId,req.body.studentId]);
+                        if (registration.length == 0) {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                            return;
+                        }
+                        else{
+                            const [team] = await db_connection.query(`
+                            SELECT eventRegistrationGroupData.studentId,
+                            studentData.studentFullName,
+                            studentData.studentEmail,
+                            studentData.studentPhone,
+                            studentData.studentCollegeName,
+                            studentData.studentCollegeCity
+                            FROM eventRegistrationGroupData
+                            LEFT JOIN studentData
+                            ON eventRegistrationGroupData.studentId = studentData.studentId
+                            WHERE eventRegistrationGroupData.registrationId=?`
+                            ,[req.body.registrationId]);
+                            
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+
+                            let trasactionDetails;
+
+                            if(registration[0].isMarketPlacePaymentMode == "1")
+                            {
+                                await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
+                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                transaction_db_connection.query('UNLOCK TABLES');
+                            }
+                            else if (registration[0].isMarketPlacePaymentMode == "0")
+                            {
+                                await transaction_db_connection.query("LOCK TABLES transactionData READ");
+                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                transaction_db_connection.query('UNLOCK TABLES');
+                            }
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Fetched Registered Event Data.",
+                                "txnId": trasactionDetails[0].txnId,
+                                "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
+                                "transactionStatus": trasactionDetails[0].transactionStatus,
+                                "transactionAmount": trasactionDetails[0].amount,
+                                "team": team
+                            });
+
+                        }
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - registeredEventData - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
+                    });
+                    return;
+                }
+                finally {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    await transaction_db_connection.query("UNLOCK TABLES");
+                    transaction_db_connection.release();
+                }    
+            }
+        }
+    ],
+
     getAllEvents: [
         validateEventRequest,
         async (req, res) => {

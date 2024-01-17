@@ -111,4 +111,12 @@ module.exports = {
         }
         return true;
     },
+
+    vaildRegistrationDataRequest: async (req) =>{
+        if(req.body.registrationId==undefined || req.body.registrationId == null || isNaN(req.body.registrationId)){
+            return false;
+        }
+        return true;
+    },
+
 }
