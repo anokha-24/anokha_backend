@@ -11,10 +11,61 @@ module.exports = {
     testConnection: async (req, res) => {
         res.status(200).json({
             "MESSAGE": "It's Working. 👍🏻",
-            "WHO": "User"
+            "WHO": "User/Student"
         });
         return;
     },
+    
+
+    getStudentProfile: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query("LOCK TABLES studentData READ, departmentData READ");
+                    const query = `SELECT * FROM studentData WHERE studentId=?`;
+                    const [student] = await db_connection.query(query,[req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Fetched Student Profile.",
+                        "studentFullName": student[0].studentFullName,
+                        "studentEmail": student[0].studentEmail,
+                        "studentPhone": student[0].studentPhone,
+                        "needPassport": student[0].needPassport,
+                        "studentAccountStatus": student[0].studentAccountStatus,
+                        "studentCollegeName": student[0].studentCollegeName,
+                        "studentCollegeCity": student[0].studentCollegeCity,
+                        "isInCampus": student[0].isInCampus
+                    });
+                    return;
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - studentProfile - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+
+    ],
+
+    
 
     /*
     {
