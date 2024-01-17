@@ -3,7 +3,7 @@ const fs = require('fs');
 const reinitDb = (db, dbName) => {
     try {
         if (dbName === "anokha") {
-            fs.readFile('./db/reinitAnokha.sql', 'utf8', (err, data) => {
+            fs.readFile('./reinitAnokha.sql', 'utf8', (err, data) => {
                 if (err) {
                     console.log(`[ERROR]: ${err}`);
                     fs.appendFileSync('./logs/db.log', `${new Date().toLocaleString} | [ERROR]: ${err}\n`)
@@ -20,7 +20,7 @@ const reinitDb = (db, dbName) => {
                 }
             });
         } else if (dbName === "anokha_transactions") {
-            fs.readFile('./db/reinitAnokhaTransactions.sql', 'utf8', (err, data) => {
+            fs.readFile('./reinitAnokhaTransactions.sql', 'utf8', (err, data) => {
                 if (err) {
                     console.log(`[ERROR]: ${err}`);
                     fs.appendFileSync('./logs/db.log', `${new Date().toLocaleString} | [ERROR]: ${err}\n`)
