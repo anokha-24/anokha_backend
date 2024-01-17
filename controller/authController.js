@@ -88,9 +88,9 @@ module.exports = {
 
                     await db_connection.query("DELETE FROM studentRegister WHERE studentEmail = ?", [req.body.studentEmail]);
                     //sha256 hash the otp
-                    otp = crypto.createHash('sha256').update(otp).digest('hex');
+                    const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
                     //insert OTP into studentRegister
-                    await db_connection.query("INSERT INTO studentRegister (studentEmail, otp) VALUES (?,?)", [req.body.studentEmail, otp]);
+                    await db_connection.query("INSERT INTO studentRegister (studentEmail, otp) VALUES (?,?)", [req.body.studentEmail, otp_hashed]);
 
 
                     //await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, needPassport, studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, isInCampus]);
@@ -306,8 +306,8 @@ module.exports = {
                         "studentId": student[0].studentId
                     });
                     //hash otp and insert into forgotPasswordStudent
-                    otp = crypto.createHash('sha256').update(otp).digest('hex');
-                    await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp]);
+                    const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
+                    await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp_hashed]);
                     await db_connection.query("UNLOCK TABLES");
                     mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
                     res.status(200).json({

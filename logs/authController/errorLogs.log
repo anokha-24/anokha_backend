@@ -4,3 +4,5 @@
 2024-01-15T12:11:53.702Z - forgotPasswordStudent - Error: Table 'anokha.studentforgotpassword' doesn't exist
 2024-01-15T12:16:30.551Z - forgotPasswordStudent - Error: Column count doesn't match value count at row 1
 2024-01-15T12:21:42.733Z - resetPasswordStudent - Error: Table 'forgotPasswordStudent' was locked with a READ lock and can't be updated
+2024-01-17T01:06:35.091Z - registerUser - TypeError: Assignment to constant variable.
+2024-01-17T01:07:59.493Z - registerUser - TypeError: Assignment to constant variable.
