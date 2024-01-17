@@ -8,5 +8,6 @@ userRouter.get('/getAllEvents',userController.getAllEvents);
 userRouter.get('/getRegisteredEvents',userController.getRegisteredEvents);
 userRouter.get('/getStarredEvents',userController.getStarredEvents);
 userRouter.post('/toggleStarredEvent',userController.toggleStarredEvent);
+userRouter.get('/getStudentProfile',userController.getStudentProfile);
 
 module.exports = userRouter;
