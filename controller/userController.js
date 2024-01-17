@@ -586,6 +586,7 @@ module.exports = {
         async (req, res) => {
             if (!dataValidator.isValidStudentRequest)
             {
+                console.log("testerror");
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
@@ -595,10 +596,13 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
                 try{
-                    await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ");
+                    //console.log("test0");
+                    await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
                     
-                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId = ?",[req.body.registrationId]);
+                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?",[req.body.registrationId]);
+                    //console.log("test0.1",event.length,event);
                     if (event.length == 0) {
+                        //console.log("test1");
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -606,7 +610,8 @@ module.exports = {
                         });
                         return;
                     }
-                    if ( event.eventStatus == "0"){
+                    if (event[0].eventStatus == "0"){
+                        //console.log("test2");
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -614,9 +619,11 @@ module.exports = {
                         });
                         return;
                     }
-                    if(event.isGroup == "0" || event.needGroupData == "0"){
+                    if(event[0].isGroup == "0" || event[0].needGroupData == "0"){
+                        //console.log("test3");
                         const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ",[req.body.registrationId,req.body.studentId]);
                         if (registration.length == 0) {
+                            //console.log("test4");
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
                             res.status(400).json({
@@ -625,6 +632,9 @@ module.exports = {
                             return;
                         }
                         else{
+                            //console.log("test5");
+                            [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?",[req.body.studentId]);
+
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
                             
@@ -632,29 +642,44 @@ module.exports = {
 
                             if(registration[0].isMarketPlacePaymentMode == "1")
                             {
+                                //console.log("test6");
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
-                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
                             else if (registration[0].isMarketPlacePaymentMode == "0")
                             {
+                                //console.log("test7");
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
-                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
+                            
+                            transaction_db_connection.release();
+
+                            //console.log("test8",trasactionDetails);
+
                             res.status(200).json({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
                                 "txnId": trasactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
                                 "transactionStatus": trasactionDetails[0].transactionStatus,
-                                "transactionAmount": trasactionDetails[0].amount
+                                "transactionAmount": trasactionDetails[0].amount,
+                                "transactionTime": trasactionDetails[0].createdAt,
+                                "team":student
                             });
                             return;
                         }
                     }
-                    else if (event.isGroup == "1" && event.needGroupData == "1"){
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE registrationId=? and studentId =? ",[req.body.registrationId,req.body.studentId]);
+                    else if (event[0].isGroup == "1" && event[0].needGroupData == "1"){
+                        const [registration] = await db_connection.query(`
+                        SELECT * FROM eventRegistrationGroupData
+                        LEFT JOIN eventRegistrationData ON
+                        eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId 
+                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `,[req.body.registrationId,req.body.studentId]);
+                        //console.log("test3",registration);
                         if (registration.length == 0) {
+                            //console.log("test4");
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
                             res.status(400).json({
@@ -665,6 +690,8 @@ module.exports = {
                         else{
                             const [team] = await db_connection.query(`
                             SELECT eventRegistrationGroupData.studentId,
+                            eventRegistrationGroupData.roleDescription,
+                            eventRegistrationGroupData.isOwnRegistration,
                             studentData.studentFullName,
                             studentData.studentEmail,
                             studentData.studentPhone,
@@ -684,23 +711,26 @@ module.exports = {
                             if(registration[0].isMarketPlacePaymentMode == "1")
                             {
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
-                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
                             else if (registration[0].isMarketPlacePaymentMode == "0")
                             {
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
-                                trasactionDetails = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
+                            transaction_db_connection.release();
                             res.status(200).json({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
                                 "txnId": trasactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
                                 "transactionStatus": trasactionDetails[0].transactionStatus,
                                 "transactionAmount": trasactionDetails[0].amount,
+                                "transactionTime": trasactionDetails[0].createdAt,
                                 "team": team
                             });
+                            return;
 
                         }
                     }

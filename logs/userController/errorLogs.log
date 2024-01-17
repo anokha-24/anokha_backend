@@ -21,3 +21,8 @@
 2024-01-16T21:53:10.286Z - getRegisteredEvents - Error: Table 'eventData' was not locked with LOCK TABLES
 2024-01-16T22:22:24.781Z - getAllEvents - Error: Table 'eventData' was not locked with LOCK TABLES
 2024-01-17T00:41:37.987Z - editStudentProfile - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE studentId != 1' at line 1
+2024-01-17T08:28:17.251Z - registeredEventData - Error: Table 'studentData' was not locked with LOCK TABLES
+2024-01-17T08:45:22.041Z - registeredEventData - TypeError: Cannot read properties of undefined (reading '0')
+2024-01-17T08:49:53.941Z - registeredEventData - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '= eventRegistrationGroupData.registrationId 
+                        WHERE event' at line 2
+2024-01-17T08:55:14.360Z - registeredEventData - Error: Table 'anokha.eventregistrationdata' doesn't exist
