@@ -57,17 +57,15 @@ async function validateEventRequest(req, res, next){
             next();
             return;
         } else {
-            console.log("else st");
-            res.status(401).send({
-                "MESSAGE": "Unauthorized access. Warning."
-            });
+            //console.log("else st");
+            req.body.isLoggedIn = "0";
+            next();
             return;
         }
     } catch (err) {
-        console.log("catch st");
-        res.status(401).send({
-            "MESSAGE": "Unauthorized access. Warning."
-        });
+        //console.log("catch st");
+        req.body.isLoggedIn = "0";
+        next();
         return;
     }
 }

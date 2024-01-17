@@ -263,7 +263,7 @@ module.exports = {
                     LEFT JOIN eventRegistrationData
                     ON eventRegistrationData.eventId = eventData.eventId
                     WHERE starredEvents.studentId = ${req.body.studentId}
-                    AND eventData.isGroup = "0"
+                    AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                     ;`
                     
                     const query2 =`
@@ -308,7 +308,7 @@ module.exports = {
                     LEFT JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
                     WHERE starredEvents.studentId = ${req.body.studentId}
-                    AND eventData.isGroup = "1"
+                    AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                     ;`;
 
                     const [rows] = await db_connection.query(query);
@@ -430,6 +430,8 @@ module.exports = {
                     eventData.isRefundable,
                     eventData.eventStatus,
                     "1" AS isOwnRegistration,
+                    eventRegistrationData.registrationId AS registrationId,
+                    eventRegistrationData.txnId AS txnId,
                     departmentData.departmentName,
                     departmentData.departmentAbbreviation,
                     tagData.tagName,
@@ -444,7 +446,7 @@ module.exports = {
                     INNER JOIN eventRegistrationData
                     ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
-                    AND eventData.isGroup = "0"
+                    AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                     ;`
 
                     const query2 = `
@@ -470,6 +472,8 @@ module.exports = {
                     eventData.isRefundable,
                     eventData.eventStatus,
                     eventRegistrationGroupData.isOwnRegistration AS isOwnRegistration,
+                    eventRegistrationGroupData.registrationId AS registrationId,
+                    eventRegistrationGroupData.txnId AS txnId,
                     departmentData.departmentName,
                     departmentData.departmentAbbreviation,
                     tagData.tagName,
@@ -484,7 +488,7 @@ module.exports = {
                     INNER JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
-                    AND eventData.isGroup = "1"
+                    AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                     ;`
 
                     const [rows] = await db_connection.query(query);
@@ -529,6 +533,8 @@ module.exports = {
                             isPerHeadPrice: event.isPerHeadPrice,
                             isRefundable: event.isRefundable,
                             eventStatus: event.eventStatus,
+                            registrationId: event.registrationId,
+                            txnId: event.txnId,
                             departmentName: event.departmentName,
                             departmentAbbreviation: event.departmentAbbreviation,
                             isOwnRegistration: event.isOwnRegistration,
@@ -573,7 +579,7 @@ module.exports = {
     getAllEvents: [
         validateEventRequest,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            if (req.body.isLoggedIn == "1" && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
@@ -732,7 +738,7 @@ module.exports = {
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
-                            eventData.isGroup = "0"
+                            ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         ;`;
                         
                         const query2 = `
@@ -784,7 +790,7 @@ module.exports = {
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
-                            eventData.isGroup = "1";`;
+                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )`;
 
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 

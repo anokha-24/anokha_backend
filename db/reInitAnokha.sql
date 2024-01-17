@@ -411,6 +411,7 @@ CREATE TABLE IF NOT EXISTS eventRegistrationData (
 -- added isOwnRegistration field to minimize joins during getAllEvents for logged in Student
 CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
     registrationId INTEGER NOT NULL,
+    txnId VARCHAR(255) DEFAULT NULL,
     studentId INTEGER NOT NULL,
     eventId INTEGER NOT NULL,
     roleDescription VARCHAR(255) DEFAULT NULL,
@@ -424,7 +425,7 @@ CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
 );
 
 INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (1, 1, "0", "simpletransactionid", 1, 200,"teamark", "2");
-INSERT INTO eventRegistrationGroupData (registrationId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1, 1, 1, "Team Leader", "1");
+INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 1, 1, "Team Leader", "1");
 
 INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (2, 1, "0", "simpletransactionid2", 1, 200,"teamark", "2");
 
