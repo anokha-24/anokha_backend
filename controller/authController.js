@@ -69,7 +69,7 @@ module.exports = {
                     const otp = generateOTP();
 
                     // sha256 hash the password.
-                    req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+                    //req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
 
                     //generate OTP token Payload
                     const secret_token = await otpTokenGenerator({
@@ -84,15 +84,17 @@ module.exports = {
                         "isInCampus": isInCampus
                     });
 
+                    mailer.studentRegistered(req.body.studentFullName, req.body.studentEmail, otp);
+
                     await db_connection.query("DELETE FROM studentRegister WHERE studentEmail = ?", [req.body.studentEmail]);
+                    //sha256 hash the otp
+                    otp = crypto.createHash('sha256').update(otp).digest('hex');
                     //insert OTP into studentRegister
                     await db_connection.query("INSERT INTO studentRegister (studentEmail, otp) VALUES (?,?)", [req.body.studentEmail, otp]);
 
 
                     //await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, needPassport, studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, isInCampus]);
                     await db_connection.query("UNLOCK TABLES");
-
-                    mailer.studentRegistered(req.body.studentFullName, req.body.studentEmail, otp)
 
                     res.status(200).json({
                         "SECRET_TOKEN": secret_token,
@@ -211,7 +213,7 @@ module.exports = {
                 await db_connection.query("LOCK TABLES studentData READ");
 
                 // sha256 hash the password, right now before its being done in frontend itself later.
-                req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+                //req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
 
                 //check if credentials are correct
                 const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ? and studentPassword = ?`, [req.body.studentEmail, req.body.studentPassword]);
@@ -303,6 +305,8 @@ module.exports = {
                         "studentEmail": student[0].studentEmail,
                         "studentId": student[0].studentId
                     });
+                    //hash otp and insert into forgotPasswordStudent
+                    otp = crypto.createHash('sha256').update(otp).digest('hex');
                     await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp]);
                     await db_connection.query("UNLOCK TABLES");
                     mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
@@ -367,6 +371,9 @@ module.exports = {
                         return;
                     }
 
+                    //sha256 hash the otp
+                    //req.body.otp = crypto.createHash('sha256').update(req.body.otp).digest('hex');
+
                     //check if OTP is correct
                     const [student] = await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ? and otp = ?`, [verify[0].studentId, req.body.otp]);
                     if (student.affectedRows === 0) {
@@ -379,7 +386,7 @@ module.exports = {
 
                     else {
                         //sha256 hash the password
-                        req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
+                        //req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
                         await db_connection.query("UPDATE studentData SET studentPassword = ? WHERE studentId = ?", [req.body.studentPassword, verify[0].studentId]);
                         await db_connection.query("UNLOCK TABLES");
                         res.status(200).json({

@@ -4,7 +4,11 @@ const [anokha_db, anokha_transactions_db] = require('../../connection/poolConnec
 module.exports = {
     // Password should be greater than or equal to 8 characters. Cannot have hiphens or quotes.
     isValidPassword: (password) => {
-        if (validator.isLength(password, { min: 8 }) && !validator.contains(password, '-' || "'")) {
+        // if (validator.isLength(password, { min: 8 }) && !validator.contains(password, '-' || "'")) {
+        //     return true;
+        // }
+        // return false;
+        if (password!=null && password.length > 8 && password.length <= 255 ) {
             return true;
         }
         return false;
@@ -18,9 +22,9 @@ module.exports = {
         return false;
     },
 
-    // OTP Should be exactly 6 digits and numeric only.
+    
     isValidOtp: (otp) => {
-        if (validator.isNumeric(otp) && validator.isLength(otp, { min: 6, max: 6 })) {
+        if (otp != null && otp.length>0 && otp.length<=255) {
             return true;
         }
         return false;
