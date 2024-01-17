@@ -144,7 +144,10 @@ CREATE TABLE IF NOT EXISTS studentData (
 
 INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
 VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
+-- password = password
 
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("Ashwin S", "cb.en.u4cse21008@cb.students.amrita.edu", "9695959595", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -281,7 +284,7 @@ Gear up for an adrenaline-pumping coding experience where lines of code become y
     "0", 
     "1", 
     "1", 
-    "0", 
+    "1", 
     1
 );
 
@@ -425,9 +428,10 @@ CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
 );
 
 INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (1, 1, "0", "simpletransactionid", 1, 200,"teamark", "2");
-INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 1, 1, "Team Leader", "1");
+INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 1, 1, "Member", "1");
+INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 2, 1, "Member", "0");
 
-INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (2, 1, "0", "simpletransactionid2", 1, 200,"teamark", "2");
+INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (2, 1, "1", "simpletransactionid2", 1, 200,"teamark", "2");
 
 CREATE TABLE IF NOT EXISTS eventAttendanceData (
     attendanceId INTEGER PRIMARY KEY AUTO_INCREMENT,

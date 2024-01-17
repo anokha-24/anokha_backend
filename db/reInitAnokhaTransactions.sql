@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS transactionData;
 DROP TABLE IF EXISTS marketPlaceTransactionData;
 
 CREATE TABLE IF NOT EXISTS transactionData (
-    txnid VARCHAR(255) NOT NULL,
+    txnId VARCHAR(255) NOT NULL,
     userId INT NOT NULL,
     amount INT NOT NULL,
     productinfo VARCHAR(5000) NOT NULL,
@@ -17,8 +17,29 @@ CREATE TABLE IF NOT EXISTS transactionData (
     -- 0: Pending, 1: Success, 2: Failed
 );
 
+INSERT INTO transactionData 
+(txnId, 
+userId, 
+amount, 
+productinfo, 
+firstname, 
+email, 
+phone, 
+transactionStatus) 
+VALUES
+('simpletransactionid', 
+1, 
+200, 
+'Test Product', 
+'Abhinav R',
+'cb.en.u4cse21001@cb.students.amrita.edu',
+'9595959595',
+'1'
+);
+
+
 CREATE TABLE IF NOT EXISTS marketPlaceTransactionData (
-    txnid VARCHAR(255) NOT NULL,
+    txnId VARCHAR(255) NOT NULL,
     userId INT NOT NULL,
     amount INT NOT NULL,
     productinfo VARCHAR(5000) NOT NULL,
@@ -31,4 +52,24 @@ CREATE TABLE IF NOT EXISTS marketPlaceTransactionData (
     PRIMARY KEY (txnid),
     CHECK (transactionStatus IN ('0', '1', '2'))
     -- 0: Pending, 1: Success, 2: Failed
+);
+
+INSERT INTO marketPlaceTransactionData 
+(txnId, 
+userId, 
+amount, 
+productinfo, 
+firstname, 
+email, 
+phone, 
+transactionStatus) 
+VALUES
+('simpletransactionid2', 
+1, 
+200, 
+'Test Product', 
+'Abhinav R',
+'cb.en.u4cse21001@cb.students.amrita.edu',
+'9595959595',
+'1'
 );
