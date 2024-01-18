@@ -30,7 +30,7 @@ async function tokenValidator(req, res, next) {
         }
     } catch (err) {
         res.status(401).send({
-            "MESSGE": "Unauthorized access. Warning."
+            "MESSAGE": "Unauthorized access. Warning."
         });
         return;
     }
