@@ -26,3 +26,8 @@
 2024-01-17T08:49:53.941Z - registeredEventData - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '= eventRegistrationGroupData.registrationId 
                         WHERE event' at line 2
 2024-01-17T08:55:14.360Z - registeredEventData - Error: Table 'anokha.eventregistrationdata' doesn't exist
+2024-01-19T20:32:24.972Z - getEventData - Error: Operand should contain 1 column(s)
+2024-01-19T20:33:01.304Z - getEventData - Error: Operand should contain 1 column(s)
+2024-01-19T20:33:56.032Z - getEventData - Error: Operand should contain 1 column(s)
+2024-01-19T20:36:10.680Z - getEventData - TypeError: Assignment to constant variable.
+2024-01-19T20:51:26.406Z - getEventData - Error: Operand should contain 1 column(s)

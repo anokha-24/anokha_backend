@@ -42,6 +42,7 @@ async function validateEventRequest(req, res, next){
     const token = tokenHeader && tokenHeader.split(' ')[1];
 
     if (tokenHeader == null || token == null) {
+        //console.log("empty header");
         req.body.isLoggedIn = "0";
         next();
         return;
@@ -63,7 +64,8 @@ async function validateEventRequest(req, res, next){
             return;
         }
     } catch (err) {
-        //console.log("catch st");
+        //console.log(err);
+        console.log("catch st");
         req.body.isLoggedIn = "0";
         next();
         return;

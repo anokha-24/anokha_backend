@@ -226,7 +226,6 @@ module.exports = {
                     eventData.eventId,
                     eventData.eventName,
                     eventData.eventDescription,
-                    eventData.eventMarkdownDescription,
                     eventData.eventDate,
                     eventData.eventTime,
                     eventData.eventVenue,
@@ -271,7 +270,6 @@ module.exports = {
                     eventData.eventId,
                     eventData.eventName,
                     eventData.eventDescription,
-                    eventData.eventMarkdownDescription,
                     eventData.eventDate,
                     eventData.eventTime,
                     eventData.eventVenue,
@@ -337,7 +335,6 @@ module.exports = {
                         eventId: event.eventId,
                         eventName: event.eventName,
                         eventDescription: event.eventDescription,
-                        eventMarkdownDescription: event.eventMarkdownDescription,
                         eventDate: event.eventDate,
                         eventTime: event.eventTime,
                         eventVenue: event.eventVenue,
@@ -412,7 +409,6 @@ module.exports = {
                     eventData.eventId,
                     eventData.eventName,
                     eventData.eventDescription,
-                    eventData.eventMarkdownDescription,
                     eventData.eventDate,
                     eventData.eventTime,
                     eventData.eventVenue,
@@ -454,7 +450,6 @@ module.exports = {
                     eventData.eventId,
                     eventData.eventName,
                     eventData.eventDescription,
-                    eventData.eventMarkdownDescription,
                     eventData.eventDate,
                     eventData.eventTime,
                     eventData.eventVenue,
@@ -516,7 +511,6 @@ module.exports = {
                             eventId: event.eventId,
                             eventName: event.eventName,
                             eventDescription: event.eventDescription,
-                            eventMarkdownDescription: event.eventMarkdownDescription,
                             eventDate: event.eventDate,
                             eventTime: event.eventTime,
                             eventVenue: event.eventVenue,
@@ -774,7 +768,6 @@ module.exports = {
                         eventData.eventId,
                         eventData.eventName,
                         eventData.eventDescription,
-                        eventData.eventMarkdownDescription,
                         eventData.eventDate,
                         eventData.eventTime,
                         eventData.eventVenue,
@@ -827,7 +820,6 @@ module.exports = {
                             eventId: event.eventId,
                             eventName: event.eventName,
                             eventDescription: event.eventDescription,
-                            eventMarkdownDescription: event.eventMarkdownDescription,
                             eventDate: event.eventDate,
                             eventTime: event.eventTime,
                             eventVenue: event.eventVenue,
@@ -872,7 +864,6 @@ module.exports = {
                             eventData.eventId,
                             eventData.eventName,
                             eventData.eventDescription,
-                            eventData.eventMarkdownDescription,
                             eventData.eventDate,
                             eventData.eventTime,
                             eventData.eventVenue,
@@ -924,7 +915,6 @@ module.exports = {
                             eventData.eventId,
                             eventData.eventName,
                             eventData.eventDescription,
-                            eventData.eventMarkdownDescription,
                             eventData.eventDate,
                             eventData.eventTime,
                             eventData.eventVenue,
@@ -1000,7 +990,6 @@ module.exports = {
                             eventId: event.eventId,
                             eventName: event.eventName,
                             eventDescription: event.eventDescription,
-                            eventMarkdownDescription: event.eventMarkdownDescription,
                             eventDate: event.eventDate,
                             eventTime: event.eventTime,
                             eventVenue: event.eventVenue,
@@ -1062,5 +1051,157 @@ module.exports = {
                 }
             }
         }
-    ],    
+    ], 
+    
+    getEventData: [
+        validateEventRequest,
+        async (req, res) => {
+            
+            req.params.eventId = parseInt(req.params.eventId);
+            //console.log(req.body.isLoggedIn, req.body.studentId);
+
+            if(req.body.isLoggedIn=="0" || !dataValidator.isValidStudentRequest(req.body.studentId))
+            {
+                //console.log("testerror");
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+
+                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
+
+                    let [event] = await db_connection.query(`
+                    SELECT * FROM eventData 
+                    LEFT JOIN departmentData
+                    ON eventData.eventDepartmentId = departmentData.departmentId
+                    WHERE eventId=?`,[req.params.eventId]);
+                    if(event.length==0 || event[0].eventStatus=="0"){
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+                    else{
+                        event = event[0];
+                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`,[req.params.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Fetched Event Data.",
+                            "eventId":event.eventId,
+                            "eventName": event.eventName,
+                            "eventDescription": event.eventDescription,
+                            "eventMarkdownDescription": event.eventMarkdownDescription,
+                            "eventDate": event.eventDate,
+                            "eventTime": event.eventTime,
+                            "eventVenue": event.eventVenue,
+                            "eventImageURL": event.eventImageURL,
+                            "eventPrice": event.eventPrice,
+                            "maxSeats": event.maxSeats,
+                            "seatsFilled": event.seatsFilled,
+                            "minTeamSize": event.minTeamSize,
+                            "maxTeamSize": event.maxTeamSize,
+                            "isWorkshop": event.isWorkshop,
+                            "isTechnical": event.isTechnical,
+                            "isGroup": event.isGroup,
+                            "needGroupData": event.needGroupData,
+                            "isPerHeadPrice": event.isPerHeadPrice,
+                            "isRefundable": event.isRefundable,
+                            "eventStatus": event.eventStatus,
+                            "departmentName": event.departmentName,
+                            "departmentAbbreviation": event.departmentAbbreviation,
+                            "tags": tags
+                        });
+                        return;
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+            else if (req.body.isLoggedIn == "1" && dataValidator.isValidStudentRequest(req.body.studentId))
+            {
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+
+                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
+
+                    let [event] = await db_connection.query(`
+                    SELECT * FROM eventData 
+                    LEFT JOIN departmentData
+                    ON eventData.eventDepartmentId = departmentData.departmentId
+                    WHERE eventId=?`,[req.params.eventId]);
+                    if(event.length==0 || event[0].eventStatus=="0"){
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+                    else{
+                        event = event[0];
+                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`,[req.params.eventId]);
+                        const [starred] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?",[req.body.studentId,req.params.eventId]); 
+                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?",[req.body.studentId,req.params.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Fetched Event Data.",
+                            "eventId":event.eventId,
+                            "eventName": event.eventName,
+                            "eventDescription": event.eventDescription,
+                            "eventMarkdownDescription": event.eventMarkdownDescription,
+                            "eventDate": event.eventDate,
+                            "eventTime": event.eventTime,
+                            "eventVenue": event.eventVenue,
+                            "eventImageURL": event.eventImageURL,
+                            "eventPrice": event.eventPrice,
+                            "maxSeats": event.maxSeats,
+                            "seatsFilled": event.seatsFilled,
+                            "minTeamSize": event.minTeamSize,
+                            "maxTeamSize": event.maxTeamSize,
+                            "isWorkshop": event.isWorkshop,
+                            "isTechnical": event.isTechnical,
+                            "isGroup": event.isGroup,
+                            "needGroupData": event.needGroupData,
+                            "isPerHeadPrice": event.isPerHeadPrice,
+                            "isRefundable": event.isRefundable,
+                            "eventStatus": event.eventStatus,
+                            "departmentName": event.departmentName,
+                            "departmentAbbreviation": event.departmentAbbreviation,
+                            "tags": tags,
+                            "isStarred": starred.length>0?"1":"0",
+                            "isRegistered": registration.length>0?"1":"0",
+                            "registrationId": registration.length>0?registration[0].registrationId:null,
+                        });
+                        return;
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team"
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
 }
