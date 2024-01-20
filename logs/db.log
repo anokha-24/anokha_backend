@@ -144,3 +144,5 @@ function toLocaleString() { [native code] } | [ERROR]: Error: Cannot add or upda
 function toLocaleString() { [native code] } | [ERROR]: Error: Duplicate entry 'cb.en.u4cse21001@cb.students.amrita.edu' for key 'studentdata.studentEmail'
 function toLocaleString() { [native code] } | [ERROR]: Error: Column count doesn't match value count at row 1
 function toLocaleString() { [native code] } | [ERROR]: Error: Duplicate entry '9595959595' for key 'studentdata.studentPhone'
+function toLocaleString() { [native code] } | [ERROR]: Error: Duplicate entry '1' for key 'managerrole.PRIMARY'
+function toLocaleString() { [native code] } | [ERROR]: Error: Cannot add or update a child row: a foreign key constraint fails (`anokha`.`managerdata`, CONSTRAINT `managerdata_ibfk_1` FOREIGN KEY (`managerRoleId`) REFERENCES `managerrole` (`roleId`))
