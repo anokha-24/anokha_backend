@@ -1104,7 +1104,7 @@ module.exports = {
                         const result = Array.from(aggregatedDataMap.values());
 
                         //console.log(result);
-                        
+
                         // MODE 0 - Not Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched All Events.",
@@ -1278,7 +1278,7 @@ module.exports = {
                         const result = Array.from(aggregatedDataMap.values());
 
                         //console.log(result);
-                        
+
                         // MODE 1 - Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched All Events.",
