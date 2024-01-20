@@ -227,7 +227,7 @@ module.exports = {
                 else {
 
                     //if account is blocked
-                    if (student.studentAccountStatus === "0") {
+                    if (student[0].studentAccountStatus === "0") {
                         return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
                     }
                     else {
@@ -257,6 +257,83 @@ module.exports = {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginStudent - ${err}\n`);
+                res.status(500).json({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+                return;
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    },
+
+
+    /*{
+        "managerEmail": "",
+        "managerPassword": ""
+    }*/    
+    loginAdmin: async (req, res) => {
+        //validate Request
+        if (!dataValidator.isValidAdminLogin(req.body)) {
+            res.status(400).json({
+                "MESSAGE": "Invalid Data"
+            });
+            return;
+        }
+        //if request is valid
+        else {
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+                await db_connection.query("LOCK TABLES managerData READ, managerRole READ");
+
+                // sha256 hash the password, right now before its being done in frontend itself later.
+                //req.body.managerPassword = crypto.createHash('sha256').update(req.body.managerPassword).digest('hex');
+
+                //check if credentials are correct
+                const [manager] = await db_connection.query(`SELECT * from managerData where managerEmail = ? and managerPassword = ?`, [req.body.managerEmail, req.body.managerPassword]);
+
+                //if credentials are incorrect
+                if (manager.length === 0) {
+                    await db_connection.query("UNLOCK TABLES");
+                    return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
+                }
+                //if credentials are correct
+                else {
+
+                    //if account is blocked
+                    if (manager[0].managerAccountStatus === "0") {
+                        await db_connection.query("UNLOCK TABLES");
+                        return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
+                    }
+                    else {
+                        const [role]= await db_connection.query(`SELECT * from managerRole where roleId = ?`, [manager[0].managerRoleId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        
+                        //generate token and send student details as response
+                        const token = await tokenGenerator({
+                            "managerEmail": req.body.managerEmail,
+                            "managerId": manager[0].managerId,
+                            "authorizationTier": manager[0].managerRoleId
+                        });
+                        res.status(200).json({
+                            "MESSAGE": "Admin Login Successful!",
+                            "SECRET_TOKEN": token,
+                            "managerFullName": manager[0].managerFullName,
+                            "managerEmail": manager[0].managerEmail,
+                            "managerPhone": manager[0].managerPhone,
+                            "managerRoleId": manager[0].managerRoleId,
+                            "managerRoleName": role[0].roleName,
+                        });
+                        return;
+                    }
+                }
+            }
+            catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginAdmin - ${err}\n`);
                 res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });

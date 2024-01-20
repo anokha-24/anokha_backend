@@ -64,10 +64,22 @@ module.exports = {
         return true;
     },
 
+    //sha256 consists only Hexadecimal characters.
     isValidStudentLogin: (student) => {
         if (validator.isEmail(student.studentEmail) &&
             student.studentPassword.length > 0 && student.studentPassword.length <= 255 &&
             validator.isLength(student.studentPassword, { min: 8 }) && !validator.contains(student.studentPassword, '-' || "'")) 
+        {
+            return true;
+        }
+        return false;
+    },
+
+    //sha256 consists only Hexadecimal characters.
+    isValidAdminLogin: (manager) => {
+        if (validator.isEmail(manager.managerEmail) &&
+            manager.managerPassword.length > 0 && manager.managerPassword.length <= 255 &&
+            validator.isLength(manager.managerPassword, { min: 8 }) && !validator.contains(manager.managerPassword, '-' || "'")) 
         {
             return true;
         }

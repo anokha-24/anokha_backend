@@ -23,26 +23,41 @@ DROP TABLE IF EXISTS managerRole;
 CREATE TABLE IF NOT EXISTS managerRole (
     roleId INTEGER PRIMARY KEY AUTO_INCREMENT,
     roleName VARCHAR(255) NOT NULL UNIQUE,
+    isActive CHAR(1) NOT NULL DEFAULT "1",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (isActive IN ("0", "1"))
 );
 
-INSERT INTO managerRole (roleName) VALUES ("Super Admin");
+INSERT INTO managerRole (roleId, roleName) VALUES (1,"Super Admin");
+INSERT INTO managerRole (roleId, roleName) VALUES (2,"Admin");
+INSERT INTO managerRole (roleId, roleName) VALUES (3,"Event Head");
+INSERT INTO managerRole (roleId, roleName) VALUES (4,"Finance");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"Department Head");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"Faculty Coordinator");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"Student Coordinator");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
+INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
+INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Head");
 
 CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 
     departmentName VARCHAR(255) NOT NULL UNIQUE, 
     departmentAbbreviation VARCHAR(255) NOT NULL UNIQUE,
+    isActive CHAR(1) NOT NULL DEFAULT "1",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (isActive IN ("0", "1"))
 );
 
 CREATE TABLE IF NOT EXISTS tagData (
     tagId INTEGER PRIMARY KEY AUTO_INCREMENT,
     tagName VARCHAR(255) NOT NULL UNIQUE,
     tagAbbreviation VARCHAR(255) NOT NULL UNIQUE,
+    isActive CHAR(1) NOT NULL DEFAULT "1",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (isActive IN ("0", "1"))
 );
 
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Computer Science", "CS");
@@ -100,9 +115,25 @@ INSERT INTO managerData (
     managerRoleId, 
     managerDepartmentId
 ) VALUES (
-    "Admin WMD",
+    "Admin WMD Ark",
     "abhinavramki2@gmail.com", 
-    "9597347594",
+    "9595959599",
+    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+    1,
+    6 
+);
+
+INSERT INTO managerData (
+    managerFullName, 
+    managerEmail, 
+    managerPhone, 
+    managerPassword, 
+    managerRoleId, 
+    managerDepartmentId
+) VALUES (
+    "Admin WMD Ash",
+    "ashrockzzz2003@gmail.com", 
+    "9696969696",
     "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
     1,
     6 
