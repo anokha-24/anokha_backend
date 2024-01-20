@@ -11,5 +11,6 @@ authRouter.post('/forgotPasswordStudent', authController.forgotPasswordStudent);
 authRouter.post('/resetPasswordStudent', authController.resetPasswordStudent);
 
 authRouter.post('/loginAdmin', authController.loginAdmin);
+authRouter.post('/registerAdmin', authController.registerAdmin);
 
 module.exports = authRouter;

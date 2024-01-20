@@ -4,11 +4,15 @@ const [anokha_db, anokha_transactions_db] = require('../connection/poolConnectio
 const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
 const [otpTokenValidator, studentResetPasswordValidator] = require('../middleware/auth/otp/tokenValidator');
 const tokenGenerator = require('../middleware/auth/login/tokenGenerator');
+const adminTokenGenerator = require('../middleware/auth/login/adminTokenGenerator');
+const [adminTokenValidator, adminTokenValidatorRegister] = require('../middleware/auth/login/adminTokenValidator');
 const tokenValidator = require('../middleware/auth/login/tokenValidator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
 const crypto = require('crypto');
 const validator = require('validator');
+const { db } = require('../config/appConfig');
+const passwordGenerator = require('secure-random-password');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -312,7 +316,7 @@ module.exports = {
                         await db_connection.query("UNLOCK TABLES");
                         
                         //generate token and send student details as response
-                        const token = await tokenGenerator({
+                        const token = await adminTokenGenerator({
                             "managerEmail": req.body.managerEmail,
                             "managerId": manager[0].managerId,
                             "authorizationTier": manager[0].managerRoleId
@@ -345,6 +349,64 @@ module.exports = {
             }
         }
     },
+
+    registerAdmin:[
+        adminTokenValidatorRegister,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == "1" || req.body.authorizationTier == "2")){
+                res.status(401).json({
+                    "MESSAGE": "Unauthorized access. Warning."
+                });
+                return;
+            }
+            else{
+                //Validate Request
+                if (!await dataValidator.isValidAdminRegistration(req.body)) {
+                    res.status(400).json({
+                        "MESSAGE": "Invalid Data"
+                    });
+                    return;
+                }
+                else{
+                    //check if user already exists
+
+                    const db_connection = await anokha_db.promise().getConnection();
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [result] = await db_connection.query("SELECT * FROM managerData WHERE managerEmail = ? OR managerPhone = ?", [req.body.managerEmail, req.body.managerPhone]);
+                    if (result.length > 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Manager Already Exists!"
+                        });
+                        return;
+                    }
+
+                    // generate a random password for the manager.
+                    const managerPassword = passwordGenerator.randomPassword({
+                        length: 8,
+                        characters: [passwordGenerator.lower, passwordGenerator.upper, passwordGenerator.digits]
+                    });
+
+                    // sha256 hash the password.
+                    const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
+
+                    await db_connection.query("LOCK TABLES managerData WRITE");
+                    await db_connection.query("INSERT INTO managerData (managerFullName, managerEmail, managerPhone, managerPassword, managerRoleId, managerDepartmentId, managerAddedBy) VALUES (?,?,?,?,?,?,?)", [req.body.managerFullName, req.body.managerEmail, req.body.managerPhone, passwordHashed, req.body.managerRoleId, req.body.managerDepartmentId, req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+
+                    // Email the password to the manager.
+                    mailer.managerRegistered(req.body.managerFullName, req.body.managerEmail, managerPassword);
+                    
+                    res.status(200).json({
+                        "MESSAGE": "Manager Registered Successfully!"
+                    });
+                    return;
+                }
+            }
+        }
+    ],
 
     /*{
         "studentEmail": ""

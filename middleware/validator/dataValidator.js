@@ -75,6 +75,29 @@ module.exports = {
         return false;
     },
 
+    isValidAdminRegistration: async (manager) => {
+        if (manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+            validator.isEmail(manager.managerEmail) && manager.managerEmail.length > 0 && manager.managerEmail.length <= 255 &&
+            manager.managerPhone.length == 10 && validator.isNumeric(manager.managerPhone) &&
+            manager.managerRoleId!=1 &&
+            manager.managerRoleId!=null && manager.managerRoleId!=undefined && !isNaN(manager.managerRoleId) &&
+            manager.managerDepartmentId!=null && manager.managerDepartmentId!=undefined && !isNaN(manager.managerDepartmentId) 
+            )
+        {
+            //console.log(manager.managerRoleId,manager.managerDepartmentId);
+            const db_connection = await anokha_db.promise().getConnection();
+            await db_connection.query("LOCK TABLES managerRole READ, departmentData READ");
+            const [role] = await db_connection.query("SELECT * from managerRole WHERE roleId = ?",[manager.managerRoleId]);
+            const [department] = await db_connection.query("SELECT * from departmentData WHERE departmentId = ?",[manager.managerDepartmentId]);
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+            if(role.length!=0 && department.length!=0){
+                return true;
+            }
+        }
+        return false;
+    },
+
     //sha256 consists only Hexadecimal characters.
     isValidAdminLogin: (manager) => {
         if (validator.isEmail(manager.managerEmail) &&

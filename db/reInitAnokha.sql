@@ -38,7 +38,7 @@ INSERT INTO managerRole (roleId, roleName) VALUES (6,"Faculty Coordinator");
 INSERT INTO managerRole (roleId, roleName) VALUES (7,"Student Coordinator");
 INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
 INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
-INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Head");
+INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Desk");
 
 CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 

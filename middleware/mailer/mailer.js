@@ -4,6 +4,7 @@ const appConfig = require('../../config/appConfig');
 
 const TEMPLATE_STUDENT_REGISTERED = require('./template_student_registered');
 const TEMPLATE_STUDENT_FORGOT_PASSWORD = require('./template_student_forgot_password');
+const TEMPLATE_MANAGER_REGISTERED = require('./template_manager_registered');
 
 
 const transporter = mailer.createTransport(appConfig.mailer.obj);
@@ -28,6 +29,27 @@ module.exports = {
             }
         });
     },
+
+    managerRegistered: (managerName, managerEmail, managerPassword) => {
+        var mailOptions = {
+            from: {
+                name: appConfig.mailer.name,
+                address: appConfig.mailer.obj.auth.user
+            },
+            to: managerEmail,
+            subject: '[Admin Login Credentials] - Anokha 2024',
+            html: TEMPLATE_MANAGER_REGISTERED(managerName, managerPassword)
+        }
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Manager Account Credentials sent: ' + managerEmail);
+            }
+        });
+    },
+
     forgotPassword: (studentFullName, studentEmail, otp) => {
         var mailOptions = {
             from: {
