@@ -1343,8 +1343,10 @@ module.exports = {
                         const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
+                        //MODE: 0 - Not Logged In, 1 - Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched Event Data.",
+                            "MODE": "0",
                             "eventId": event.eventId,
                             "eventName": event.eventName,
                             "eventDescription": event.eventDescription,
@@ -1390,7 +1392,7 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
 
-                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
+                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ, eventRegistrationGroupData READ");
 
                     let [event] = await db_connection.query(`
                     SELECT * FROM eventData 
@@ -1409,11 +1411,19 @@ module.exports = {
                         event = event[0];
                         const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
                         const [starred] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                        let registration;
+                        if(event.isGroup == "0" || event.needGroupData == "0") {
+                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                        }
+                        else if(event.isGroup == "1" && event.needGroupData == "1") {
+                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                        }
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
+                        //MODE: 0 - Not Logged In, 1 - Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched Event Data.",
+                            "MODE": "1",
                             "eventId": event.eventId,
                             "eventName": event.eventName,
                             "eventDescription": event.eventDescription,
