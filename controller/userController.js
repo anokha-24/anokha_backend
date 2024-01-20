@@ -5,7 +5,7 @@ const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
 const appConfig = require('../config/appConfig');
-const [tokenValidator,validateEventRequest] = require('../middleware/auth/login/tokenValidator');
+const [tokenValidator, validateEventRequest] = require('../middleware/auth/login/tokenValidator');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -15,23 +15,23 @@ module.exports = {
         });
         return;
     },
-    
+
 
     getStudentProfile: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
                     await db_connection.query("LOCK TABLES studentData READ, departmentData READ");
                     const query = `SELECT * FROM studentData WHERE studentId=?`;
-                    const [student] = await db_connection.query(query,[req.body.studentId]);
+                    const [student] = await db_connection.query(query, [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                     res.status(200).json({
@@ -47,7 +47,7 @@ module.exports = {
                     });
                     return;
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - studentProfile - ${err}\n`);
@@ -56,7 +56,7 @@ module.exports = {
                     });
                     return;
                 }
-                finally{
+                finally {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
@@ -76,24 +76,24 @@ module.exports = {
     editStudentProfile: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
-            if(!dataValidator.isValidEditStudentProfile(req.body)){
+            if (!dataValidator.isValidEditStudentProfile(req.body)) {
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
                     await db_connection.query("LOCK TABLES studentData WRITE");
-                    const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentPhone =? AND studentId != ?",[req.body.studentPhone, req.body.studentId]); 
-                    if(check.length>0){
+                    const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentPhone =? AND studentId != ?", [req.body.studentPhone, req.body.studentId]);
+                    if (check.length > 0) {
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -102,7 +102,7 @@ module.exports = {
                         return;
                     }
                     const query = `UPDATE studentData SET studentFullName=?, studentPhone=?, studentCollegeName=?, studentCollegeCity=? WHERE studentId=?`;
-                    await db_connection.query(query,[req.body.studentFullName,req.body.studentPhone,req.body.studentCollegeName,req.body.studentCollegeCity,req.body.studentId]);
+                    await db_connection.query(query, [req.body.studentFullName, req.body.studentPhone, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                     res.status(200).json({
@@ -110,7 +110,7 @@ module.exports = {
                     });
                     return;
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - editStudentProfile - ${err}\n`);
@@ -119,7 +119,7 @@ module.exports = {
                     });
                     return;
                 }
-                finally{
+                finally {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
@@ -137,25 +137,25 @@ module.exports = {
     toggleStarredEvent: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
-            if(!await dataValidator.isValidToggleStarredEventRequest(req)){
+            if (!await dataValidator.isValidToggleStarredEventRequest(req)) {
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
                     await db_connection.query("LOCK TABLES starredEvents WRITE");
-                    if(req.body.isStarred=="1"){
-                        [check] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?",[req.body.studentId,req.body.eventId]);
-                        if(check.length>0){
+                    if (req.body.isStarred == "1") {
+                        [check] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.body.eventId]);
+                        if (check.length > 0) {
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
                             res.status(200).json({
@@ -164,7 +164,7 @@ module.exports = {
                             return;
                         }
                         const query = `INSERT INTO starredEvents (studentId, eventId) VALUES (?, ?);`;
-                        await db_connection.query(query,[req.body.studentId,req.body.eventId]);
+                        await db_connection.query(query, [req.body.studentId, req.body.eventId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(200).json({
@@ -172,9 +172,9 @@ module.exports = {
                         });
                         return;
                     }
-                    else if(req.body.isStarred=="0"){
+                    else if (req.body.isStarred == "0") {
                         const query = `DELETE FROM starredEvents WHERE studentId=? AND eventId=?;`;
-                        await db_connection.query(query,[req.body.studentId,req.body.eventId]);
+                        await db_connection.query(query, [req.body.studentId, req.body.eventId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(200).json({
@@ -182,14 +182,14 @@ module.exports = {
                         });
                         return;
                     }
-                    else{
+                    else {
                         res.status(400).json({
                             "MESSAGE": "Invalid Request!"
                         });
                         return;
                     }
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - toggleStarredEvent - ${err}\n`);
@@ -198,16 +198,16 @@ module.exports = {
                     });
                     return;
                 }
-                finally{
+                finally {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
-            
+
             }
         }
     ],
 
-    getStarredEvents:[
+    getStarredEvents: [
         tokenValidator,
         async (req, res) => {
             if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
@@ -216,11 +216,11 @@ module.exports = {
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ, eventRegistrationGroupData READ");
-                    
+
                     const query = `
                     SELECT
                     eventData.eventId,
@@ -245,7 +245,7 @@ module.exports = {
                     CASE
                         WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
                         ELSE "0"
-                    END AS isUserRegistered,
+                    END AS isRegistered,
                     departmentData.departmentName,
                     departmentData.departmentAbbreviation,
                     tagData.tagName,
@@ -264,8 +264,8 @@ module.exports = {
                     WHERE starredEvents.studentId = ${req.body.studentId}
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                     ;`
-                    
-                    const query2 =`
+
+                    const query2 = `
                     SELECT
                     eventData.eventId,
                     eventData.eventName,
@@ -289,7 +289,7 @@ module.exports = {
                     CASE
                         WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
                         ELSE "0"
-                    END AS isUserRegistered,
+                    END AS isRegistered,
                     departmentData.departmentName,
                     departmentData.departmentAbbreviation,
                     tagData.tagName,
@@ -316,49 +316,49 @@ module.exports = {
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
-                    
+
                     const aggregatedDataMap = new Map();
 
                     // Iterate through each event object
                     concat_rows.forEach((event) => {
-                    // Check if the eventId already exists in the map
-                    if (aggregatedDataMap.has(event.eventId)) {
-                        // If yes, push the current event data to the existing array
-                        const existingData = aggregatedDataMap.get(event.eventId);
-                        existingData.tags.push({
-                        tagName: event.tagName,
-                        tagAbbreviation: event.tagAbbreviation,
-                        });
-                    } else {
-                        // If no, create a new array with the current event data
-                        aggregatedDataMap.set(event.eventId, {
-                        eventId: event.eventId,
-                        eventName: event.eventName,
-                        eventDescription: event.eventDescription,
-                        eventDate: event.eventDate,
-                        eventTime: event.eventTime,
-                        eventVenue: event.eventVenue,
-                        eventImageURL: event.eventImageURL,
-                        eventPrice: event.eventPrice,
-                        maxSeats: event.maxSeats,
-                        seatsFilled: event.seatsFilled,
-                        minTeamSize: event.minTeamSize,
-                        maxTeamSize: event.maxTeamSize,
-                        isWorkshop: event.isWorkshop,
-                        isTechnical: event.isTechnical,
-                        isGroup: event.isGroup,
-                        needGroupData: event.needGroupData,
-                        isPerHeadPrice: event.isPerHeadPrice,
-                        isRefundable: event.isRefundable,
-                        eventStatus: event.eventStatus,
-                        departmentName: event.departmentName,
-                        departmentAbbreviation: event.departmentAbbreviation,
-                        tags: [{
-                            tagName: event.tagName,
-                            tagAbbreviation: event.tagAbbreviation,
-                        }],
-                        });
-                    }
+                        // Check if the eventId already exists in the map
+                        if (aggregatedDataMap.has(event.eventId)) {
+                            // If yes, push the current event data to the existing array
+                            const existingData = aggregatedDataMap.get(event.eventId);
+                            existingData.tags.push({
+                                tagName: event.tagName,
+                                tagAbbreviation: event.tagAbbreviation,
+                            });
+                        } else {
+                            // If no, create a new array with the current event data
+                            aggregatedDataMap.set(event.eventId, {
+                                eventId: event.eventId,
+                                eventName: event.eventName,
+                                eventDescription: event.eventDescription,
+                                eventDate: event.eventDate,
+                                eventTime: event.eventTime,
+                                eventVenue: event.eventVenue,
+                                eventImageURL: event.eventImageURL,
+                                eventPrice: event.eventPrice,
+                                maxSeats: event.maxSeats,
+                                seatsFilled: event.seatsFilled,
+                                minTeamSize: event.minTeamSize,
+                                maxTeamSize: event.maxTeamSize,
+                                isWorkshop: event.isWorkshop,
+                                isTechnical: event.isTechnical,
+                                isGroup: event.isGroup,
+                                needGroupData: event.needGroupData,
+                                isPerHeadPrice: event.isPerHeadPrice,
+                                isRefundable: event.isRefundable,
+                                eventStatus: event.eventStatus,
+                                departmentName: event.departmentName,
+                                departmentAbbreviation: event.departmentAbbreviation,
+                                tags: [{
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                }],
+                            });
+                        }
                     });
 
                     // Convert the map values to an array
@@ -372,7 +372,7 @@ module.exports = {
                     });
                     return;
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getStarredEvents - ${err}\n`);
@@ -398,9 +398,9 @@ module.exports = {
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
 
@@ -495,65 +495,65 @@ module.exports = {
 
                     const aggregatedDataMap = new Map();
 
-                        // Iterate through each event object
-                        concat_rows.forEach((event) => {
+                    // Iterate through each event object
+                    concat_rows.forEach((event) => {
                         // Check if the eventId already exists in the map
                         if (aggregatedDataMap.has(event.eventId)) {
                             // If yes, push the current event data to the existing array
                             const existingData = aggregatedDataMap.get(event.eventId);
                             existingData.tags.push({
-                            tagName: event.tagName,
-                            tagAbbreviation: event.tagAbbreviation,
+                                tagName: event.tagName,
+                                tagAbbreviation: event.tagAbbreviation,
                             });
                         } else {
                             // If no, create a new array with the current event data
                             aggregatedDataMap.set(event.eventId, {
-                            eventId: event.eventId,
-                            eventName: event.eventName,
-                            eventDescription: event.eventDescription,
-                            eventDate: event.eventDate,
-                            eventTime: event.eventTime,
-                            eventVenue: event.eventVenue,
-                            eventImageURL: event.eventImageURL,
-                            eventPrice: event.eventPrice,
-                            maxSeats: event.maxSeats,
-                            seatsFilled: event.seatsFilled,
-                            minTeamSize: event.minTeamSize,
-                            maxTeamSize: event.maxTeamSize,
-                            isWorkshop: event.isWorkshop,
-                            isTechnical: event.isTechnical,
-                            isGroup: event.isGroup,
-                            needGroupData: event.needGroupData,
-                            isPerHeadPrice: event.isPerHeadPrice,
-                            isRefundable: event.isRefundable,
-                            eventStatus: event.eventStatus,
-                            registrationId: event.registrationId,
-                            txnId: event.txnId,
-                            departmentName: event.departmentName,
-                            departmentAbbreviation: event.departmentAbbreviation,
-                            isOwnRegistration: event.isOwnRegistration,
-                            tags: [{
-                                tagName: event.tagName,
-                                tagAbbreviation: event.tagAbbreviation,
-                            }],
+                                eventId: event.eventId,
+                                eventName: event.eventName,
+                                eventDescription: event.eventDescription,
+                                eventDate: event.eventDate,
+                                eventTime: event.eventTime,
+                                eventVenue: event.eventVenue,
+                                eventImageURL: event.eventImageURL,
+                                eventPrice: event.eventPrice,
+                                maxSeats: event.maxSeats,
+                                seatsFilled: event.seatsFilled,
+                                minTeamSize: event.minTeamSize,
+                                maxTeamSize: event.maxTeamSize,
+                                isWorkshop: event.isWorkshop,
+                                isTechnical: event.isTechnical,
+                                isGroup: event.isGroup,
+                                needGroupData: event.needGroupData,
+                                isPerHeadPrice: event.isPerHeadPrice,
+                                isRefundable: event.isRefundable,
+                                eventStatus: event.eventStatus,
+                                registrationId: event.registrationId,
+                                txnId: event.txnId,
+                                departmentName: event.departmentName,
+                                departmentAbbreviation: event.departmentAbbreviation,
+                                isOwnRegistration: event.isOwnRegistration,
+                                tags: [{
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                }],
                             });
                         }
-                        });
+                    });
 
-                        // Convert the map values to an array
-                        const result = Array.from(aggregatedDataMap.values());
+                    // Convert the map values to an array
+                    const result = Array.from(aggregatedDataMap.values());
 
-                        //console.log(result);
+                    //console.log(result);
 
-                        res.status(200).json({
-                            "MESSAGE": "Successfully Fetched Registered Events.",
-                            "EVENTS": result
-                        });
-                        return;
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Fetched Registered Events.",
+                        "EVENTS": result
+                    });
+                    return;
 
 
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getRegisteredEvents - ${err}\n`);
@@ -578,22 +578,21 @@ module.exports = {
     registeredEventData: [
         tokenValidator,
         async (req, res) => {
-            if (!dataValidator.isValidStudentRequest)
-            {
+            if (!dataValidator.isValidStudentRequest) {
                 console.log("testerror");
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
-            else{
+            else {
                 const db_connection = await anokha_db.promise().getConnection();
                 const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
-                try{
+                try {
                     //console.log("test0");
                     await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
-                    
-                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?",[req.body.registrationId]);
+
+                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?", [req.body.registrationId]);
                     //console.log("test0.1",event.length,event);
                     if (event.length == 0) {
                         //console.log("test1");
@@ -604,7 +603,7 @@ module.exports = {
                         });
                         return;
                     }
-                    if (event[0].eventStatus == "0"){
+                    if (event[0].eventStatus == "0") {
                         //console.log("test2");
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
@@ -613,9 +612,9 @@ module.exports = {
                         });
                         return;
                     }
-                    if(event[0].isGroup == "0" || event[0].needGroupData == "0"){
+                    if (event[0].isGroup == "0" || event[0].needGroupData == "0") {
                         //console.log("test3");
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ",[req.body.registrationId,req.body.studentId]);
+                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ", [req.body.registrationId, req.body.studentId]);
                         if (registration.length == 0) {
                             //console.log("test4");
                             await db_connection.query("UNLOCK TABLES");
@@ -625,30 +624,28 @@ module.exports = {
                             });
                             return;
                         }
-                        else{
+                        else {
                             //console.log("test5");
-                            [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?",[req.body.studentId]);
+                            [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
 
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
-                            
+
                             let trasactionDetails;
 
-                            if(registration[0].isMarketPlacePaymentMode == "1")
-                            {
+                            if (registration[0].isMarketPlacePaymentMode == "1") {
                                 //console.log("test6");
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
-                            else if (registration[0].isMarketPlacePaymentMode == "0")
-                            {
+                            else if (registration[0].isMarketPlacePaymentMode == "0") {
                                 //console.log("test7");
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
-                            
+
                             transaction_db_connection.release();
 
                             //console.log("test8",trasactionDetails);
@@ -660,17 +657,17 @@ module.exports = {
                                 "transactionStatus": trasactionDetails[0].transactionStatus,
                                 "transactionAmount": trasactionDetails[0].amount,
                                 "transactionTime": trasactionDetails[0].createdAt,
-                                "team":student
+                                "team": student
                             });
                             return;
                         }
                     }
-                    else if (event[0].isGroup == "1" && event[0].needGroupData == "1"){
+                    else if (event[0].isGroup == "1" && event[0].needGroupData == "1") {
                         const [registration] = await db_connection.query(`
                         SELECT * FROM eventRegistrationGroupData
                         LEFT JOIN eventRegistrationData ON
                         eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId 
-                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `,[req.body.registrationId,req.body.studentId]);
+                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `, [req.body.registrationId, req.body.studentId]);
                         //console.log("test3",registration);
                         if (registration.length == 0) {
                             //console.log("test4");
@@ -681,7 +678,7 @@ module.exports = {
                             });
                             return;
                         }
-                        else{
+                        else {
                             const [team] = await db_connection.query(`
                             SELECT eventRegistrationGroupData.studentId,
                             eventRegistrationGroupData.roleDescription,
@@ -695,23 +692,21 @@ module.exports = {
                             LEFT JOIN studentData
                             ON eventRegistrationGroupData.studentId = studentData.studentId
                             WHERE eventRegistrationGroupData.registrationId=?`
-                            ,[req.body.registrationId]);
-                            
+                                , [req.body.registrationId]);
+
                             await db_connection.query("UNLOCK TABLES");
                             db_connection.release();
 
                             let trasactionDetails;
 
-                            if(registration[0].isMarketPlacePaymentMode == "1")
-                            {
+                            if (registration[0].isMarketPlacePaymentMode == "1") {
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
-                            else if (registration[0].isMarketPlacePaymentMode == "0")
-                            {
+                            else if (registration[0].isMarketPlacePaymentMode == "0") {
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?',[registration[0].txnId]);
+                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
                             transaction_db_connection.release();
@@ -729,7 +724,7 @@ module.exports = {
                         }
                     }
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - registeredEventData - ${err}\n`);
@@ -743,12 +738,12 @@ module.exports = {
                     db_connection.release();
                     await transaction_db_connection.query("UNLOCK TABLES");
                     transaction_db_connection.release();
-                }    
+                }
             }
         }
     ],
 
-    getAllEvents: [
+    getAllEventsJSVersion: [
         validateEventRequest,
         async (req, res) => {
             if (req.body.isLoggedIn == "1" && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
@@ -757,14 +752,14 @@ module.exports = {
                 });
                 return;
             }
-            else{
-                const db_connection = await anokha_db.promise().getConnection();
-                try{
-                    if (req.body.isLoggedIn == "0") {
-                        
-                        await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
-                        
-                        const query = `SELECT
+
+            const db_connection = await anokha_db.promise().getConnection();
+
+            try {
+                if (req.body.isLoggedIn === "0") {
+                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
+
+                    const query = `SELECT
                         eventData.eventId,
                         eventData.eventName,
                         eventData.eventDescription,
@@ -797,68 +792,329 @@ module.exports = {
                         ON eventTagData.tagId = tagData.tagId
                         ;`;
 
-                        const [rows] = await db_connection.query(query);
+                    const [rows] = await db_connection.query(query);
 
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        
-                        const aggregatedDataMap = new Map();
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
 
-                        // Iterate through each event object
-                        rows.forEach((event) => {
+                    const aggregatedDataMap = new Map();
+
+                    // Iterate through each event object
+                    rows.forEach((event) => {
                         // Check if the eventId already exists in the map
                         if (aggregatedDataMap.has(event.eventId)) {
                             // If yes, push the current event data to the existing array
                             const existingData = aggregatedDataMap.get(event.eventId);
                             existingData.tags.push({
-                            tagName: event.tagName,
-                            tagAbbreviation: event.tagAbbreviation,
+                                tagName: event.tagName,
+                                tagAbbreviation: event.tagAbbreviation,
                             });
                         } else {
                             // If no, create a new array with the current event data
                             aggregatedDataMap.set(event.eventId, {
-                            eventId: event.eventId,
-                            eventName: event.eventName,
-                            eventDescription: event.eventDescription,
-                            eventDate: event.eventDate,
-                            eventTime: event.eventTime,
-                            eventVenue: event.eventVenue,
-                            eventImageURL: event.eventImageURL,
-                            eventPrice: event.eventPrice,
-                            maxSeats: event.maxSeats,
-                            seatsFilled: event.seatsFilled,
-                            minTeamSize: event.minTeamSize,
-                            maxTeamSize: event.maxTeamSize,
-                            isWorkshop: event.isWorkshop,
-                            isTechnical: event.isTechnical,
-                            isGroup: event.isGroup,
-                            needGroupData: event.needGroupData,
-                            isPerHeadPrice: event.isPerHeadPrice,
-                            isRefundable: event.isRefundable,
-                            eventStatus: event.eventStatus,
-                            departmentName: event.departmentName,
-                            departmentAbbreviation: event.departmentAbbreviation,
-                            tags: [{
-                                tagName: event.tagName,
-                                tagAbbreviation: event.tagAbbreviation,
-                            }],
+                                eventId: event.eventId,
+                                eventName: event.eventName,
+                                eventDescription: event.eventDescription,
+                                eventDate: event.eventDate,
+                                eventTime: event.eventTime,
+                                eventVenue: event.eventVenue,
+                                eventImageURL: event.eventImageURL,
+                                eventPrice: event.eventPrice,
+                                maxSeats: event.maxSeats,
+                                seatsFilled: event.seatsFilled,
+                                minTeamSize: event.minTeamSize,
+                                maxTeamSize: event.maxTeamSize,
+                                isWorkshop: event.isWorkshop,
+                                isTechnical: event.isTechnical,
+                                isGroup: event.isGroup,
+                                needGroupData: event.needGroupData,
+                                isPerHeadPrice: event.isPerHeadPrice,
+                                isRefundable: event.isRefundable,
+                                eventStatus: event.eventStatus,
+                                departmentName: event.departmentName,
+                                departmentAbbreviation: event.departmentAbbreviation,
+                                tags: [{
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                }],
                             });
                         }
+                    });
+
+                    // Convert the map values to an array
+                    const result = Array.from(aggregatedDataMap.values());
+
+                    //console.log(result);
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Fetched All Events.",
+                        "MODE": "0",
+                        "EVENTS": result
+                    });
+                    return;
+                } else {
+
+                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, eventRegistrationData READ, eventRegistrationGroupData READ, starredEvents READ");
+
+                    const [registeredEventData] = await db_connection.query(`SELECT eventId, registrationId FROM eventRegistrationData WHERE studentId = ${req.body.studentId} AND registrationStatus = "2"`);
+
+                    const [registeredByTeamEventData] = await db_connection.query(`SELECT eventId, registrationId FROM eventRegistrationGroupData WHERE studentId = ${req.body.studentId}`);
+
+                    const [starredEventData] = await db_connection.query(`SELECT eventId FROM starredEvents WHERE studentId = ${req.body.studentId}`);
+
+                    const registeredEventDataDict = {}, registeredByTeamEventDataDict = {}, starredEventDataDict = {}, registrationIdDict = {};
+
+                    registeredEventData.forEach((event) => {
+                        registeredEventDataDict[event.eventId] = 1;
+                        registrationIdDict[event.eventId] = event.registrationId;
+                    });
+
+                    registeredByTeamEventData.forEach((event) => {
+                        registeredByTeamEventDataDict[event.eventId] = 1;
+                        registrationIdDict[event.eventId] = event.registrationId;
+                    });
+
+                    starredEventData.forEach((event) => {
+                        starredEventDataDict[event.eventId] = 1;
+                    });
+
+                    const query = `SELECT
+                        eventData.eventId,
+                        eventData.eventName,
+                        eventData.eventDescription,
+                        eventData.eventDate,
+                        eventData.eventTime,
+                        eventData.eventVenue,
+                        eventData.eventImageURL,
+                        eventData.eventPrice,
+                        eventData.maxSeats,
+                        eventData.seatsFilled,
+                        eventData.minTeamSize,
+                        eventData.maxTeamSize,
+                        eventData.isWorkshop,
+                        eventData.isTechnical,
+                        eventData.isGroup,
+                        eventData.needGroupData,
+                        eventData.isPerHeadPrice,
+                        eventData.isRefundable,
+                        eventData.eventStatus,
+                        departmentData.departmentName,
+                        departmentData.departmentAbbreviation,
+                        tagData.tagName,
+                        tagData.tagAbbreviation
+                        FROM eventData 
+                        LEFT JOIN departmentData 
+                        ON eventData.eventDepartmentId = departmentData.departmentId
+                        INNER JOIN eventTagData
+                        ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData 
+                        ON eventTagData.tagId = tagData.tagId
+                        ;`;
+
+                    const [rows] = await db_connection.query(query);
+
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+
+                    const aggregatedDataMap = new Map();
+
+                    // Iterate through each event object
+                    rows.forEach((event) => {
+                        // Check if the eventId already exists in the map
+                        if (aggregatedDataMap.has(event.eventId)) {
+                            // If yes, push the current event data to the existing array
+                            const existingData = aggregatedDataMap.get(event.eventId);
+                            existingData.tags.push({
+                                tagName: event.tagName,
+                                tagAbbreviation: event.tagAbbreviation,
+                            });
+                        } else {
+                            // If no, create a new array with the current event data
+                            aggregatedDataMap.set(event.eventId, {
+                                eventId: event.eventId,
+                                eventName: event.eventName,
+                                eventDescription: event.eventDescription,
+                                eventDate: event.eventDate,
+                                eventTime: event.eventTime,
+                                eventVenue: event.eventVenue,
+                                eventImageURL: event.eventImageURL,
+                                eventPrice: event.eventPrice,
+                                maxSeats: event.maxSeats,
+                                seatsFilled: event.seatsFilled,
+                                minTeamSize: event.minTeamSize,
+                                maxTeamSize: event.maxTeamSize,
+                                isWorkshop: event.isWorkshop,
+                                isTechnical: event.isTechnical,
+                                isGroup: event.isGroup,
+                                needGroupData: event.needGroupData,
+                                isPerHeadPrice: event.isPerHeadPrice,
+                                isRefundable: event.isRefundable,
+                                eventStatus: event.eventStatus,
+                                departmentName: event.departmentName,
+                                departmentAbbreviation: event.departmentAbbreviation,
+                                tags: [{
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                }],
+                            });
+                        }
+                    });
+
+                    // Convert the map values to an array
+                    const result = Array.from(aggregatedDataMap.values());
+
+                    for (let i = 0; i < result.length; i++) {
+                        if (registeredEventDataDict[result[i].eventId] == 1 && registeredByTeamEventDataDict[result[i].eventId] == 1) {
+                            result[i].isOwnRegistration = "1";
+                            result[i].registrationId = registrationIdDict[result[i].eventId];
+                        }
+                        if (registeredByTeamEventDataDict[result[i].eventId] == 1 && registeredEventDataDict[result[i].eventId] != 1) {
+                            result[i].isOwnRegistration = "0";
+                            result[i].registrationId = registrationIdDict[result[i].eventId];
+                        }
+
+                        if (starredEventDataDict[result[i].eventId] == 1) {
+                            result[i].isStarred = "1";
+                        }
+                        if (starredEventDataDict[result[i].eventId] != 1) {
+                            result[i].isStarred = "0";
+                        }
+                    }
+
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Fetched All Events.",
+                        "MODE": "1",
+                        "EVENTS": result
+                    });
+                    return;
+
+                }
+            } catch (error) {
+                console.log(error);
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEventsJSVersion - ${error}\n`);
+                res.status(500).json({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    ],
+
+    getAllEvents: [
+        validateEventRequest,
+        async (req, res) => {
+            if (req.body.isLoggedIn == "1" && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else {
+                const db_connection = await anokha_db.promise().getConnection();
+                try {
+                    if (req.body.isLoggedIn == "0") {
+
+                        await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
+
+                        const query = `SELECT
+                        eventData.eventId,
+                        eventData.eventName,
+                        eventData.eventDescription,
+                        eventData.eventDate,
+                        eventData.eventTime,
+                        eventData.eventVenue,
+                        eventData.eventImageURL,
+                        eventData.eventPrice,
+                        eventData.maxSeats,
+                        eventData.seatsFilled,
+                        eventData.minTeamSize,
+                        eventData.maxTeamSize,
+                        eventData.isWorkshop,
+                        eventData.isTechnical,
+                        eventData.isGroup,
+                        eventData.needGroupData,
+                        eventData.isPerHeadPrice,
+                        eventData.isRefundable,
+                        eventData.eventStatus,
+                        departmentData.departmentName,
+                        departmentData.departmentAbbreviation,
+                        tagData.tagName,
+                        tagData.tagAbbreviation
+                        FROM eventData 
+                        LEFT JOIN departmentData
+                        ON eventData.eventDepartmentId = departmentData.departmentId
+                        INNER JOIN eventTagData
+                        ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData
+                        ON eventTagData.tagId = tagData.tagId
+                        ;`;
+
+                        const [rows] = await db_connection.query(query);
+
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+
+                        const aggregatedDataMap = new Map();
+
+                        // Iterate through each event object
+                        rows.forEach((event) => {
+                            // Check if the eventId already exists in the map
+                            if (aggregatedDataMap.has(event.eventId)) {
+                                // If yes, push the current event data to the existing array
+                                const existingData = aggregatedDataMap.get(event.eventId);
+                                existingData.tags.push({
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                });
+                            } else {
+                                // If no, create a new array with the current event data
+                                aggregatedDataMap.set(event.eventId, {
+                                    eventId: event.eventId,
+                                    eventName: event.eventName,
+                                    eventDescription: event.eventDescription,
+                                    eventDate: event.eventDate,
+                                    eventTime: event.eventTime,
+                                    eventVenue: event.eventVenue,
+                                    eventImageURL: event.eventImageURL,
+                                    eventPrice: event.eventPrice,
+                                    maxSeats: event.maxSeats,
+                                    seatsFilled: event.seatsFilled,
+                                    minTeamSize: event.minTeamSize,
+                                    maxTeamSize: event.maxTeamSize,
+                                    isWorkshop: event.isWorkshop,
+                                    isTechnical: event.isTechnical,
+                                    isGroup: event.isGroup,
+                                    needGroupData: event.needGroupData,
+                                    isPerHeadPrice: event.isPerHeadPrice,
+                                    isRefundable: event.isRefundable,
+                                    eventStatus: event.eventStatus,
+                                    departmentName: event.departmentName,
+                                    departmentAbbreviation: event.departmentAbbreviation,
+                                    tags: [{
+                                        tagName: event.tagName,
+                                        tagAbbreviation: event.tagAbbreviation,
+                                    }],
+                                });
+                            }
                         });
 
                         // Convert the map values to an array
                         const result = Array.from(aggregatedDataMap.values());
 
                         //console.log(result);
-
+                        
+                        // MODE 0 - Not Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched All Events.",
+                            "MODE": "0",
                             "EVENTS": result
                         });
                         return;
                     }
-                    else if (req.body.isLoggedIn == "1"){
-                        
+                    else if (req.body.isLoggedIn == "1") {
+
                         const query = `
                         SELECT
                             eventData.eventId,
@@ -887,7 +1143,7 @@ module.exports = {
                             CASE
                                 WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
                                 ELSE "0"
-                            END AS isUserRegistered,
+                            END AS isRegistered,
                             CASE
                                 WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
                                 ELSE "0"
@@ -909,7 +1165,7 @@ module.exports = {
                         WHERE
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         ;`;
-                        
+
                         const query2 = `
                         SELECT
                             eventData.eventId,
@@ -938,7 +1194,7 @@ module.exports = {
                             CASE
                                 WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
                                 ELSE "0"
-                            END AS isUserRegistered,
+                            END AS isRegistered,
                             CASE
                                 WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
                                 ELSE "0"
@@ -971,72 +1227,74 @@ module.exports = {
                         await db_connection.query("UNLOCK TABLES");
 
                         //console.log("test");
-                        
+
                         const aggregatedDataMap = new Map();
 
                         // Iterate through each event object
                         concat_rows.forEach((event) => {
-                        // Check if the eventId already exists in the map
-                        if (aggregatedDataMap.has(event.eventId)) {
-                            // If yes, push the current event data to the existing array
-                            const existingData = aggregatedDataMap.get(event.eventId);
-                            existingData.tags.push({
-                            tagName: event.tagName,
-                            tagAbbreviation: event.tagAbbreviation,
-                            });
-                        } else {
-                            // If no, create a new array with the current event data
-                            aggregatedDataMap.set(event.eventId, {
-                            eventId: event.eventId,
-                            eventName: event.eventName,
-                            eventDescription: event.eventDescription,
-                            eventDate: event.eventDate,
-                            eventTime: event.eventTime,
-                            eventVenue: event.eventVenue,
-                            eventImageURL: event.eventImageURL,
-                            eventPrice: event.eventPrice,
-                            maxSeats: event.maxSeats,
-                            seatsFilled: event.seatsFilled,
-                            minTeamSize: event.minTeamSize,
-                            maxTeamSize: event.maxTeamSize,
-                            isWorkshop: event.isWorkshop,
-                            isTechnical: event.isTechnical,
-                            isGroup: event.isGroup,
-                            needGroupData: event.needGroupData,
-                            isPerHeadPrice: event.isPerHeadPrice,
-                            isRefundable: event.isRefundable,
-                            eventStatus: event.eventStatus,
-                            departmentName: event.departmentName,
-                            departmentAbbreviation: event.departmentAbbreviation,
-                            isUserRegistered: event.isUserRegistered,
-                            isStarred: event.isStarred,
-                            tags: [{
-                                tagName: event.tagName,
-                                tagAbbreviation: event.tagAbbreviation,
-                            }],
-                            });
-                        }
+                            // Check if the eventId already exists in the map
+                            if (aggregatedDataMap.has(event.eventId)) {
+                                // If yes, push the current event data to the existing array
+                                const existingData = aggregatedDataMap.get(event.eventId);
+                                existingData.tags.push({
+                                    tagName: event.tagName,
+                                    tagAbbreviation: event.tagAbbreviation,
+                                });
+                            } else {
+                                // If no, create a new array with the current event data
+                                aggregatedDataMap.set(event.eventId, {
+                                    eventId: event.eventId,
+                                    eventName: event.eventName,
+                                    eventDescription: event.eventDescription,
+                                    eventDate: event.eventDate,
+                                    eventTime: event.eventTime,
+                                    eventVenue: event.eventVenue,
+                                    eventImageURL: event.eventImageURL,
+                                    eventPrice: event.eventPrice,
+                                    maxSeats: event.maxSeats,
+                                    seatsFilled: event.seatsFilled,
+                                    minTeamSize: event.minTeamSize,
+                                    maxTeamSize: event.maxTeamSize,
+                                    isWorkshop: event.isWorkshop,
+                                    isTechnical: event.isTechnical,
+                                    isGroup: event.isGroup,
+                                    needGroupData: event.needGroupData,
+                                    isPerHeadPrice: event.isPerHeadPrice,
+                                    isRefundable: event.isRefundable,
+                                    eventStatus: event.eventStatus,
+                                    departmentName: event.departmentName,
+                                    departmentAbbreviation: event.departmentAbbreviation,
+                                    isRegistered: event.isRegistered,
+                                    isStarred: event.isStarred,
+                                    tags: [{
+                                        tagName: event.tagName,
+                                        tagAbbreviation: event.tagAbbreviation,
+                                    }],
+                                });
+                            }
                         });
 
                         // Convert the map values to an array
                         const result = Array.from(aggregatedDataMap.values());
 
                         //console.log(result);
-
+                        
+                        // MODE 1 - Logged In
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched All Events.",
+                            "MODE": "1",
                             "EVENTS": result
                         });
                         return;
                     }
-                    else{
+                    else {
                         res.status(401).json({
                             "MESSAGE": "Unauthorized access. Warning."
                         });
                         return;
                     }
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEvents - ${err}\n`);
@@ -1051,20 +1309,19 @@ module.exports = {
                 }
             }
         }
-    ], 
-    
+    ],
+
     getEventData: [
         validateEventRequest,
         async (req, res) => {
-            
+
             req.params.eventId = parseInt(req.params.eventId);
             //console.log(req.body.isLoggedIn, req.body.studentId);
 
-            if(req.body.isLoggedIn=="0" || !dataValidator.isValidStudentRequest(req.body.studentId))
-            {
+            if (req.body.isLoggedIn == "0" || !dataValidator.isValidStudentRequest(req.body.studentId)) {
                 //console.log("testerror");
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
 
@@ -1072,8 +1329,8 @@ module.exports = {
                     SELECT * FROM eventData 
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
-                    WHERE eventId=?`,[req.params.eventId]);
-                    if(event.length==0 || event[0].eventStatus=="0"){
+                    WHERE eventId=?`, [req.params.eventId]);
+                    if (event.length == 0 || event[0].eventStatus == "0") {
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -1081,14 +1338,14 @@ module.exports = {
                         });
                         return;
                     }
-                    else{
+                    else {
                         event = event[0];
-                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`,[req.params.eventId]);
+                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched Event Data.",
-                            "eventId":event.eventId,
+                            "eventId": event.eventId,
                             "eventName": event.eventName,
                             "eventDescription": event.eventDescription,
                             "eventMarkdownDescription": event.eventMarkdownDescription,
@@ -1115,7 +1372,7 @@ module.exports = {
                         return;
                     }
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
@@ -1124,15 +1381,14 @@ module.exports = {
                     });
                     return;
                 }
-                finally{
+                finally {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
             }
-            else if (req.body.isLoggedIn == "1" && dataValidator.isValidStudentRequest(req.body.studentId))
-            {
+            else if (req.body.isLoggedIn == "1" && dataValidator.isValidStudentRequest(req.body.studentId)) {
                 const db_connection = await anokha_db.promise().getConnection();
-                try{
+                try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
 
@@ -1140,8 +1396,8 @@ module.exports = {
                     SELECT * FROM eventData 
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
-                    WHERE eventId=?`,[req.params.eventId]);
-                    if(event.length==0 || event[0].eventStatus=="0"){
+                    WHERE eventId=?`, [req.params.eventId]);
+                    if (event.length == 0 || event[0].eventStatus == "0") {
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -1149,16 +1405,16 @@ module.exports = {
                         });
                         return;
                     }
-                    else{
+                    else {
                         event = event[0];
-                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`,[req.params.eventId]);
-                        const [starred] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?",[req.body.studentId,req.params.eventId]); 
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?",[req.body.studentId,req.params.eventId]);
+                        const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
+                        const [starred] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(200).json({
                             "MESSAGE": "Successfully Fetched Event Data.",
-                            "eventId":event.eventId,
+                            "eventId": event.eventId,
                             "eventName": event.eventName,
                             "eventDescription": event.eventDescription,
                             "eventMarkdownDescription": event.eventMarkdownDescription,
@@ -1181,14 +1437,14 @@ module.exports = {
                             "departmentName": event.departmentName,
                             "departmentAbbreviation": event.departmentAbbreviation,
                             "tags": tags,
-                            "isStarred": starred.length>0?"1":"0",
-                            "isRegistered": registration.length>0?"1":"0",
-                            "registrationId": registration.length>0?registration[0].registrationId:null,
+                            "isStarred": starred.length > 0 ? "1" : "0",
+                            "isRegistered": registration.length > 0 ? "1" : "0",
+                            "registrationId": registration.length > 0 ? registration[0].registrationId : null,
                         });
                         return;
                     }
                 }
-                catch(err){
+                catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
@@ -1197,7 +1453,7 @@ module.exports = {
                     });
                     return;
                 }
-                finally{
+                finally {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
