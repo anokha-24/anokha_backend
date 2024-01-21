@@ -7,3 +7,5 @@
 2024-01-17T01:06:35.091Z - registerUser - TypeError: Assignment to constant variable.
 2024-01-17T01:07:59.493Z - registerUser - TypeError: Assignment to constant variable.
 2024-01-20T10:57:55.759Z - loginAdmin - Error: Unknown column 'managerRoleId' in 'where clause'
+2024-01-21T16:17:58.200Z - forgotPasswordAdmin - Error: ENOENT: no such file or directory, open 'C:\Anokha24\myfork\anokha_backend_2024\middleware\RSA\private_key.pem'
+2024-01-21T16:18:30.761Z - forgotPasswordAdmin - Error: ENOENT: no such file or directory, open 'C:\Anokha24\myfork\anokha_backend_2024\middleware\RSA\private_key.pem'
