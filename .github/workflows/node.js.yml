@@ -21,6 +21,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - run: git stash
     - run: git pull
     - run: npm ci
     - run: pm2 delete all
