@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    
+
     runs-on: self-hosted
 
     strategy:
@@ -27,6 +27,5 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: pm2 stop anokha_backend_2024
-    - run: pm2 delete anokha_backend_2024
+    - run: pm2 delete all
     - run: npm run deploy
