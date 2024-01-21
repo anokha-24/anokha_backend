@@ -29,16 +29,28 @@ CREATE TABLE IF NOT EXISTS managerRole (
     CHECK (isActive IN ("0", "1"))
 );
 
+
+
 INSERT INTO managerRole (roleId, roleName) VALUES (1,"Super Admin");
 INSERT INTO managerRole (roleId, roleName) VALUES (2,"Admin");
 INSERT INTO managerRole (roleId, roleName) VALUES (3,"Event Head");
+-- event crud
 INSERT INTO managerRole (roleId, roleName) VALUES (4,"Finance");
+-- can view total revenue, total registrations, total registrations per event, total registrations per department
 INSERT INTO managerRole (roleId, roleName) VALUES (5,"Department Head");
+-- 
 INSERT INTO managerRole (roleId, roleName) VALUES (6,"Faculty Coordinator");
+-- attendance for event
 INSERT INTO managerRole (roleId, roleName) VALUES (7,"Student Coordinator");
+-- atendance for event
 INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
+-- eventide registration
 INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
+-- eventide attendance
 INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Desk");
+-- other college entry, exit
+
+
 
 CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 
@@ -179,6 +191,11 @@ VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4
 
 INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
 VALUES ("Ashwin S", "cb.en.u4cse21008@cb.students.amrita.edu", "9695959595", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
+
+-- password = asdfghjkl
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("Dharma Pravardhana V", "dharmapravardhana7@gmail.com", "8248847564", "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
+
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,

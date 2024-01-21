@@ -473,6 +473,70 @@ module.exports = {
     },
 
     /*{
+        "managerEmail": ""
+    }*/
+    forgotPasswordAdmin: async (req, res) => {
+        if (!dataValidator.isValidEmail(req.body.managerEmail)) {
+            res.status(400).json({
+                "MESSAGE": "Invalid Data"
+            });
+            return;
+        }
+        else {
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+                await db_connection.query("LOCK TABLES managerData READ,forgotPasswordManager WRITE");
+                const [manager] = await db_connection.query(`SELECT * from managerData where managerEmail = ?`, [req.body.managerEmail]);
+                if (manager.length === 0) {
+                    await db_connection.query("UNLOCK TABLES");
+                    res.status(400).json({
+                        "MESSAGE": "Account Does Not Exist!"
+                    });
+                    return;
+                }
+                else if (manager[0].managerAccountStatus === "0") {
+                    await db_connection.query("UNLOCK TABLES");
+                    res.status(400).json({
+                        "MESSAGE": "Account is BLOCKED by Admin!"
+                    });
+                    return;
+                }
+                else {
+                    await db_connection.query(`DELETE from forgotPasswordManager where managerId = ?`, [manager[0].managerId]);
+                    const otp = generateOTP();
+                    const otp_token = await otpTokenGenerator({
+                        "managerEmail": manager[0].managerEmail,
+                        "managerId": manager[0].managerId
+                    });
+                    //hash otp and insert into forgotPasswordManager
+                    const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
+                    await db_connection.query("INSERT INTO forgotPasswordManager (managerId, otp) VALUES (?,?)", [manager[0].managerId, otp_hashed]);
+                    await db_connection.query("UNLOCK TABLES");
+                    mailer.forgotPassword(manager[0].managerFullName, manager[0].managerEmail, otp);
+                    res.status(200).json({
+                        "MESSAGE": "Check Email for Password Reset OTP!",
+                        "SECRET_TOKEN": otp_token
+                    });
+                    return;
+                }
+            }
+            catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - forgotPasswordAdmin - ${err}\n`);
+                res.status(500).json({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+                return;
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    },
+
+    /*{
         "otp": "",
         "studentPassword": ""
     }*/

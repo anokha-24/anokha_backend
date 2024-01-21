@@ -3,7 +3,7 @@ const fs = require('fs');
 const appConfig = require('../../config/appConfig');
 
 const TEMPLATE_STUDENT_REGISTERED = require('./template_student_registered');
-const TEMPLATE_STUDENT_FORGOT_PASSWORD = require('./template_student_forgot_password');
+const TEMPLATE_FORGOT_PASSWORD = require('./template_forgot_password');
 const TEMPLATE_MANAGER_REGISTERED = require('./template_manager_registered');
 
 
@@ -58,14 +58,14 @@ module.exports = {
             },
             to: studentEmail,
             subject: '[OTP Password Reset] - Anokha 2024',
-            html: TEMPLATE_STUDENT_FORGOT_PASSWORD(studentFullName, otp)
+            html: TEMPLATE_FORGOT_PASSWORD(studentFullName, otp)
         }
 
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
             } else {
-                console.log('Student Forgot Password OTP sent: ' + studentEmail);
+                console.log('Forgot Password OTP sent: ' + studentEmail);
             }
         });
 
