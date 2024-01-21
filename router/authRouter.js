@@ -13,5 +13,6 @@ authRouter.post('/resetPasswordStudent', authController.resetPasswordStudent);
 authRouter.post('/loginAdmin', authController.loginAdmin);
 authRouter.post('/registerAdmin', authController.registerAdmin);
 authRouter.post('/forgotPasswordAdmin', authController.forgotPasswordAdmin);
+authRouter.post('/resetPasswordAdmin', authController.resetPasswordAdmin);
 
 module.exports = authRouter;
