@@ -20,14 +20,14 @@ const appConfig = {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'sql003',
+            password: 'password',
             database: 'anokha',
             multipleStatements: true
         },
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'sql003',
+            password: 'password',
             database: 'anokha_transactions',
             multipleStatements: true
         },
@@ -36,7 +36,7 @@ const appConfig = {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'sql003',
+            password: 'password',
             database: 'anokha',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
@@ -45,7 +45,7 @@ const appConfig = {
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'sql003',
+            password: 'password',
             database: 'anokha_transactions',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
