@@ -25,4 +25,6 @@ jobs:
     - run: git pull
     - run: npm ci
     - run: pm2 delete all
+    - run: npm start
+    - run: ^C
     - run: npm run deploy
