@@ -25,6 +25,4 @@ jobs:
     - run: git pull
     - run: npm ci
     - run: pm2 delete anokha_backend_2024 || true 
-    - run: npm start
-    - run: ^C
     - run: npm run deploy
