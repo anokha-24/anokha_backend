@@ -196,6 +196,9 @@ VALUES ("Ashwin S", "cb.en.u4cse21008@cb.students.amrita.edu", "9695959595", "5e
 INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
 VALUES ("Dharma Pravardhana V", "dharmapravardhana7@gmail.com", "8248847564", "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
 
+-- password = 123
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("sajith", "saisajith03@gmail.com", "8993939323", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
