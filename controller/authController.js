@@ -392,7 +392,23 @@ module.exports = {
                         const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
 
                         await db_connection.query("LOCK TABLES managerData WRITE");
-                        await db_connection.query("INSERT INTO managerData (managerFullName, managerEmail, managerPhone, managerPassword, managerRoleId, managerDepartmentId, managerAddedBy) VALUES (?,?,?,?,?,?,?)", [req.body.managerFullName, req.body.managerEmail, req.body.managerPhone, passwordHashed, req.body.managerRoleId, req.body.managerDepartmentId, req.body.managerId]);
+                        await db_connection.query(
+                        `INSERT INTO managerData
+                        (managerFullName,
+                        managerEmail,
+                        managerPhone,
+                        managerPassword, 
+                        managerRoleId, 
+                        managerDepartmentId, 
+                        managerAddedBy) 
+                        VALUES (?,?,?,?,?,?,?)`,
+                        [req.body.managerFullName,
+                        req.body.managerEmail,
+                        req.body.managerPhone,
+                        passwordHashed,
+                        req.body.managerRoleId,
+                        req.body.managerDepartmentId,
+                        req.body.managerId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
 
@@ -471,7 +487,23 @@ module.exports = {
                     const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
 
                     await db_connection.query("LOCK TABLES managerData WRITE");
-                    await db_connection.query("INSERT INTO managerData (managerFullName, managerEmail, managerPhone, managerPassword, managerRoleId, managerDepartmentId, managerAddedBy) VALUES (?,?,?,?,?,?,?)", [req.body.managerFullName, req.body.managerEmail, req.body.managerPhone, passwordHashed, req.body.managerRoleId, req.body.managerDepartmentId, req.body.managerId]);
+                    await db_connection.query(
+                        `INSERT INTO managerData
+                        (managerFullName,
+                        managerEmail,
+                        managerPhone,
+                        managerPassword, 
+                        managerRoleId, 
+                        managerDepartmentId, 
+                        managerAddedBy) 
+                        VALUES (?,?,?,?,?,?,?)`,
+                        [req.body.managerFullName,
+                        req.body.managerEmail,
+                        req.body.managerPhone,
+                        passwordHashed,
+                        req.body.managerRoleId,
+                        req.body.managerDepartmentId,
+                        req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
 
@@ -515,7 +547,7 @@ module.exports = {
                         return;
                     }
                     
-                    //check if registree is either a faculty event head or a student event head or a local attendance marker.
+                    //check if registree is a student event head or a local attendance marker.
                     if(!(req.body.managerRoleId == 6 || req.body.managerRoleId == 9)){
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
@@ -547,7 +579,23 @@ module.exports = {
                     const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
 
                     await db_connection.query("LOCK TABLES managerData WRITE");
-                    await db_connection.query("INSERT INTO managerData (managerFullName, managerEmail, managerPhone, managerPassword, managerRoleId, managerDepartmentId, managerAddedBy) VALUES (?,?,?,?,?,?,?)", [req.body.managerFullName, req.body.managerEmail, req.body.managerPhone, passwordHashed, req.body.managerRoleId, req.body.managerDepartmentId, req.body.managerId]);
+                    await db_connection.query(
+                        `INSERT INTO managerData
+                        (managerFullName,
+                        managerEmail,
+                        managerPhone,
+                        managerPassword, 
+                        managerRoleId, 
+                        managerDepartmentId, 
+                        managerAddedBy) 
+                        VALUES (?,?,?,?,?,?,?)`,
+                        [req.body.managerFullName,
+                        req.body.managerEmail,
+                        req.body.managerPhone,
+                        passwordHashed,
+                        req.body.managerRoleId,
+                        req.body.managerDepartmentId,
+                        req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
 
@@ -574,6 +622,8 @@ module.exports = {
                     db_connection.release();
                 }
             }
+
+            // if user is a student event head, he can register only local attendance markers.
             else if (req.body.authorizationTier == 6) {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
@@ -590,7 +640,7 @@ module.exports = {
                         return;
                     }
                     
-                    //check if registree is either a faculty event head or a student event head or a local attendance marker.
+                    //check if registree is a local attendance marker.
                     if(!(req.body.managerRoleId == 9)){
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
@@ -622,7 +672,23 @@ module.exports = {
                     const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
 
                     await db_connection.query("LOCK TABLES managerData WRITE");
-                    await db_connection.query("INSERT INTO managerData (managerFullName, managerEmail, managerPhone, managerPassword, managerRoleId, managerDepartmentId, managerAddedBy) VALUES (?,?,?,?,?,?,?)", [req.body.managerFullName, req.body.managerEmail, req.body.managerPhone, passwordHashed, req.body.managerRoleId, req.body.managerDepartmentId, req.body.managerId]);
+                    await db_connection.query(
+                        `INSERT INTO managerData
+                        (managerFullName,
+                        managerEmail,
+                        managerPhone,
+                        managerPassword, 
+                        managerRoleId, 
+                        managerDepartmentId, 
+                        managerAddedBy) 
+                        VALUES (?,?,?,?,?,?,?)`,
+                        [req.body.managerFullName,
+                        req.body.managerEmail,
+                        req.body.managerPhone,
+                        passwordHashed,
+                        req.body.managerRoleId,
+                        req.body.managerDepartmentId,
+                        req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
 
