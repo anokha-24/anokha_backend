@@ -29,7 +29,7 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
-                    await db_connection.query("LOCK TABLES studentData READ, departmentData READ");
+                    await db_connection.query("LOCK TABLES studentData READ");
                     const query = `SELECT * FROM studentData WHERE studentId=?`;
                     const [student] = await db_connection.query(query, [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
