@@ -1,0 +1,1 @@
+2024-01-23T13:21:38.881Z - getAdminProfile - TypeError: Cannot read properties of undefined (reading 'managerFullName')

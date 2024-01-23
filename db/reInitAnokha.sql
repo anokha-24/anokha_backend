@@ -35,7 +35,7 @@ INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
 INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"FAC_EVENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"FACULTY_EVENT_HEAD");
 INSERT INTO managerRole (roleId, roleName) VALUES (6,"STUDENT_EVENT_HEAD");
 INSERT INTO managerRole (roleId, roleName) VALUES (7,"EVENTIDE_ATTENDANCE_MARKERS");
 INSERT INTO managerRole (roleId, roleName) VALUES (8,"GLOBAL_ATTENDANCE_MARKERS");

@@ -67,7 +67,7 @@ module.exports = {
     //sha256 consists only Hexadecimal characters.
     isValidStudentLogin: (student) => {
         if (validator.isEmail(student.studentEmail) &&
-            student.studentPassword.length > 0 && student.studentPassword.length <= 255 &&
+            student.studentPassword.length == 64 &&
             validator.isLength(student.studentPassword, { min: 8 }) && !validator.contains(student.studentPassword, '-' || "'")) 
         {
             return true;
@@ -101,7 +101,7 @@ module.exports = {
     //sha256 consists only Hexadecimal characters.
     isValidAdminLogin: (manager) => {
         if (validator.isEmail(manager.managerEmail) &&
-            manager.managerPassword.length > 0 && manager.managerPassword.length <= 255 &&
+            manager.managerPassword.length == 64 &&
             validator.isLength(manager.managerPassword, { min: 8 }) && !validator.contains(manager.managerPassword, '-' || "'")) 
         {
             return true;
@@ -121,11 +121,34 @@ module.exports = {
         return true;
     },
 
+    isValidAdminRequest: async (managerId) =>{
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES managerData READ");
+        const [managerData] = await db_connection.query("SELECT managerAccountStatus FROM managerData WHERE managerId=?",[managerId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(managerData.length==0 || (managerData.length>1 && managerData[0].managerAccountStatus=="0") ){
+            return false;
+        }
+        return true;
+    },
+
     isValidEditStudentProfile: (student) => {
         if (student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
             student.studentPhone.length == 10 && validator.isNumeric(student.studentPhone) &&
             student.studentCollegeName.length > 0 && student.studentCollegeName.length <= 255 &&
             student.studentCollegeCity.length > 0 && student.studentCollegeCity.length <= 255) 
+        {
+            return true;
+        }
+        return false;
+    },
+
+    isValidAdminEditProfile: (manager) => {
+        if (manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+            manager.managerPhone.length == 10 && validator.isNumeric(manager.managerPhone) &&
+            manager.managerDepartmentId!=null && manager.managerDepartmentId!=undefined && !isNaN(manager.managerDepartmentId)
+        )
         {
             return true;
         }
