@@ -31,24 +31,16 @@ CREATE TABLE IF NOT EXISTS managerRole (
 
 
 
-INSERT INTO managerRole (roleId, roleName) VALUES (1,"Super Admin");
-INSERT INTO managerRole (roleId, roleName) VALUES (2,"Admin");
-INSERT INTO managerRole (roleId, roleName) VALUES (3,"Event Head");
--- event crud
-INSERT INTO managerRole (roleId, roleName) VALUES (4,"Finance");
--- can view total revenue, total registrations, total registrations per event, total registrations per department
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"Department Head");
--- 
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"Faculty Coordinator");
--- attendance for event
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"Student Coordinator");
--- atendance for event
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
--- eventide registration
-INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
--- eventide attendance
-INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Head");
--- other college entry, exit
+INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
+INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
+INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
+INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"FAC_EVENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"STUDENT_EVENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"EVENTIDE_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"GLOBAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (9,"LOCAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (10,"GATE_ENTRY_EXIT_MARKERS");
 
 
 
