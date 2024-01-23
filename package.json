@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "deploy": "pm2 start index.js -i max --name anokha_backend_2024"
+    "deploy": "pm2 start index.js -i max --name anokha_backend_2024 && pm2 save --force",
+    "kill":"pm2 delete all && pm2 save --force"
   },
   "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
   "license": "ISC",
