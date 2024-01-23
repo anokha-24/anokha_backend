@@ -27,4 +27,4 @@ jobs:
     - run: pm2 delete anokha_backend_2024 || true
     - run: touch middleware/RSA/private_key.pem
     - run: touch middleware/RSA/public_key.pem
-    - run: npm run deploy
+    - run: npm run start
