@@ -144,6 +144,17 @@ module.exports = {
         return false;
     },
 
+    isValidAdminEditProfile: (manager) => {
+        if (manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+            manager.managerPhone.length == 10 && validator.isNumeric(manager.managerPhone) &&
+            manager.managerDepartmentId!=null && manager.managerDepartmentId!=undefined && !isNaN(manager.managerDepartmentId)
+        )
+        {
+            return true;
+        }
+        return false;
+    },
+
     isValidToggleStarredEventRequest: async (req) =>{
         if(req.body.eventId==undefined || req.body.eventId == null || isNaN(req.body.eventId)){
             return false;
