@@ -31,24 +31,16 @@ CREATE TABLE IF NOT EXISTS managerRole (
 
 
 
-INSERT INTO managerRole (roleId, roleName) VALUES (1,"Super Admin");
-INSERT INTO managerRole (roleId, roleName) VALUES (2,"Admin");
-INSERT INTO managerRole (roleId, roleName) VALUES (3,"Event Head");
--- event crud
-INSERT INTO managerRole (roleId, roleName) VALUES (4,"Finance");
--- can view total revenue, total registrations, total registrations per event, total registrations per department
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"Department Head");
--- 
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"Faculty Coordinator");
--- attendance for event
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"Student Coordinator");
--- atendance for event
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
--- eventide registration
-INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
--- eventide attendance
-INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Head");
--- other college entry, exit
+INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
+INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
+INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
+INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"FAC_EVENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"STUDENT_EVENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"EVENTIDE_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"GLOBAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (9,"LOCAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (10,"GATE_ENTRY_EXIT_MARKERS");
 
 
 
@@ -196,6 +188,9 @@ VALUES ("Ashwin S", "cb.en.u4cse21008@cb.students.amrita.edu", "9695959595", "5e
 INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
 VALUES ("Dharma Pravardhana V", "dharmapravardhana7@gmail.com", "8248847564", "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
 
+-- password = 123
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("sajith", "saisajith03@gmail.com", "8993939323", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,

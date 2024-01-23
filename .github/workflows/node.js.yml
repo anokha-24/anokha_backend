@@ -24,7 +24,12 @@ jobs:
     - run: git stash
     - run: git pull
     - run: npm ci
-    - run: pm2 delete anokha_backend_2024 || true
+    - run: npm run kill || true
     - run: touch middleware/RSA/private_key.pem
-    - run: touch middleware/RSA/pubkic_key.pem
+    - run: touch middleware/RSA/public_key.pem
+    - name: Run npm run start
+      run: npm run start & 
+      timeout-minutes: 1
+    - name: Wait for npm run start to complete
+      run: wait $! || true
     - run: npm run deploy
