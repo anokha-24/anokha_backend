@@ -47,7 +47,7 @@ INSERT INTO managerRole (roleId, roleName) VALUES (8,"Eventide Registration");
 -- eventide registration
 INSERT INTO managerRole (roleId, roleName) VALUES (9,"Security");
 -- eventide attendance
-INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Desk");
+INSERT INTO managerRole (roleId, roleName) VALUES (10,"Registration Head");
 -- other college entry, exit
 
 
