@@ -29,5 +29,5 @@ jobs:
     - run: touch middleware/RSA/public_key.pem
     - name: Run npm run start
       run: npm run start 
-      timeout-minutes: 0.3
+      timeout-minutes: 1
     - run: npm run deploy
