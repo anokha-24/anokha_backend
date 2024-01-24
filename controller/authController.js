@@ -353,7 +353,7 @@ module.exports = {
     registerAdmin:[
         adminTokenValidatorRegister,
         async (req, res) => {
-            console.log(req.body);
+            //console.log(req.body);
             //Admins and SuperAdmins can register anybody. Except SuperAdmins.
             if((req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 //Validate Request
