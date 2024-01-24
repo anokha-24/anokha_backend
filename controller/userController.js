@@ -1070,14 +1070,17 @@ module.exports = {
                         FROM eventData 
                         LEFT JOIN departmentData
                         ON eventData.eventDepartmentId = departmentData.departmentId
-                        INNER JOIN eventTagData
+                        LEFT JOIN eventTagData
                         ON eventTagData.eventId = eventData.eventId
                         LEFT JOIN tagData
                         ON eventTagData.tagId = tagData.tagId
                         WHERE tagData.isActive != "0"
                         ;`;
 
+                        
                         const [rows] = await db_connection.query(query);
+
+                        //console.log(rows);
 
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
@@ -1178,7 +1181,7 @@ module.exports = {
                             eventData
                             LEFT JOIN departmentData 
                             ON eventData.eventDepartmentId = departmentData.departmentId
-                            INNER JOIN eventTagData
+                            LEFT JOIN eventTagData
                             ON eventTagData.eventId = eventData.eventId
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
@@ -1231,7 +1234,7 @@ module.exports = {
                             eventData
                             LEFT JOIN departmentData 
                             ON eventData.eventDepartmentId = departmentData.departmentId
-                            INNER JOIN eventTagData
+                            LEFT JOIN eventTagData
                             ON eventTagData.eventId = eventData.eventId
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
