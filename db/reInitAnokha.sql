@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS tagData (
     CHECK (isActive IN ("0", "1"))
 );
 
+INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Featured", "FT.");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Coding", "COD");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Computer Science", "CS");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Competitive Programming", "CP");
@@ -137,6 +138,22 @@ INSERT INTO managerData (
     "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
     1,
     6 
+);
+
+INSERT INTO managerData (
+    managerFullName, 
+    managerEmail, 
+    managerPhone, 
+    managerPassword, 
+    managerRoleId, 
+    managerDepartmentId
+) VALUES (
+    "Hariharan",
+    "hariharan.14107@gmail.com",
+    "9545949494",
+    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+    4,
+    6
 );
 
 -- CREATE TABLE IF NOT EXISTS tagFaculty (

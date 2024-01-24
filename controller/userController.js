@@ -219,159 +219,183 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
-                    await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ, eventRegistrationGroupData READ");
-
+                    await db_connection.query("LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ");
                     const query = `
-                    SELECT
-                    eventData.eventId,
-                    eventData.eventName,
-                    eventData.eventDescription,
-                    eventData.eventDate,
-                    eventData.eventTime,
-                    eventData.eventVenue,
-                    eventData.eventImageURL,
-                    eventData.eventPrice,
-                    eventData.maxSeats,
-                    eventData.seatsFilled,
-                    eventData.minTeamSize,
-                    eventData.maxTeamSize,
-                    eventData.isWorkshop,
-                    eventData.isTechnical,
-                    eventData.isGroup,
-                    eventData.needGroupData,
-                    eventData.isPerHeadPrice,
-                    eventData.isRefundable,
-                    eventData.eventStatus,
-                    CASE
-                        WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
-                        ELSE "0"
-                    END AS isRegistered,
-                    departmentData.departmentName,
-                    departmentData.departmentAbbreviation,
-                    tagData.tagName,
-                    tagData.tagAbbreviation
-                    FROM eventData 
-                    LEFT JOIN departmentData 
-                    ON eventData.eventDepartmentId = departmentData.departmentId
-                    INNER JOIN eventTagData
-                    ON eventTagData.eventId = eventData.eventId
-                    LEFT JOIN tagData 
-                    ON eventTagData.tagId = tagData.tagId
-                    INNER JOIN starredEvents
-                    ON starredEvents.eventId = eventData.eventId
-                    LEFT JOIN eventRegistrationData
-                    ON eventRegistrationData.eventId = eventData.eventId
-                    WHERE starredEvents.studentId = ${req.body.studentId}
-                    AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
-                    ;`
+                        SELECT
+                            eventData.eventId,
+                            eventData.eventName,
+                            eventData.eventDescription,
+                            eventData.eventDate,
+                            eventData.eventTime,
+                            eventData.eventVenue,
+                            eventData.eventImageURL,
+                            eventData.eventPrice,
+                            eventData.maxSeats,
+                            eventData.seatsFilled,
+                            eventData.minTeamSize,
+                            eventData.maxTeamSize,
+                            eventData.isWorkshop,
+                            eventData.isTechnical,
+                            eventData.isGroup,
+                            eventData.needGroupData,
+                            eventData.isPerHeadPrice,
+                            eventData.isRefundable,
+                            eventData.eventStatus,
+                            departmentData.departmentName,
+                            departmentData.departmentAbbreviation,
+                            tagData.tagName,
+                            tagData.tagAbbreviation,
+                            CASE
+                                WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isRegistered
+                        FROM
+                            eventData
+                            LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                            INNER JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                            LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                            LEFT JOIN
+                            eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
+                            AND eventRegistrationData.studentId = ${req.body.studentId}
+                        LEFT JOIN
+                            starredEvents ON eventData.eventId = starredEvents.eventId
+                            AND starredEvents.studentId = ${req.body.studentId}
+                        WHERE
+                            ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                        AND
+                            starredEvents.studentId = ${req.body.studentId}
+                        AND
+                            tagData.isActive != "0"
+                        ;`;
 
-                    const query2 = `
-                    SELECT
-                    eventData.eventId,
-                    eventData.eventName,
-                    eventData.eventDescription,
-                    eventData.eventDate,
-                    eventData.eventTime,
-                    eventData.eventVenue,
-                    eventData.eventImageURL,
-                    eventData.eventPrice,
-                    eventData.maxSeats,
-                    eventData.seatsFilled,
-                    eventData.minTeamSize,
-                    eventData.maxTeamSize,
-                    eventData.isWorkshop,
-                    eventData.isTechnical,
-                    eventData.isGroup,
-                    eventData.needGroupData,
-                    eventData.isPerHeadPrice,
-                    eventData.isRefundable,
-                    eventData.eventStatus,
-                    CASE
-                        WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
-                        ELSE "0"
-                    END AS isRegistered,
-                    departmentData.departmentName,
-                    departmentData.departmentAbbreviation,
-                    tagData.tagName,
-                    tagData.tagAbbreviation
-                    FROM eventData 
-                    LEFT JOIN departmentData 
-                    ON eventData.eventDepartmentId = departmentData.departmentId
-                    INNER JOIN eventTagData
-                    ON eventTagData.eventId = eventData.eventId
-                    LEFT JOIN tagData 
-                    ON eventTagData.tagId = tagData.tagId
-                    INNER JOIN starredEvents
-                    ON starredEvents.eventId = eventData.eventId
-                    LEFT JOIN eventRegistrationGroupData
-                    ON eventRegistrationGroupData.eventId = eventData.eventId
-                    WHERE starredEvents.studentId = ${req.body.studentId}
-                    AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
-                    ;`;
+                        const query2 = `
+                        SELECT
+                            eventData.eventId,
+                            eventData.eventName,
+                            eventData.eventDescription,
+                            eventData.eventDate,
+                            eventData.eventTime,
+                            eventData.eventVenue,
+                            eventData.eventImageURL,
+                            eventData.eventPrice,
+                            eventData.maxSeats,
+                            eventData.seatsFilled,
+                            eventData.minTeamSize,
+                            eventData.maxTeamSize,
+                            eventData.isWorkshop,
+                            eventData.isTechnical,
+                            eventData.isGroup,
+                            eventData.needGroupData,
+                            eventData.isPerHeadPrice,
+                            eventData.isRefundable,
+                            eventData.eventStatus,
+                            departmentData.departmentName,
+                            departmentData.departmentAbbreviation,
+                            tagData.tagName,
+                            tagData.tagAbbreviation,
+                            CASE
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isRegistered
+                        FROM
+                            eventData
+                            LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                            INNER JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                            LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                        LEFT JOIN
+                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.registrationId
+                            AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        LEFT JOIN
+                            starredEvents ON eventData.eventId = starredEvents.eventId
+                            AND starredEvents.studentId = ${req.body.studentId}
+                        WHERE
+                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
+                        AND
+                            starredEvents.studentId = ${req.body.studentId}
+                        AND
+                            tagData.isActive != "0"`;
 
-                    const [rows] = await db_connection.query(query);
-                    const [rows2] = await db_connection.query(query2);
+                        await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
-                    const concat_rows = [...new Set([...rows, ...rows2])];
 
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                        const [rows] = await db_connection.query(query);
+                        const [rows2] = await db_connection.query(query2);
 
-                    const aggregatedDataMap = new Map();
+                        const concat_rows = [...new Set([...rows, ...rows2])];
 
-                    // Iterate through each event object
-                    concat_rows.forEach((event) => {
-                        // Check if the eventId already exists in the map
-                        if (aggregatedDataMap.has(event.eventId)) {
-                            // If yes, push the current event data to the existing array
-                            const existingData = aggregatedDataMap.get(event.eventId);
-                            existingData.tags.push({
-                                tagName: event.tagName,
-                                tagAbbreviation: event.tagAbbreviation,
-                            });
-                        } else {
-                            // If no, create a new array with the current event data
-                            aggregatedDataMap.set(event.eventId, {
-                                eventId: event.eventId,
-                                eventName: event.eventName,
-                                eventDescription: event.eventDescription,
-                                eventDate: event.eventDate,
-                                eventTime: event.eventTime,
-                                eventVenue: event.eventVenue,
-                                eventImageURL: event.eventImageURL,
-                                eventPrice: event.eventPrice,
-                                maxSeats: event.maxSeats,
-                                seatsFilled: event.seatsFilled,
-                                minTeamSize: event.minTeamSize,
-                                maxTeamSize: event.maxTeamSize,
-                                isWorkshop: event.isWorkshop,
-                                isTechnical: event.isTechnical,
-                                isGroup: event.isGroup,
-                                needGroupData: event.needGroupData,
-                                isPerHeadPrice: event.isPerHeadPrice,
-                                isRefundable: event.isRefundable,
-                                eventStatus: event.eventStatus,
-                                departmentName: event.departmentName,
-                                departmentAbbreviation: event.departmentAbbreviation,
-                                isRegistered: event.isRegistered,
-                                tags: [{
+                        await db_connection.query("UNLOCK TABLES");
+
+                        //console.log("test");
+
+                        const aggregatedDataMap = new Map();
+
+                        // Iterate through each event object
+                        concat_rows.forEach((event) => {
+                            // Check if the eventId already exists in the map
+                            if (aggregatedDataMap.has(event.eventId)) {
+                                // If yes, push the current event data to the existing array
+                                const existingData = aggregatedDataMap.get(event.eventId);
+                                existingData.tags.push({
                                     tagName: event.tagName,
                                     tagAbbreviation: event.tagAbbreviation,
-                                }],
-                            });
-                        }
-                    });
+                                });
+                            } else {
+                                // If no, create a new array with the current event data
+                                aggregatedDataMap.set(event.eventId, {
+                                    eventId: event.eventId,
+                                    eventName: event.eventName,
+                                    eventDescription: event.eventDescription,
+                                    eventDate: event.eventDate,
+                                    eventTime: event.eventTime,
+                                    eventVenue: event.eventVenue,
+                                    eventImageURL: event.eventImageURL,
+                                    eventPrice: event.eventPrice,
+                                    maxSeats: event.maxSeats,
+                                    seatsFilled: event.seatsFilled,
+                                    minTeamSize: event.minTeamSize,
+                                    maxTeamSize: event.maxTeamSize,
+                                    isWorkshop: event.isWorkshop,
+                                    isTechnical: event.isTechnical,
+                                    isGroup: event.isGroup,
+                                    needGroupData: event.needGroupData,
+                                    isPerHeadPrice: event.isPerHeadPrice,
+                                    isRefundable: event.isRefundable,
+                                    eventStatus: event.eventStatus,
+                                    departmentName: event.departmentName,
+                                    departmentAbbreviation: event.departmentAbbreviation,
+                                    isRegistered: event.isRegistered,
+                                    tags: [{
+                                        tagName: event.tagName,
+                                        tagAbbreviation: event.tagAbbreviation,
+                                    }],
+                                });
+                            }
+                        });
 
-                    // Convert the map values to an array
-                    const result = Array.from(aggregatedDataMap.values());
+                        // Convert the map values to an array
+                        const result = Array.from(aggregatedDataMap.values());
 
-                    //console.log(result);
+                        // let finalData = [];
 
-                    res.status(200).json({
-                        "MESSAGE": "Successfully Fetched Starred Events.",
-                        "EVENTS": result
-                    });
-                    return;
+                        // for (let i = 0; i < result.length; i++) {
+                        //     if (result[i].isStarred == "1") {
+                        //         finalData.push(result[i]);
+                        //     }
+                        // }
+
+                        //console.log(result);
+
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Fetched Starred Events.",
+                            "EVENTS": result
+                        });
+                        return;
                 }
                 catch (err) {
                     console.log(err);
@@ -1050,6 +1074,7 @@ module.exports = {
                         ON eventTagData.eventId = eventData.eventId
                         LEFT JOIN tagData
                         ON eventTagData.tagId = tagData.tagId
+                        WHERE tagData.isActive != "0"
                         ;`;
 
                         const [rows] = await db_connection.query(query);
@@ -1165,6 +1190,8 @@ module.exports = {
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                        AND
+                            tagData.isActive != "0"
                         ;`;
 
                         const query2 = `
@@ -1215,7 +1242,9 @@ module.exports = {
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
-                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )`;
+                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
+                        AND
+                            tagData.isActive != "0"`;
 
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
