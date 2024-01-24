@@ -220,7 +220,61 @@ module.exports = {
                 }
             }
         }
-    ]
+    ],
+    getAllTags: async (req,res) =>{
+        const db_connection = await anokha_db.promise().getConnection();
+        try{
+            await db_connection.query("LOCK TABLES tagData READ");
+            const [tags] = await db_connection.query("SELECT tagId, tagName, tagAbbreviation, isActive FROM tagData");
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+            res.status(200).json({
+                "MESSAGE": "Successfully Fetched All Tags.",
+                "tags": tags
+            });
+            return;
+        }
+        catch(err){
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllTags - ${err}\n`);
+            res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+        }
+        finally{
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+        }
+    },
+    getActiveTags: async (req,res) =>{
+        const db_connection = await anokha_db.promise().getConnection();
+        try{
+            await db_connection.query("LOCK TABLES tagData READ");
+            const [tags] = await db_connection.query("SELECT tagId, tagName, tagAbbreviation FROM tagData WHERE isActive=1");
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+            res.status(200).json({
+                "MESSAGE": "Successfully Fetched Active Tags.",
+                "tags": tags
+            });
+            return;
+        }
+        catch(err){
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getActiveTags - ${err}\n`);
+            res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+        }
+        finally{
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+        }
+    },
     // createEvent: [
     //     adminTokenValidator,
     //     async (req, res) => {
