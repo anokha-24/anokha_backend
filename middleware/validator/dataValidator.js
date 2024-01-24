@@ -287,7 +287,7 @@ module.exports = {
     },
     isValidToggleEventStatus: async (event) =>{
         if(event.eventId==undefined || event.eventId == null || isNaN(event.eventId)
-        || event.isActive==undefined || event.isActive == null || (event.isActive!="0" && event.isActive!="1")
+        || event.eventStatus==undefined || event.eventStatus == null || (event.eventStatus!="0" && event.eventStatus!="1" && event.eventStatus!="2")
         ){
             return false;
         }

@@ -517,12 +517,12 @@ module.exports = {
                     
                     const query =`UPDATE eventData SET eventStatus = ? WHERE eventId = ?`
                     
-                    const [event] = await db_connection.query(query, [req.body.isActive, req.body.eventId]);
+                    const [event] = await db_connection.query(query, [req.body.eventStatus, req.body.eventId]);
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                     res.status(200).json({
-                        "MESSAGE": req.body.isActive=="1" ? "Successfully Activated Event." : "Successfully Deactivated Event."
+                        "MESSAGE": req.body.eventStatus=="1" ? "Successfully Activated Event." : (req.body.eventStatus==2 ? "Successfully Closed Event Registrations." : "Successfully Removed Event from Anokha.")
                     });
                     return;
                 }
