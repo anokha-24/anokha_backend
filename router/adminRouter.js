@@ -7,6 +7,7 @@ adminRouter.get('/test', adminController.testConnection);
 adminRouter.get('/getAdminProfile',adminController.getAdminProfile);
 adminRouter.post('/editAdminProfile',adminController.editAdminProfile);
 adminRouter.post('/createEvent',adminController.createEvent);
+adminRouter.post('/editEventData',adminController.editEventData);
 adminRouter.post('/addTag',adminController.addTag);
 adminRouter.post('/toggleTagStatus',adminController.toggleTagStatus);
 adminRouter.get('/getAllTags',adminController.getAllTags);
