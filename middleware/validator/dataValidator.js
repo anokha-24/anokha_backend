@@ -177,4 +177,36 @@ module.exports = {
         return true;
     },
 
+    isValidTag: async (tag) =>{
+        if(tag.tagName==undefined || tag.tagName == null || tag.tagName.length>255 || tag.tagName.length==0
+        ||tag.tagAbbreviation==undefined || tag.tagAbbreviation == null || tag.tagAbbreviation.length>255 || tag.tagAbbreviation.length==0
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES tagData READ");
+        const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagName = ? OR tagAbbreviation =?",[tag.tagName, tag.tagAbbreviation]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(tagData.length!=0){
+            return false;
+        }
+        return true;
+    },
+    isValidToggleTagStatus: async (tag) =>{
+        if(tag.tagId==undefined || tag.tagId == null || isNaN(tag.tagId)
+        || tag.isActive==undefined || tag.isActive == null || (tag.isActive!="0" && tag.isActive!="1")
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES tagData READ");
+        const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId = ?",[tag.tagId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(tagData.length==0){
+            return false;
+        }
+        return true;
+    }
 }
