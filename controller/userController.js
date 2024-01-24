@@ -353,6 +353,7 @@ module.exports = {
                                 eventStatus: event.eventStatus,
                                 departmentName: event.departmentName,
                                 departmentAbbreviation: event.departmentAbbreviation,
+                                isRegistered: event.isRegistered,
                                 tags: [{
                                     tagName: event.tagName,
                                     tagAbbreviation: event.tagAbbreviation,

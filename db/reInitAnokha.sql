@@ -29,19 +29,14 @@ CREATE TABLE IF NOT EXISTS managerRole (
     CHECK (isActive IN ("0", "1"))
 );
 
-
-
 INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
-INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"FACULTY_EVENT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"STUDENT_EVENT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"EVENTIDE_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"GLOBAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (9,"LOCAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (10,"GATE_ENTRY_EXIT_MARKERS");
-
+INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPTARTMENT_HEAD");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKERS");
 
 
 CREATE TABLE IF NOT EXISTS departmentData (
@@ -64,6 +59,7 @@ CREATE TABLE IF NOT EXISTS tagData (
     CHECK (isActive IN ("0", "1"))
 );
 
+INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Coding", "COD");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Computer Science", "CS");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Competitive Programming", "CP");
 INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Internet Of Things", "IOT");
