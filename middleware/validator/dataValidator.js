@@ -226,7 +226,6 @@ module.exports = {
            event.isGroup == undefined || event.isGroup == null || (event.isGroup!="0" && event.isGroup!="1") ||
            event.isPerHeadPrice == undefined || event.isPerHeadPrice == null || (event.isPerHeadPrice!="0" && event.isPerHeadPrice!="1") ||
            event.isRefundable == undefined || event.isRefundable == null || (event.isRefundable!="0" && event.isRefundable!="1") ||
-           event.eventStatus == undefined || event.eventStatus == null || (event.eventStatus!="0" && event.eventStatus!="1") ||
            event.needGroupData == undefined || event.needGroupData == null || (event.needGroupData!="0" && event.needGroupData!="1") ||
            event.eventDepartmentId == undefined || event.eventDepartmentId == null || isNaN(event.eventDepartmentId)
         )
@@ -260,7 +259,6 @@ module.exports = {
             event.isGroup == undefined || event.isGroup == null || (event.isGroup!="0" && event.isGroup!="1") ||
             event.isPerHeadPrice == undefined || event.isPerHeadPrice == null || (event.isPerHeadPrice!="0" && event.isPerHeadPrice!="1") ||
             event.isRefundable == undefined || event.isRefundable == null || (event.isRefundable!="0" && event.isRefundable!="1") ||
-            event.eventStatus == undefined || event.eventStatus == null || (event.eventStatus!="0" && event.eventStatus!="1") ||
             event.needGroupData == undefined || event.needGroupData == null || (event.needGroupData!="0" && event.needGroupData!="1") ||
             event.eventDepartmentId == undefined || event.eventDepartmentId == null || isNaN(event.eventDepartmentId)||
             event.eventId == undefined || event.eventId == null || isNaN(event.eventId)
@@ -286,5 +284,21 @@ module.exports = {
          await db_connection.query("UNLOCK TABLES");
          db_connection.release();
          return true;
+    },
+    isValidToggleEventStatus: async (event) =>{
+        if(event.eventId==undefined || event.eventId == null || isNaN(event.eventId)
+        || event.isActive==undefined || event.isActive == null || (event.isActive!="0" && event.isActive!="1")
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES eventData READ");
+        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?",[event.eventId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(eventData.length==0){
+            return false;
+        }
+        return true;
     }
 }

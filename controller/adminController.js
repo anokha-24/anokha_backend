@@ -151,15 +151,7 @@ module.exports = {
             else{
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
-                    // await db_connection.query("LOCK TABLES managerData READ");
-                    // const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[req.body.managerId]);
-                    // if(manager.length==0 || manager[0].managerAccountStatus!="1"){
-                    //     res.status(400).json({
-                    //         "MESSAGE": "Access Restricted!"
-                    //     });
-                    //     return;
-                    // }
-                    // await db_connection.query("UNLOCK TABLES");
+                    
                     await db_connection.query("LOCK TABLES tagData WRITE");
                     const query = `INSERT INTO tagData (tagName, tagAbbreviation) VALUES (?, ?)`;
                     await db_connection.query(query, [req.body.tagName, req.body.tagAbbreviation]);
@@ -216,15 +208,7 @@ module.exports = {
             else{
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
-                    // await db_connection.query("LOCK TABLES managerData READ");
-                    // const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[req.body.managerId]);
-                    // if(manager.length==0 || manager[0].managerAccountStatus!="1"){
-                    //     res.status(400).json({
-                    //         "MESSAGE": "Access Restricted!"
-                    //     });
-                    //     return;
-                    // }
-                    // await db_connection.query("UNLOCK TABLES");
+                    
                     await db_connection.query("LOCK TABLES tagData WRITE");
                     const query = `UPDATE tagData SET isActive=? WHERE tagId=?`;
                     await db_connection.query(query, [req.body.isActive, req.body.tagId]);
@@ -331,16 +315,7 @@ module.exports = {
             else{
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
-                    // await db_connection.query("LOCK TABLES eventData WRITE, managerData READ");
-                    // const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[req.body.managerId]);
-                    // if(manager.length==0 || manager[0].managerAccountStatus!="1"){
-                    //     res.status(400).json({
-                    //         "MESSAGE": "Access Restricted!"
-                    //     });
-                    //     return;
-                    // }
-                    // await db_connection.query("UNLOCK TABLES");
-
+                    
                     await db_connection.query("LOCK TABLES eventData WRITE");
                     const query =
                     `
@@ -362,13 +337,12 @@ module.exports = {
                         isGroup,
                         isPerHeadPrice,
                         isRefundable,
-                        eventStatus,
                         needGroupData,
                         eventDepartmentId,
                         eventCreatedBy
                     )
                     VALUES
-                    (?,?,?,?,? ,?,?,?,?,? ,?,?,?,?,? ,?,?,?,?,?)
+                    (?,?,?,?,? ,?,?,?,?,? ,?,?,?,?,? ,?,?,?,?)
                     `
                     const [event] = await db_connection.query(query, [
                         req.body.eventName,
@@ -387,7 +361,6 @@ module.exports = {
                         req.body.isGroup,
                         req.body.isPerHeadPrice,
                         req.body.isRefundable,
-                        req.body.eventStatus,
                         req.body.needGroupData,
                         req.body.eventDepartmentId,
                         req.body.managerId
@@ -442,16 +415,7 @@ module.exports = {
             else{
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
-                    // await db_connection.query("LOCK TABLES eventData WRITE, managerData READ");
-                    // const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[req.body.managerId]);
-                    // if(manager.length==0 || manager[0].managerAccountStatus!="1"){
-                    //     res.status(400).json({
-                    //         "MESSAGE": "Access Restricted!"
-                    //     });
-                    //     return;
-                    // }
-                    // await db_connection.query("UNLOCK TABLES");
-
+                    
                     await db_connection.query("LOCK TABLES eventData WRITE");
                     const query =
                     `
@@ -473,7 +437,6 @@ module.exports = {
                         isGroup = ?,
                         isPerHeadPrice = ?,
                         isRefundable = ?,
-                        eventStatus = ?,
                         needGroupData = ?,
                         eventDepartmentId = ?
                     WHERE eventId = ?
@@ -495,7 +458,6 @@ module.exports = {
                         req.body.isGroup,
                         req.body.isPerHeadPrice,
                         req.body.isRefundable,
-                        req.body.eventStatus,
                         req.body.needGroupData,
                         req.body.eventDepartmentId,
                         req.body.eventId
@@ -524,4 +486,60 @@ module.exports = {
             }
         }
     ],
+    toggleEventStatus: [
+        adminTokenValidator,
+        async (req, res) => {
+            if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                //console.log("token");
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if (!(await dataValidator.isValidToggleEventStatus(req.body))){
+                //console.log("body");
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    
+                    await db_connection.query("LOCK TABLES eventData WRITE");
+                    
+                    const query =`UPDATE eventData SET eventStatus = ? WHERE eventId = ?`
+                    
+                    const [event] = await db_connection.query(query, [req.body.isActive, req.body.eventId]);
+
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": req.body.isActive=="1" ? "Successfully Activated Event." : "Successfully Deactivated Event."
+                    });
+                    return;
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleEventStatus - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                    return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ]
 }

@@ -1,1 +1,3 @@
 2024-01-23T13:21:38.881Z - getAdminProfile - TypeError: Cannot read properties of undefined (reading 'managerFullName')
+2024-01-24T20:04:34.620Z - toggleEventStatus - Error: Unknown column 'isActive' in 'field list'
+2024-01-24T20:05:56.183Z - toggleEventStatus - ReferenceError: isActive is not defined
