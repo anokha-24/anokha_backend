@@ -330,5 +330,22 @@ module.exports = {
             return false;
         }
         return true;
-    }
+    },
+    isValidTagEvent: async (req) => {
+        if(req.eventId==undefined || req.eventId == null || isNaN(req.eventId)
+        || req.tagId==undefined || req.tagId == null || isNaN(req.tagId)
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES eventData READ, tagData READ");
+        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?",[req.eventId]);
+        const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId = ?",[req.tagId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(eventData.length==0 || tagData.length==0){
+            return false;
+        }
+        return true;
+    },
 }

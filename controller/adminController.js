@@ -2,6 +2,7 @@ const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
 const adminTokenValidator = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
+const { db } = require('../config/appConfig');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -534,6 +535,126 @@ module.exports = {
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                     return;
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+    /*
+    {
+        "eventId": int,
+        "tagId": int
+    }
+    */
+    addTagToEvent:[
+        adminTokenValidator,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidTagEvent(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    db_connection.query("LOCK TABLES eventTagData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventTagData WHERE eventId=? AND tagId=?", [req.body.eventId, req.body.tagId]);
+                    if(check.length!=0){
+                        res.status(400).json({
+                            "MESSAGE": "Tag Already Exists for given event!"
+                        });
+                        return;
+                    }
+                    else{
+                        await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?,?)", [req.body.eventId, req.body.tagId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Added Tag to Event."
+                        });
+                        return;
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - addTagToEvent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+    
+    /*
+    {
+        "eventId": int,
+        "tagId": int
+    }
+    */
+    removeTagFromEvent:[
+        adminTokenValidator,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidTagEvent(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    db_connection.query("LOCK TABLES eventTagData WRITE");
+                    
+                    await db_connection.query("DELETE FROM eventTagData WHERE eventId = ? AND tagId = ?", [req.body.eventId, req.body.tagId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Successfully Removed Tag from Event."
+                    });
+                    return;
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - removeTagFromEvent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
                 }
                 finally{
                     await db_connection.query("UNLOCK TABLES");
