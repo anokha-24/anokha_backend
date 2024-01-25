@@ -4,8 +4,8 @@ const express = require('express');
 const adminRouter = express.Router();
 
 adminRouter.get('/test', adminController.testConnection);
-adminRouter.get('/getAdminProfile',adminController.getAdminProfile);
-adminRouter.post('/editAdminProfile',adminController.editAdminProfile);
+adminRouter.get('/getOfficialProfile',adminController.getAdminProfile);
+adminRouter.post('/editOfficialProfile',adminController.editAdminProfile);
 adminRouter.post('/createEvent',adminController.createEvent);
 adminRouter.post('/editEventData',adminController.editEventData);
 adminRouter.post('/toggleEventStatus',adminController.toggleEventStatus);
@@ -16,5 +16,9 @@ adminRouter.get('/getActiveTags',adminController.getActiveTags);
 adminRouter.post('/addTagToEvent',adminController.addTagToEvent);
 adminRouter.post('/removeTagFromEvent',adminController.removeTagFromEvent);
 adminRouter.get('/getAllOfficials',adminController.getAllOfficials);
+adminRouter.post('/toggleOfficialStatus',adminController.toggleOfficialStatus);
+adminRouter.post('/toggleStudentStatus',adminController.toggleStudentStatus);
+adminRouter.post('/assignEventToOfficial',adminController.assignEventToOfficial);
+adminRouter.post('/removeOfficialFromEvent',adminController.removeOfficialFromEvent);
 
 module.exports = adminRouter;

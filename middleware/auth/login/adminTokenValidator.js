@@ -73,5 +73,40 @@ async function tokenValidatorRegister(req, res, next) {
 
 }
 
+async function adminTokenValidatorSpecial(req, res, next)
+{
+    const tokenHeader = req.headers.authorization;
+    const token = tokenHeader && tokenHeader.split(' ')[1];
 
-module.exports = [tokenValidator, tokenValidatorRegister];
+    if (tokenHeader == null || token == null) {
+        res.status(401).send({
+            "MESSAGE": "No Token. Warning."
+        });
+        return;
+    }
+
+    const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
+    try {
+        const payLoad = await verify(token, public_key);
+        if (payLoad["secret_key"] == secret_key) {
+            //req.body.managerEmail = payLoad["managerEmail"];
+            req.body.tokenManagerId = payLoad["managerId"];
+            req.body.authorizationTier = payLoad["authorizationTier"];
+            next();
+            return;
+        } else {
+            res.status(401).send({
+                "MESSAGE": "Unauthorized access. Warning."
+            });
+            return;
+        }
+    } catch (err) {
+        res.status(401).send({
+            "MESSAGE": "Unauthorized access. Warning."
+        });
+        return;
+    }
+}
+
+
+module.exports = [tokenValidator, tokenValidatorRegister, adminTokenValidatorSpecial];

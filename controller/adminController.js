@@ -1,6 +1,6 @@
 const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
-const adminTokenValidator = require('../middleware/auth/login/adminTokenValidator');
+const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
 
@@ -695,8 +695,9 @@ module.exports = {
                         ON managerData.managerRoleId = managerRole.roleId
                         LEFT JOIN departmentData 
                         ON managerData.managerDepartmentId = departmentData.departmentId
+                        WHERE managerData.managerId != ?
                         `;
-                        const [officials] = await db_connection.query(query);
+                        const [officials] = await db_connection.query(query, [req.body.managerId]);
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(200).json({
@@ -775,4 +776,467 @@ module.exports = {
         }
     ],
 
+    /*
+    {
+        "studentId": int,
+        "isActive": <"0"/"1">
+    }
+    */
+    toggleStudentStatus:[
+        adminTokenValidator,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidToggleStudentStatus(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    
+                    if (req.body.isActive == "0")
+                    {
+                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                        if(check.length==0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        else if(check.length > 0 && check[0].studentAccountStatus =="0" )
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Already Blocked!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO blockedStudentStatus (studentId, lastStatus, blockedBy) VALUES (?, ?, ?)", [req.body.studentId, check[0].studentAccountStatus, req.body.managerId]);
+                            await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [req.body.isActive, req.body.studentId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Blocked Student."
+                            });
+                        }
+                    }
+
+                    else if (req.body.isActive == "1")
+                    {
+                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                        //console.log(check);
+                        if(check.length==0){
+                            //console.log("check");
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        if((check.length > 0) && (check[0].studentAccountStatus !="0") )
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Already Active!"
+                            });
+                            return;
+                        }
+                        else{
+                            const [lastStatus] = await db_connection.query("SELECT lastStatus FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
+                            if(lastStatus.length==0){
+                                //console.log("lastStatus");
+                                await db_connection.query("UNLOCK TABLES");
+                                db_connection.release();
+                                res.status(400).json({
+                                    "MESSAGE": "Student Doesn't Exist!"
+                                });
+                                return;
+                            }
+                            else{
+                                await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [lastStatus[0].lastStatus, req.body.studentId]);
+                                await db_connection.query("DELETE FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
+                                await db_connection.query("UNLOCK TABLES");
+                                db_connection.release();
+                                res.status(200).json({
+                                    "MESSAGE": "Successfully Unblocked Student."
+                                });
+                            }
+                        }
+
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleStudentStatus - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+    toggleOfficialStatus:[
+        adminTokenValidatorSpecial,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.tokenManagerId))){
+                //console.log("token");
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidToggleOfficialStatus(req.body))){
+                //console.log("body");
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if((req.body.managerId == req.body.tokenManagerId)){
+                //console.log("manager");
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                if (req.body.authorizationTier == 1)
+                {
+                    try{
+                        await db_connection.query("LOCK TABLES managerData WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        if(check.length==0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        //can't toggle status of SUPER_ADMIN
+                        if(check.length > 0 && (check[0].managerRoleId == 1)){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("UPDATE managerData SET managerAccountStatus = ? WHERE managerId = ?", [req.body.isActive, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
+                            });
+                        }
+                    }
+                    catch(err){
+                        console.log(err);
+                        const time = new Date();
+                        fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
+                        res.status(500).json({
+                            "MESSAGE": "Internal Server Error. Contact Web Team."
+                        });
+                    }
+                    finally{
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                    }
+                }
+                else if (req.body.authorizationTier == 2)
+                {
+                    try{
+                        await db_connection.query("LOCK TABLES managerData WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        if(check.length==0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        //can't toggle status of ADMIN and SUPER_ADMIN
+                        if(check.length > 0 && (check[0].managerRoleId == 1 || check[0].managerRoleId == 2)){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("UPDATE managerData SET managerAccountStatus = ? WHERE managerId = ?", [req.body.isActive, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
+                            });
+                        }
+                    }
+                    catch(err){
+                        console.log(err);
+                        const time = new Date();
+                        fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
+                        res.status(500).json({
+                            "MESSAGE": "Internal Server Error. Contact Web Team."
+                        });
+                    }
+                    finally{
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                    }
+                }
+                else if (req.body.authorizationTier == 4)
+                {
+                    try{
+                        await db_connection.query("LOCK TABLES managerData WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        if(check.length==0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        //can't toggle status if not registered by DEPARTMENT HEAD
+                        if(check.length > 0 && check[0].managerAddedBy != req.body.tokenManagerId){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("UPDATE managerData SET managerAccountStatus = ? WHERE managerId = ?", [req.body.isActive, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
+                            });
+                        }
+                    }
+                    catch(err){
+                        console.log(err);
+                        const time = new Date();
+                        fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
+                        res.status(500).json({
+                            "MESSAGE": "Internal Server Error. Contact Web Team."
+                        });
+                    }
+                    finally{
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                    }
+                }
+            }
+        }
+    ],
+    
+    assignEventToOfficial: [
+        adminTokenValidatorSpecial,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidAssignEventToOfficial(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE eventId=? AND managerId=?", [req.body.eventId, req.body.managerId]);
+                        if(check.length!=0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Already Assigned to Event!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO eventOrganizersData (eventId, managerId) VALUES (?,?)", [req.body.eventId, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Assigned Official to Event."
+                            });
+                            return;
+                        }
+                    }
+                    else if(req.body.authorizationTier==4){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
+                        const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.body.eventId, manager[0].managerDepartmentId]);
+                        if(event.length == 0)
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        
+                        }
+                        const [check] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE eventId=? AND managerId=?", [req.body.eventId, req.body.managerId]);
+                        if(check.length!=0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Already Assigned to Event!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO eventOrganizersData (eventId, managerId) VALUES (?,?)", [req.body.eventId, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Assigned Official to Event."
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - assignEventToOfficial - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+    removeOfficialFromEvent: [
+        adminTokenValidatorSpecial,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidAssignEventToOfficial(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
+                        await db_connection.query("DELETE FROM eventOrganizersData WHERE eventId = ? AND managerId = ?", [req.body.eventId, req.body.managerId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Removed Official from Event."
+                        });
+                        return;
+                    }
+                    else if(req.body.authorizationTier==4){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
+                        const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.body.eventId, manager[0].managerDepartmentId]);
+                        if(event.length == 0)
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        
+                        }
+                        else{
+                            await db_connection.query("DELETE FROM eventOrganizersData WHERE eventId = ? AND managerId = ?", [req.body.eventId, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Removed Official from Event."
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - removeOfficialFromEvent - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ]
 }

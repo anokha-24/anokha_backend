@@ -5,7 +5,7 @@ const otpTokenGenerator = require('../middleware/auth/otp/tokenGenerator');
 const [otpTokenValidator, studentResetPasswordValidator, adminResetPasswordValidator] = require('../middleware/auth/otp/tokenValidator');
 const tokenGenerator = require('../middleware/auth/login/tokenGenerator');
 const adminTokenGenerator = require('../middleware/auth/login/adminTokenGenerator');
-const [adminTokenValidator, adminTokenValidatorRegister] = require('../middleware/auth/login/adminTokenValidator');
+const [adminTokenValidator,adminTokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const tokenValidator = require('../middleware/auth/login/tokenValidator');
 const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
@@ -323,7 +323,7 @@ module.exports = {
                             "authorizationTier": manager[0].managerRoleId
                         });
                         res.status(200).json({
-                            "MESSAGE": "Admin Login Successful!",
+                            "MESSAGE": "Manager Login Successful!",
                             "SECRET_TOKEN": token,
                             "managerFullName": manager[0].managerFullName,
                             "managerEmail": manager[0].managerEmail,

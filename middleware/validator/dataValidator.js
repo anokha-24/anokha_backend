@@ -132,10 +132,13 @@ module.exports = {
     isValidAdminRequest: async (managerId) =>{
         const db_connection = await anokha_db.promise().getConnection();
         await db_connection.query("LOCK TABLES managerData READ");
-        const [managerData] = await db_connection.query("SELECT managerAccountStatus FROM managerData WHERE managerId=?",[managerId]);
+        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[managerId]);
         await db_connection.query("UNLOCK TABLES");
         db_connection.release();
-        if(managerData.length==0 || (managerData.length>1 && managerData[0].managerAccountStatus=="0") ){
+        //console.log(managerData);
+        //console.log(managerData[0].managerAccountStatus);
+        if(managerData.length==0 || (managerData.length>0 && managerData[0].managerAccountStatus=="0") ){
+            //console.log("false");
             return false;
         }
         return true;
@@ -344,6 +347,50 @@ module.exports = {
         await db_connection.query("UNLOCK TABLES");
         db_connection.release();
         if(eventData.length==0 || tagData.length==0){
+            return false;
+        }
+        return true;
+    },
+
+    isValidToggleStudentStatus: async (student) =>{
+        if(student.studentId==undefined || student.studentId == null || isNaN(student.studentId)
+        || student.isActive==undefined || student.isActive == null || (student.isActive!="0" && student.isActive!="1")
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES studentData READ");
+        const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?",[student.studentId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(studentData.length==0){
+            return false;
+        }
+        return true;
+    },
+
+    isValidToggleOfficialStatus: async (manager) =>{
+        if(manager.managerId==undefined || manager.managerId == null || isNaN(manager.managerId)
+        || manager.isActive==undefined || manager.isActive == null || (manager.isActive!="0" && manager.isActive!="1")
+        ){
+            return false;
+        }
+        return true;
+    },
+
+    isValidAssignEventToOfficial: async (req) =>{
+        if(req.eventId==undefined || req.eventId == null || isNaN(req.eventId)
+        || req.managerId==undefined || req.managerId == null || isNaN(req.managerId)
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?",[req.eventId]);
+        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId = ?",[req.managerId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(eventData.length==0 || managerData.length==0){
             return false;
         }
         return true;

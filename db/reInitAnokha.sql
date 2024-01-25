@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS eventData;
 DROP TABLE IF EXISTS forgotPasswordManager;
 DROP TABLE IF EXISTS forgotPasswordStudent;
 DROP TABLE IF EXISTS studentRegister;
+DROP TABLE IF EXISTS blockedStudentStatus;
 DROP TABLE IF EXISTS studentData;
 DROP TABLE IF EXISTS tagFaculty;
 DROP TABLE IF EXISTS managerData;
@@ -186,6 +187,15 @@ CREATE TABLE IF NOT EXISTS studentData (
 
 -- studentAccountStatus: 0 = BLOCKED, 1 = REGISTERED, PENDING PASSPORT , 2 = PASSPORT DONE
 
+CREATE TABLE IF NOT EXISTS blockedStudentStatus (
+    studentId INTEGER PRIMARY KEY,
+    lastStatus CHAR(1) NOT NULL,
+    blockedBy INTEGER NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (studentId) REFERENCES studentData(studentId),
+    FOREIGN KEY (blockedBy) REFERENCES managerData(managerId)
+);
 
 -- INSERT STUDENT DATA
 -- password = ark123@890
@@ -332,7 +342,7 @@ Gear up for an adrenaline-pumping coding experience where lines of code become y
     "2021-03-01", 
     "10:00:00", 
     "Anugraha Hall", 
-    "https://anokha.amrita.edu/2023/static/media/anokha_app.07f6b3b86aebf193cfc4.png", 
+    "https://i.imgur.com/iQy8GLM.jpg", 
     200, 
     10, 
     2, 
@@ -400,7 +410,7 @@ IoT is revolutionizing industries, connecting devices, and creating smarter, mor
     "2021-03-03", 
     "11:00:00", 
     "Anugraha Hall", 
-    "https://anokha.amrita.edu/2023/static/media/anokha_app.07f6b3b86aebf193cfc4.png", 
+    "https://i.imgur.com/iQy8GLM.jpg", 
     100, 
     100, 
     1, 
