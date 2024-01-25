@@ -32,3 +32,4 @@
 2024-01-19T20:36:10.680Z - getEventData - TypeError: Assignment to constant variable.
 2024-01-19T20:51:26.406Z - getEventData - Error: Operand should contain 1 column(s)
 2024-01-20T06:58:18.036Z - getEventData - Error: Table 'eventRegistrationGroupData' was not locked with LOCK TABLES
+2024-01-24T10:24:57.234Z - getStarredEvents - Error: Unknown column 'eventRegistrationData.eventId' in 'field list'

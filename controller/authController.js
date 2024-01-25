@@ -244,6 +244,7 @@ module.exports = {
                         res.status(200).json({
                             "MESSAGE": "User Login Successful!",
                             "SECRET_TOKEN": token,
+                            "studentId": student[0].studentId,
                             "studentFullName": student[0].studentFullName,
                             "studentEmail": student[0].studentEmail,
                             "studentPhone": student[0].studentPhone,
@@ -438,7 +439,7 @@ module.exports = {
                 }
             
             }
-            // if user is a Department Head, he can register only faculty event heads and student event heads for his department.
+            // if user is a Department Head, he can register only local attendance markers.
             else if (req.body.authorizationTier == 4){
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
@@ -455,193 +456,8 @@ module.exports = {
                         return;
                     }
                     
-                    //check if registree is either a faculty event head or a student event head or a local attendance marker.
-                    if(!(req.body.managerRoleId == 5 || req.body.managerRoleId == 6 || req.body.managerRoleId == 9)){
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Unauthorised Access. Warning."
-                        });
-                        return;
-                    }
-
-                    //check if user already exists
-                    const [result] = await db_connection.query("SELECT * FROM managerData WHERE managerEmail = ? OR managerPhone = ?", [req.body.managerEmail, req.body.managerPhone]);
-                    if (result.length > 0) {
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Manager Already Exists!"
-                        });
-                        return;
-                    }
-
-                    
-                    // generate a random password for the manager.
-                    const managerPassword = passwordGenerator.randomPassword({
-                        length: 8,
-                        characters: [passwordGenerator.lower, passwordGenerator.upper, passwordGenerator.digits]
-                    });
-
-                    // sha256 hash the password.
-                    const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
-
-                    await db_connection.query("LOCK TABLES managerData WRITE");
-                    await db_connection.query(
-                        `INSERT INTO managerData
-                        (managerFullName,
-                        managerEmail,
-                        managerPhone,
-                        managerPassword, 
-                        managerRoleId, 
-                        managerDepartmentId, 
-                        managerAddedBy) 
-                        VALUES (?,?,?,?,?,?,?)`,
-                        [req.body.managerFullName,
-                        req.body.managerEmail,
-                        req.body.managerPhone,
-                        passwordHashed,
-                        req.body.managerRoleId,
-                        req.body.managerDepartmentId,
-                        req.body.managerId]);
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-
-                    // Email the password to the manager.
-                    mailer.managerRegistered(req.body.managerFullName, req.body.managerEmail, managerPassword);
-                    
-                    res.status(200).json({
-                        "MESSAGE": "Manager Registered Successfully!"
-                    });
-                    return;
-                }
-                catch(err)
-                {
-                    console.log(err);
-                    const time = new Date();
-                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerAdmin - ${err}\n`);
-                    res.status(500).json({
-                        "MESSAGE": "Internal Server Error. Contact Web Team."
-                    });
-                    return;
-                }
-                finally{
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                }
-            }
-            // if user is a faculty event head, he can register only student event head and local attendance markers.
-            else if (req.authorizationTier == 5){
-                const db_connection = await anokha_db.promise().getConnection();
-                try{
-                    await db_connection.query("LOCK TABLES managerData READ");
-                    
-                    //check if manager is from the same department
-                    const [managerData] =  await db_connection.query("SELECT * FROM managerData WHERE managerId = ?",[req.body.managerId]);
-                    if(managerData[0].managerDepartmentId != req.body.managerDepartmentId){
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Unauthorised Access! You can only add managers within your department."
-                        });
-                        return;
-                    }
-                    
-                    //check if registree is a student event head or a local attendance marker.
-                    if(!(req.body.managerRoleId == 6 || req.body.managerRoleId == 9)){
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Unauthorised Access. Warning."
-                        });
-                        return;
-                    }
-
-                    //check if user already exists
-                    const [result] = await db_connection.query("SELECT * FROM managerData WHERE managerEmail = ? OR managerPhone = ?", [req.body.managerEmail, req.body.managerPhone]);
-                    if (result.length > 0) {
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Manager Already Exists!"
-                        });
-                        return;
-                    }
-
-                    
-                    // generate a random password for the manager.
-                    const managerPassword = passwordGenerator.randomPassword({
-                        length: 8,
-                        characters: [passwordGenerator.lower, passwordGenerator.upper, passwordGenerator.digits]
-                    });
-
-                    // sha256 hash the password.
-                    const passwordHashed = crypto.createHash('sha256').update(managerPassword).digest('hex');
-
-                    await db_connection.query("LOCK TABLES managerData WRITE");
-                    await db_connection.query(
-                        `INSERT INTO managerData
-                        (managerFullName,
-                        managerEmail,
-                        managerPhone,
-                        managerPassword, 
-                        managerRoleId, 
-                        managerDepartmentId, 
-                        managerAddedBy) 
-                        VALUES (?,?,?,?,?,?,?)`,
-                        [req.body.managerFullName,
-                        req.body.managerEmail,
-                        req.body.managerPhone,
-                        passwordHashed,
-                        req.body.managerRoleId,
-                        req.body.managerDepartmentId,
-                        req.body.managerId]);
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-
-                    // Email the password to the manager.
-                    mailer.managerRegistered(req.body.managerFullName, req.body.managerEmail, managerPassword);
-                    
-                    res.status(200).json({
-                        "MESSAGE": "Manager Registered Successfully!"
-                    });
-                    return;
-                }
-                catch(err)
-                {
-                    console.log(err);
-                    const time = new Date();
-                    fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerAdmin - ${err}\n`);
-                    res.status(500).json({
-                        "MESSAGE": "Internal Server Error. Contact Web Team."
-                    });
-                    return;
-                }
-                finally{
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                }
-            }
-
-            // if user is a student event head, he can register only local attendance markers.
-            else if (req.body.authorizationTier == 6) {
-                const db_connection = await anokha_db.promise().getConnection();
-                try{
-                    await db_connection.query("LOCK TABLES managerData READ");
-                    
-                    //check if manager is from the same department
-                    const [managerData] =  await db_connection.query("SELECT * FROM managerData WHERE managerId = ?",[req.body.managerId]);
-                    if(managerData[0].managerDepartmentId != req.body.managerDepartmentId){
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
-                            "MESSAGE": "Unauthorised Access! You can only add managers within your department."
-                        });
-                        return;
-                    }
-                    
                     //check if registree is a local attendance marker.
-                    if(!(req.body.managerRoleId == 9)){
+                    if(!(req.body.managerRoleId == 7)){
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
                         res.status(400).json({
@@ -714,7 +530,7 @@ module.exports = {
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
-            }
+            }            
             else{
                 res.status(401).json({
                     "MESSAGE": "Unauthorized access. Warning."
