@@ -10,9 +10,9 @@ authRouter.post('/loginStudent', authController.loginStudent);
 authRouter.post('/forgotPasswordStudent', authController.forgotPasswordStudent);
 authRouter.post('/resetPasswordStudent', authController.resetPasswordStudent);
 
-authRouter.post('/loginAdmin', authController.loginAdmin);
-authRouter.post('/registerAdmin', authController.registerAdmin);
-authRouter.post('/forgotPasswordAdmin', authController.forgotPasswordAdmin);
-authRouter.post('/resetPasswordAdmin', authController.resetPasswordAdmin);
+authRouter.post('/loginOfficial', authController.loginAdmin);
+authRouter.post('/registerOfficial', authController.registerAdmin);
+authRouter.post('/forgotPasswordOfficial', authController.forgotPasswordAdmin);
+authRouter.post('/resetPasswordOfficial', authController.resetPasswordAdmin);
 
 module.exports = authRouter;

@@ -132,10 +132,13 @@ module.exports = {
     isValidAdminRequest: async (managerId) =>{
         const db_connection = await anokha_db.promise().getConnection();
         await db_connection.query("LOCK TABLES managerData READ");
-        const [managerData] = await db_connection.query("SELECT managerAccountStatus FROM managerData WHERE managerId=?",[managerId]);
+        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?",[managerId]);
         await db_connection.query("UNLOCK TABLES");
         db_connection.release();
-        if(managerData.length==0 || (managerData.length>1 && managerData[0].managerAccountStatus=="0") ){
+        //console.log(managerData);
+        //console.log(managerData[0].managerAccountStatus);
+        if(managerData.length==0 || (managerData.length>0 && managerData[0].managerAccountStatus=="0") ){
+            //console.log("false");
             return false;
         }
         return true;
@@ -364,5 +367,14 @@ module.exports = {
             return false;
         }
         return true;
-    }
+    },
+
+    isValidToggleOfficialStatus: async (manager) =>{
+        if(manager.managerId==undefined || manager.managerId == null || isNaN(manager.managerId)
+        || manager.isActive==undefined || manager.isActive == null || (manager.isActive!="0" && manager.isActive!="1")
+        ){
+            return false;
+        }
+        return true;
+    },
 }
