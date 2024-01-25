@@ -33,10 +33,10 @@ INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
 INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPTARTMENT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKER");
 
 
 CREATE TABLE IF NOT EXISTS departmentData (

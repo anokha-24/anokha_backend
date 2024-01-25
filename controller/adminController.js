@@ -662,5 +662,117 @@ module.exports = {
                 }
             }
         }
-    ]
+    ],
+
+    getAllOfficials: [
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2){
+                    const db_connection = await anokha_db.promise().getConnection();
+                    try{
+                        await db_connection.query("LOCK TABLES managerData READ, managerRole READ, departmentData READ");
+                        const query = 
+                        `SELECT
+                        managerData.managerId,
+                        managerData.managerFullName,
+                        managerData.managerEmail,
+                        managerData.managerPhone,
+                        managerData.managerAccountStatus,
+                        managerData.managerRoleId,
+                        managerRole.roleName,
+                        managerData.managerDepartmentId,
+                        departmentData.departmentName,
+                        departmentData.departmentAbbreviation                
+                        FROM managerData
+                        LEFT JOIN managerRole 
+                        ON managerData.managerRoleId = managerRole.roleId
+                        LEFT JOIN departmentData 
+                        ON managerData.managerDepartmentId = departmentData.departmentId
+                        `;
+                        const [officials] = await db_connection.query(query);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Fetched All Officials.",
+                            "officials": officials
+                        });
+                        return;
+                    }
+                    catch(err){
+                        console.log(err);
+                        const time = new Date();
+                        fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllOfficials - ${err}\n`);
+                        res.status(500).json({
+                            "MESSAGE": "Internal Server Error. Contact Web Team."
+                        });
+                        return;
+                    }
+                    finally{
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                    }
+                }
+                else if (req.body.authorizationTier == 4){
+                    const db_connection = await anokha_db.promise().getConnection();
+                    try{
+                        await db_connection.query("LOCK TABLES managerData READ, managerRole READ, departmentData READ");
+                        const query = 
+                        `SELECT 
+                        managerData.managerId,
+                        managerData.managerFullName,
+                        managerData.managerEmail,
+                        managerData.managerPhone,
+                        managerData.managerAccountStatus,
+                        managerData.managerRoleId,
+                        managerRole.roleName,
+                        managerData.managerDepartmentId,
+                        departmentData.departmentName,
+                        departmentData.departmentAbbreviation
+                        FROM managerData
+                        LEFT JOIN managerRole 
+                        ON managerData.managerRoleId = managerRole.roleId
+                        LEFT JOIN departmentData 
+                        ON managerData.managerDepartmentId = departmentData.departmentId
+                        WHERE managerData.managerAddedBy = ?
+                        `;
+                        const [officials] = await db_connection.query(query, [req.body.managerId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Fetched All Officials.",
+                            "officials": officials
+                        });
+                        return;
+                    }
+                    catch(err){
+                        console.log(err);
+                        const time = new Date();
+                        fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllOfficials - ${err}\n`);
+                        res.status(500).json({
+                            "MESSAGE": "Internal Server Error. Contact Web Team."
+                        });
+                        return;
+                    }
+                    finally{
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                    }
+                }
+                else{
+                    res.status(400).json({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                    return;
+                }
+            }
+        }
+    ],
+
 }
