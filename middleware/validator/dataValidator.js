@@ -8,7 +8,7 @@ module.exports = {
         //     return true;
         // }
         // return false;
-        if (password!=null && password.length > 8 && password.length <= 255 ) {
+        if (typeof(password)=='string' && password!=null && password.length > 8 && password.length <= 255 ) {
             return true;
         }
         return false;
@@ -16,7 +16,7 @@ module.exports = {
 
     // Email should be valid.
     isValidEmail: (email) => {
-        if (email.length>0 && email.length <=255 && validator.isEmail(email)) {
+        if (typeof(email)=='string' && email.length>0 && email.length <=255 && validator.isEmail(email)) {
             return true;
         }
         return false;
@@ -24,7 +24,7 @@ module.exports = {
 
     
     isValidOtp: (otp) => {
-        if (otp != null && otp.length>0 && otp.length<=255) {
+        if (typeof(otp)=='string' && otp != null && otp.length>0 && otp.length<=255) {
             return true;
         }
         return false;
@@ -41,7 +41,8 @@ module.exports = {
     }
     */
     isValidStudentRegistration: (student) => {
-        if (student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
+        if ( typeof(student.studentFullName)=='string' && student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
+            typeof(student.studentEmail)=='string' &&
             validator.isEmail(student.studentEmail) && student.studentEmail.length > 0 && student.studentEmail.length <= 255 &&
             student.studentPhone.length == 10 && validator.isNumeric(student.studentPhone) &&
             student.studentPassword.length > 0 && student.studentPassword.length <= 255 && 
@@ -66,7 +67,9 @@ module.exports = {
 
     //sha256 consists only Hexadecimal characters.
     isValidStudentLogin: (student) => {
-        if (validator.isEmail(student.studentEmail) &&
+        if (typeof(student.studentEmail)=='string' &&
+            validator.isEmail(student.studentEmail) &&
+            typeof(student.studentPassword)=='string' &&
             student.studentPassword.length == 64 &&
             validator.isLength(student.studentPassword, { min: 8 }) && !validator.contains(student.studentPassword, '-' || "'")) 
         {
@@ -76,8 +79,11 @@ module.exports = {
     },
 
     isValidAdminRegistration: async (manager) => {
-        if (manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+        if (typeof(manager.managerFullName)=='string' &&
+            manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+            typeof(manager.managerEmail)=='string' &&
             validator.isEmail(manager.managerEmail) && manager.managerEmail.length > 0 && manager.managerEmail.length <= 255 &&
+            typeof(manager.managerPhone)=='string' &&
             manager.managerPhone.length == 10 && validator.isNumeric(manager.managerPhone) &&
             manager.managerRoleId!=1 &&
             manager.managerRoleId!=null && manager.managerRoleId!=undefined && !isNaN(manager.managerRoleId) &&
@@ -100,7 +106,9 @@ module.exports = {
 
     //sha256 consists only Hexadecimal characters.
     isValidAdminLogin: (manager) => {
-        if (validator.isEmail(manager.managerEmail) &&
+        if (typeof(manager.managerEmail)=='string' &&
+            validator.isEmail(manager.managerEmail) &&
+            typeof(manager.managerPassword)=='string' &&
             manager.managerPassword.length == 64 &&
             validator.isLength(manager.managerPassword, { min: 8 }) && !validator.contains(manager.managerPassword, '-' || "'")) 
         {
@@ -134,9 +142,13 @@ module.exports = {
     },
 
     isValidEditStudentProfile: (student) => {
-        if (student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
+        if (typeof(student.studentFullName)=='string' &&
+            student.studentFullName.length > 0 && student.studentFullName.length <= 255 &&
+            typeof(student.studentPhone)=='string' &&
             student.studentPhone.length == 10 && validator.isNumeric(student.studentPhone) &&
+            typeof(student.studentCollegeName)=='string' &&
             student.studentCollegeName.length > 0 && student.studentCollegeName.length <= 255 &&
+            typeof(student.studentCollegeCity)=='string' &&
             student.studentCollegeCity.length > 0 && student.studentCollegeCity.length <= 255) 
         {
             return true;
@@ -145,7 +157,9 @@ module.exports = {
     },
 
     isValidAdminEditProfile: (manager) => {
-        if (manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+        if (typeof(manager.managerFullName)=='string' &&
+            manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
+            typeof(manager.managerPhone)=='string' &&
             manager.managerPhone.length == 10 && validator.isNumeric(manager.managerPhone) &&
             manager.managerDepartmentId!=null && manager.managerDepartmentId!=undefined && !isNaN(manager.managerDepartmentId)
         )
@@ -178,8 +192,9 @@ module.exports = {
     },
 
     isValidTag: async (tag) =>{
-        if(tag.tagName==undefined || tag.tagName == null || tag.tagName.length>255 || tag.tagName.length==0
-        ||tag.tagAbbreviation==undefined || tag.tagAbbreviation == null || tag.tagAbbreviation.length>255 || tag.tagAbbreviation.length==0
+        if(typeof(tag.tagName)!='string' || tag.tagName==undefined || tag.tagName == null || tag.tagName.length>255 || tag.tagName.length==0 ||
+        typeof(tag.tagAbbreviation)!='string' ||
+        tag.tagAbbreviation==undefined || tag.tagAbbreviation == null || tag.tagAbbreviation.length>255 || tag.tagAbbreviation.length==0
         ){
             return false;
         }
@@ -195,6 +210,7 @@ module.exports = {
     },
     isValidToggleTagStatus: async (tag) =>{
         if(tag.tagId==undefined || tag.tagId == null || isNaN(tag.tagId)
+        || typeof(tag.isActive)!='string'
         || tag.isActive==undefined || tag.isActive == null || (tag.isActive!="0" && tag.isActive!="1")
         ){
             return false;
@@ -210,12 +226,19 @@ module.exports = {
         return true;
     },
     isValidCreateEvent: async (event) =>{
-        if(event.eventName==undefined || event.eventName == null || event.eventName.length>255 || event.eventName.length==0 ||
+        if(typeof(event.eventName)!='string' ||
+           event.eventName==undefined || event.eventName == null || event.eventName.length>255 || event.eventName.length==0 ||
+           typeof(event.eventDescription)!='string' ||
            event.eventDescription==undefined || event.eventDescription == null || event.eventDescription.length>255 || event.eventDescription.length==0 ||
+           typeof(event.eventMarkdownDescription)!='string' ||
            event.eventMarkdownDescription==undefined || event.eventMarkdownDescription == null || event.eventMarkdownDescription.length>5000 || event.eventMarkdownDescription.length==0 ||
+           typeof(event.eventDate)!='string' ||
            event.eventDate ==undefined || event.eventDate == null || isNaN(Date.parse(event.eventDate))|| event.eventDate.length==0 ||
-           event.eventTime ==undefined || event.eventTime == null /*|| validator.isTime(event.eventTime)*/|| event.eventTime.length==0 ||
+           typeof(event.eventTime)!='string' ||
+           event.eventTime ==undefined || event.eventTime == null || validator.isTime(event.eventTime) || event.eventTime.length==0 ||
+           typeof(event.eventVenue)!='string' ||
            event.eventVenue==undefined || event.eventVenue == null || event.eventVenue.length>255 || event.eventVenue.length==0 ||
+           typeof(event.eventImageURL)!='string' ||
            event.eventImageURL == undefined || event.eventImageURL == null || event.eventImageURL.length>255 || event.eventImageURL.length==0 ||
            event.eventPrice == undefined || event.eventPrice == null || isNaN(event.eventPrice) ||
            event.maxSeats == undefined || event.maxSeats == null || isNaN(event.maxSeats) ||
@@ -243,12 +266,19 @@ module.exports = {
         return true;
     },
     isValidEditEventData: async (event) =>{
-        if(event.eventName==undefined || event.eventName == null || event.eventName.length>255 || event.eventName.length==0 ||
+        if( typeof(event.eventName)!='string' ||
+            event.eventName==undefined || event.eventName == null || event.eventName.length>255 || event.eventName.length==0 ||
+            typeof(event.eventDescription)!='string' ||
             event.eventDescription==undefined || event.eventDescription == null || event.eventDescription.length>255 || event.eventDescription.length==0 ||
+            typeof(event.eventMarkdownDescription)!='string' ||
             event.eventMarkdownDescription==undefined || event.eventMarkdownDescription == null || event.eventMarkdownDescription.length>5000 || event.eventMarkdownDescription.length==0 ||
+            typeof(event.eventDate)!='string' ||
             event.eventDate ==undefined || event.eventDate == null || isNaN(Date.parse(event.eventDate))|| event.eventDate.length==0 ||
-            event.eventTime ==undefined || event.eventTime == null /*|| validator.isTime(event.eventTime)*/|| event.eventTime.length==0 ||
+            typeof(event.eventTime)!='string' ||
+            event.eventTime ==undefined || event.eventTime == null || validator.isTime(event.eventTime) || event.eventTime.length==0 ||
+            typeof(event.eventVenue)!='string' ||
             event.eventVenue==undefined || event.eventVenue == null || event.eventVenue.length>255 || event.eventVenue.length==0 ||
+            typeof(event.eventImageURL)!='string' ||
             event.eventImageURL == undefined || event.eventImageURL == null || event.eventImageURL.length>255 || event.eventImageURL.length==0 ||
             event.eventPrice == undefined || event.eventPrice == null || isNaN(event.eventPrice) ||
             event.maxSeats == undefined || event.maxSeats == null || isNaN(event.maxSeats) ||
