@@ -1,6 +1,6 @@
 const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
-const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorToggleOfficialStatus] = require('../middleware/auth/login/adminTokenValidator');
+const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
 
@@ -903,7 +903,7 @@ module.exports = {
     ],
 
     toggleOfficialStatus:[
-        adminTokenValidatorToggleOfficialStatus,
+        adminTokenValidatorSpecial,
         async (req,res) => {
             if(!(await dataValidator.isValidAdminRequest(req.body.tokenManagerId))){
                 //console.log("token");
@@ -1069,4 +1069,99 @@ module.exports = {
             }
         }
     ],
+    
+    assignEventToOfficial: [
+        adminTokenValidatorSpecial,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidAssignEventToOfficial(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE eventId=? AND managerId=?", [req.body.eventId, req.body.managerId]);
+                        if(check.length!=0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Already Assigned to Event!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO eventOrganizersData (eventId, managerId) VALUES (?,?)", [req.body.eventId, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Assigned Official to Event."
+                            });
+                            return;
+                        }
+                    }
+                    else if(req.body.authorizationTier==4){
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
+                        const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.body.eventId, manager[0].managerDepartmentId]);
+                        if(event.length == 0)
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        
+                        }
+                        const [check] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE eventId=? AND managerId=?", [req.body.eventId, req.body.managerId]);
+                        if(check.length!=0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Official Already Assigned to Event!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO eventOrganizersData (eventId, managerId) VALUES (?,?)", [req.body.eventId, req.body.managerId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Assigned Official to Event."
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - assignEventToOfficial - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ]
 }

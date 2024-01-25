@@ -377,4 +377,22 @@ module.exports = {
         }
         return true;
     },
+
+    isValidAssignEventToOfficial: async (req) =>{
+        if(req.eventId==undefined || req.eventId == null || isNaN(req.eventId)
+        || req.managerId==undefined || req.managerId == null || isNaN(req.managerId)
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?",[req.eventId]);
+        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId = ?",[req.managerId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(eventData.length==0 || managerData.length==0){
+            return false;
+        }
+        return true;
+    },
 }

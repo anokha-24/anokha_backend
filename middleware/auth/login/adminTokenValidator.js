@@ -73,7 +73,7 @@ async function tokenValidatorRegister(req, res, next) {
 
 }
 
-async function adminTokenValidatorToggleOfficialStatus(req, res, next)
+async function adminTokenValidatorSpecial(req, res, next)
 {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
@@ -109,4 +109,4 @@ async function adminTokenValidatorToggleOfficialStatus(req, res, next)
 }
 
 
-module.exports = [tokenValidator, tokenValidatorRegister, adminTokenValidatorToggleOfficialStatus];
+module.exports = [tokenValidator, tokenValidatorRegister, adminTokenValidatorSpecial];
