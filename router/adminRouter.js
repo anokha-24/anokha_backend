@@ -19,5 +19,6 @@ adminRouter.get('/getAllOfficials',adminController.getAllOfficials);
 adminRouter.post('/toggleOfficialStatus',adminController.toggleOfficialStatus);
 adminRouter.post('/toggleStudentStatus',adminController.toggleStudentStatus);
 adminRouter.post('/assignEventToOfficial',adminController.assignEventToOfficial);
+adminRouter.post('/removeOfficialFromEvent',adminController.removeOfficialFromEvent);
 
 module.exports = adminRouter;
