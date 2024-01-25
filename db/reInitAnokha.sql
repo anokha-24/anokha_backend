@@ -33,10 +33,10 @@ INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
 INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
 INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPTARTMENT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKERS");
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKERS");
+INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKER");
 
 
 CREATE TABLE IF NOT EXISTS departmentData (
@@ -204,6 +204,10 @@ VALUES ("Dharma Pravardhana V", "dharmapravardhana7@gmail.com", "8248847564", "5
 -- password = 123
 INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
 VALUES ("sajith", "saisajith03@gmail.com", "8993939323", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
+
+INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
+VALUES ("Kalyan", "kalyanguru18@gmail.com", "8248100864", "6b8c049022f412577c6f549c43d2042efe394911d6ac9142c925ef5d20a8ee5f", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
+
 
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -424,7 +428,7 @@ CREATE TABLE IF NOT EXISTS eventTagData (
 
 INSERT INTO eventTagData (eventId, tagId) VALUES (1, 1);
 INSERT INTO eventTagData (eventId, tagId) VALUES (1, 2);
-INSERT INTO eventTagData (eventId, tagId) VALUES (2, 1);
+INSERT INTO eventTagData (eventId, tagId) VALUES (2, 2);
 INSERT INTO eventTagData (eventId, tagId) VALUES (2, 3);
 
 CREATE TABLE IF NOT EXISTS eventOrganizersData (
