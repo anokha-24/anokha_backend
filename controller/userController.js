@@ -268,7 +268,7 @@ module.exports = {
                         AND
                             starredEvents.studentId = ${req.body.studentId}
                         AND
-                            tagData.isActive != "0"
+                            (tagData.isActive != "0" OR tagData.isActive IS NULL)
                         ;`;
 
                         const query2 = `
@@ -319,7 +319,7 @@ module.exports = {
                         AND
                             starredEvents.studentId = ${req.body.studentId}
                         AND
-                            tagData.isActive != "0"`;
+                            (tagData.isActive != "0" OR tagData.isActive IS NULL)`;
 
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
@@ -468,6 +468,7 @@ module.exports = {
                     ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
 
                     const query2 = `
@@ -509,6 +510,7 @@ module.exports = {
                     ON eventRegistrationGroupData.eventId = eventData.eventId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
                     AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
+                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
 
                     const [rows] = await db_connection.query(query);
@@ -768,6 +770,7 @@ module.exports = {
         }
     ],
 
+    //to add only the tags that have isActive = '1' 
     getAllEventsJSVersion: [
         validateEventRequest,
         async (req, res) => {
@@ -1074,7 +1077,7 @@ module.exports = {
                         ON eventTagData.eventId = eventData.eventId
                         LEFT JOIN tagData
                         ON eventTagData.tagId = tagData.tagId
-                        WHERE tagData.isActive != "0"
+                        WHERE tagData.isActive != "0" OR tagData.isActive IS NULL
                         ;`;
 
                         
@@ -1194,7 +1197,7 @@ module.exports = {
                         WHERE
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         AND
-                            tagData.isActive != "0"
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;
 
                         const query2 = `
@@ -1247,7 +1250,8 @@ module.exports = {
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
-                            tagData.isActive != "0"`;
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL)
+                        ;`;
 
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
