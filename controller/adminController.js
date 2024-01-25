@@ -775,4 +775,130 @@ module.exports = {
         }
     ],
 
+    /*
+    {
+        "studentId": int,
+        "isActive": <"0"/"1">
+    }
+    */
+    toggleStudentStatus:[
+        adminTokenValidator,
+        async (req,res) => {
+            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!(await dataValidator.isValidToggleStudentStatus(req.body))){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    
+                    if (req.body.isActive == "0")
+                    {
+                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                        if(check.length==0){
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        else if(check.length > 0 && check[0].studentAccountStatus =="0" )
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Already Blocked!"
+                            });
+                            return;
+                        }
+                        else{
+                            await db_connection.query("INSERT INTO blockedStudentStatus (studentId, lastStatus, blockedBy) VALUES (?, ?, ?)", [req.body.studentId, check[0].studentAccountStatus, req.body.managerId]);
+                            await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [req.body.isActive, req.body.studentId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Blocked Student."
+                            });
+                        }
+                    }
+
+                    else if (req.body.isActive == "1")
+                    {
+                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                        //console.log(check);
+                        if(check.length==0){
+                            //console.log("check");
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Doesn't Exist!"
+                            });
+                            return;
+                        }
+                        if((check.length > 0) && (check[0].studentAccountStatus !="0") )
+                        {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Student Already Active!"
+                            });
+                            return;
+                        }
+                        else{
+                            const [lastStatus] = await db_connection.query("SELECT lastStatus FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
+                            if(lastStatus.length==0){
+                                //console.log("lastStatus");
+                                await db_connection.query("UNLOCK TABLES");
+                                db_connection.release();
+                                res.status(400).json({
+                                    "MESSAGE": "Student Doesn't Exist!"
+                                });
+                                return;
+                            }
+                            else{
+                                await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [lastStatus[0].lastStatus, req.body.studentId]);
+                                await db_connection.query("DELETE FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
+                                await db_connection.query("UNLOCK TABLES");
+                                db_connection.release();
+                                res.status(200).json({
+                                    "MESSAGE": "Successfully Unblocked Student."
+                                });
+                            }
+                        }
+
+                    }
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleStudentStatus - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ]
+
 }

@@ -348,4 +348,21 @@ module.exports = {
         }
         return true;
     },
+
+    isValidToggleStudentStatus: async (student) =>{
+        if(student.studentId==undefined || student.studentId == null || isNaN(student.studentId)
+        || student.isActive==undefined || student.isActive == null || (student.isActive!="0" && student.isActive!="1")
+        ){
+            return false;
+        }
+        const db_connection = await anokha_db.promise().getConnection();
+        await db_connection.query("LOCK TABLES studentData READ");
+        const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?",[student.studentId]);
+        await db_connection.query("UNLOCK TABLES");
+        db_connection.release();
+        if(studentData.length==0){
+            return false;
+        }
+        return true;
+    }
 }
