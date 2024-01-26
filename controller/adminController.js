@@ -317,7 +317,7 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
-                    await db_connection.query("LOCK TABLES eventData WRITE");
+                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
                     INSERT INTO eventData
@@ -366,6 +366,10 @@ module.exports = {
                         req.body.eventDepartmentId,
                         req.body.managerId
                     ]);
+
+                    for (let i = 0; i < req.body.tags.length; i++) {
+                        await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [event.insertId, req.body.tags[i]]);
+                    }
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
@@ -417,7 +421,7 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
-                    await db_connection.query("LOCK TABLES eventData WRITE");
+                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
                     UPDATE eventData
@@ -463,6 +467,12 @@ module.exports = {
                         req.body.eventDepartmentId,
                         req.body.eventId
                     ]);
+
+                    await db_connection.query("DELETE FROM eventTagData WHERE eventId = ?", [req.body.eventId]);
+
+                    for (let i = 0; i < req.body.tags.length; i++) {
+                        await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [req.body.eventId, req.body.tags[i]]);
+                    }
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
@@ -1238,5 +1248,504 @@ module.exports = {
                 }
             }
         }
-    ]
+    ],
+
+    /*
+    params studentId
+    */
+    // permission for Admin [2] and Super_Admin [1], Gate_entry_exit_marker [8]
+    markGateEntry: [
+      adminTokenValidator,
+      async (req, res) => {
+        if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
+          res.status(400).json({
+            "MESSAGE": "Access Restricted!"
+          });
+          return;
+        }
+        if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+            res.status(400).json({
+                "MESSAGE": "Invalid Request!"
+            });
+            return;
+        }
+        else {
+          req.params.studentId = parseInt(req.params.studentId);
+          const db_connection = await anokha_db.promise().getConnection();
+          try {
+            await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+            const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
+            if (check.length == 0) {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(400).json({
+                "MESSAGE": "Student Doesn't Exist!"
+              });
+              return;
+            }
+            const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+            if (check2.length != 0) {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(400).json({
+                "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+              });
+              return;
+            }
+            else {
+              //console.log(formattedTimestamp);
+              await db_connection.query("INSERT INTO visitLogs (studentId, entryTime) VALUES (?, NOW())", [req.params.studentId]);
+              await db_connection.query("UPDATE studentData SET isInCampus = 1 WHERE studentId = ?", [req.params.studentId]);
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(200).json({
+                "MESSAGE": "Successfully Marked Gate Entry."
+              });
+              return;
+            }
+            
+          }
+          catch (err) {
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateEntry - ${err}\n`);
+            res.status(500).json({
+              "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+          }
+          finally {
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+          }
+        }
+      }
+    ],
+
+    /*
+    params studentId
+    */
+    // permission for Admin [2] and Super_Admin [1], Gate_entry_exit_marker [8]
+    markGateExit: [
+        adminTokenValidator,
+        async (req, res) => {
+          if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
+            res.status(400).json({
+              "MESSAGE": "Access Restricted!"
+            });
+            return;
+          }
+          if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+              res.status(400).json({
+                  "MESSAGE": "Invalid Request!"
+              });
+              return;
+          }
+          else {
+            req.params.studentId = parseInt(req.params.studentId);
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+              await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+              const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
+              if (check.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Student Doesn't Exist!"
+                });
+                return;
+              }
+              const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND entryTime IS NULL", [req.params.studentId]);
+              if (check2.length != 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                });
+                return;
+              }
+              const [check3] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=?", [req.params.studentId]);
+              if (check3.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                });
+                return;
+              }
+              const [check4] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+              if (check4.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                });
+                return;
+              }
+              else {
+                //console.log(formattedTimestamp);
+                await db_connection.query("UPDATE visitLogs SET studentId = ?, exitTime = NOW() WHERE exitTime is NULL", [req.params.studentId]);
+                await db_connection.query("UPDATE studentData SET isInCampus = 0 WHERE studentId = ?", [req.params.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(200).json({
+                  "MESSAGE": "Successfully Marked Gate Exit."
+                });
+                return;
+              }
+              
+            }
+            catch (err) {
+              console.log(err);
+              const time = new Date();
+              fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateExit - ${err}\n`);
+              res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+              });
+              return;
+            }
+            finally {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+            }
+          }
+        }
+    ],
+
+            
+    markEventAttendanceEntry: [
+        adminTokenValidator,
+        async (req, res) => {
+          if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+              res.status(400).json({
+                  "MESSAGE": "Invalid Request!"
+              });
+              return;
+          }
+          if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+          }
+          if (!(await dataValidator.isValidMarkEventAttendance(req.params))) {
+            res.status(400).json({
+              "MESSAGE": "Invalid Request!"
+            });
+            return;
+          }
+          else{
+            //console.log(req.params);
+            req.params.studentId = parseInt(req.params.studentId);
+            req.params.eventId = parseInt(req.params.eventId);
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+
+                // super admins, admins and global attendace markers
+                if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId = ? AND studentId=? AND exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("INSERT INTO eventAttendanceData (eventId, studentId, entryTime) VALUES (?, ?, NOW())", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Entry."
+                        });
+                        return;
+                    }
+                }
+                else if(req.body.authorizationTier == 4)
+                {
+                    await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+                    const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.params.eventId, manager[0].managerDepartmentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if(event.length == 0)
+                    {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId = ? AND studentId=? AND exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("INSERT INTO eventAttendanceData (eventId, studentId, entryTime) VALUES (?, ?, NOW())", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Entry."
+                        });
+                        return;
+                    }
+                }
+
+                else if(req.body.authorizationTier == 7)
+                {
+                    await db_connection.query("LOCK TABLES eventOrganizersData READ");
+                    const [confirm] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE managerId=? AND eventId=?", [req.body.managerId, req.params.eventId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if(confirm.length == 0)
+                    {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId = ? AND studentId=? AND exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("INSERT INTO eventAttendanceData (eventId, studentId, entryTime) VALUES (?, ?, NOW())", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Entry."
+                        });
+                        return;
+                    }
+                }  
+          }
+          catch(err){
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markEventAttendanceEntry - ${err}\n`);
+            res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+          }
+          finally{
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+          }
+        }
+    }
+    ],
+
+    markEventAttendanceExit: [
+        adminTokenValidator,
+        async (req, res) => {
+          if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+              res.status(400).json({
+                  "MESSAGE": "Invalid Request!"
+              });
+              return;
+          }
+          if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+          }
+          if (!(await dataValidator.isValidMarkEventAttendance(req.params))) {
+            res.status(400).json({
+              "MESSAGE": "Invalid Request!"
+            });
+            return;
+          }
+          else{
+            //console.log(req.params);
+            req.params.studentId = parseInt(req.params.studentId);
+            req.params.eventId = parseInt(req.params.eventId);
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+
+                // super admins, admins and global attendace markers
+                if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId =? AND studentId=? AND entryTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check2] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=?", [req.params.eventId, req.params.studentId]);
+                    if (check2.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check3] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=? AND exitTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check3.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("UPDATE eventAttendanceData SET eventId = ?, studentId = ?, exitTime = NOW() WHERE exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Exit."
+                        });
+                        return;
+                    }
+                }
+                else if(req.body.authorizationTier == 4)
+                {
+                    await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+                    const [manager] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.params.eventId, manager[0].managerDepartmentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if(event.length == 0)
+                    {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId =? AND studentId=? AND entryTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check2] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=?", [req.params.eventId, req.params.studentId]);
+                    if (check2.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check3] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=? AND exitTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check3.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("UPDATE eventAttendanceData SET eventId = ?, studentId = ?, exitTime = NOW() WHERE exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Exit."
+                        });
+                        return;
+                    }
+                }
+
+                else if(req.body.authorizationTier == 7)
+                {
+                    await db_connection.query("LOCK TABLES eventOrganizersData READ");
+                    const [confirm] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE managerId=? AND eventId=?", [req.body.managerId, req.params.eventId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if(confirm.length == 0)
+                    {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("LOCK TABLES eventAttendanceData WRITE");
+                    const [check] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId =? AND studentId=? AND entryTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check.length != 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check2] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=?", [req.params.eventId, req.params.studentId]);
+                    if (check2.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    const [check3] = await db_connection.query("SELECT * FROM eventAttendanceData WHERE eventId=? AND studentId=? AND exitTime IS NULL", [req.params.eventId, req.params.studentId]);
+                    if (check3.length == 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        });
+                        return;
+                    }
+                    else {
+                        //console.log(formattedTimestamp);
+                        await db_connection.query("UPDATE eventAttendanceData SET eventId = ?, studentId = ?, exitTime = NOW() WHERE exitTime IS NULL", [req.params.eventId,req.params.studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(200).json({
+                            "MESSAGE": "Successfully Marked Attendance Exit."
+                        });
+                        return;
+                    }
+                }  
+          }
+          catch(err){
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markEventAttendanceExit - ${err}\n`);
+            res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+          }
+          finally{
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+          }
+        }
+    }
+    ],
 }

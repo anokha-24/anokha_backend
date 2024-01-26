@@ -235,7 +235,10 @@ module.exports = {
                         return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
                     }
                     else {
-
+                        await db_connection.query("LOCK TABLES studentLoginLogs WRITE");
+                        await db_connection.query("INSERT INTO studentLoginLogs (studentId, loginTime) VALUES (?, NOW())", [student[0].studentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         //generate token and send student details as response
                         const token = await tokenGenerator({
                             "studentEmail": req.body.studentEmail,
@@ -315,6 +318,11 @@ module.exports = {
                     else {
                         const [role]= await db_connection.query(`SELECT * from managerRole where roleId = ?`, [manager[0].managerRoleId]);
                         await db_connection.query("UNLOCK TABLES");
+
+                        await db_connection.query("LOCK TABLES managerLoginLogs WRITE");
+                        await db_connection.query("INSERT INTO managerLoginLogs (managerId, loginTime) VALUES (?, NOW())", [manager[0].managerId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         
                         //generate token and send student details as response
                         const token = await adminTokenGenerator({
