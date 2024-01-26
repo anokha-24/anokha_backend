@@ -253,16 +253,28 @@ module.exports = {
            event.isPerHeadPrice == undefined || event.isPerHeadPrice == null || (event.isPerHeadPrice!="0" && event.isPerHeadPrice!="1") ||
            event.isRefundable == undefined || event.isRefundable == null || (event.isRefundable!="0" && event.isRefundable!="1") ||
            event.needGroupData == undefined || event.needGroupData == null || (event.needGroupData!="0" && event.needGroupData!="1") ||
-           event.eventDepartmentId == undefined || event.eventDepartmentId == null || isNaN(event.eventDepartmentId)
+           event.eventDepartmentId == undefined || event.eventDepartmentId == null || isNaN(event.eventDepartmentId) ||
+           event.tags == undefined || event.tags == null 
         )
         {
             return false;
         }
         const db_connection = await anokha_db.promise().getConnection();
-        await db_connection.query("LOCK TABLES departmentData READ");
+        await db_connection.query("LOCK TABLES departmentData READ, tagData READ");
         const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?",[event.eventDepartmentId]);
         if(departmentData.length==0){
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
             return false;
+        }
+        if (event.tags.length!=0)
+        {
+            const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)",[event.tags]);
+            if(tagData.length!=event.tags.length){
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                return false;
+            }
         }
         await db_connection.query("UNLOCK TABLES");
         db_connection.release();
@@ -294,7 +306,8 @@ module.exports = {
             event.isRefundable == undefined || event.isRefundable == null || (event.isRefundable!="0" && event.isRefundable!="1") ||
             event.needGroupData == undefined || event.needGroupData == null || (event.needGroupData!="0" && event.needGroupData!="1") ||
             event.eventDepartmentId == undefined || event.eventDepartmentId == null || isNaN(event.eventDepartmentId)||
-            event.eventId == undefined || event.eventId == null || isNaN(event.eventId)
+            event.eventId == undefined || event.eventId == null || isNaN(event.eventId) ||
+            event.tags == undefined || event.tags == null 
          )
          {
              //console.log("body");
@@ -305,6 +318,8 @@ module.exports = {
          const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?",[event.eventDepartmentId]);
          if(departmentData.length==0){
              //console.log("department");
+             await db_connection.query("UNLOCK TABLES");
+             db_connection.release();
              return false;
          }
          await db_connection.query("UNLOCK TABLES");
@@ -312,7 +327,19 @@ module.exports = {
          const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?",[event.eventId]);
          if(eventData.length==0){
             //console.log("eventId");
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
             return false;
+         }
+         await db_connection.query("LOCK TABLES tagData READ");
+         if (event.tags.length!=0)
+         {
+            const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)",[event.tags]);
+            if(tagData.length!=event.tags.length){
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                return false;
+            }
          }
          await db_connection.query("UNLOCK TABLES");
          db_connection.release();

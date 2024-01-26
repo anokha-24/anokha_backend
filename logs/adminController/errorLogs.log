@@ -7,3 +7,5 @@
 2024-01-26T10:12:32.222Z - markGateEntry - Error: Incorrect datetime value: 'NOW()' for column 'entryTime' at row 1
 2024-01-26T11:29:02.664Z - markGateExit - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE exitTime = null' at line 1
 2024-01-26T11:29:52.945Z - markGateExit - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE exitTime is NULL' at line 1
+2024-01-26T12:04:14.865Z - createEvent - Error: Table 'eventTagData' was not locked with LOCK TABLES
+2024-01-26T12:11:29.366Z - editEventData - Error: Cannot add or update a child row: a foreign key constraint fails (`anokha`.`eventtagdata`, CONSTRAINT `eventtagdata_ibfk_1` FOREIGN KEY (`eventId`) REFERENCES `eventdata` (`eventId`))

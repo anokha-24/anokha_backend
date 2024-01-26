@@ -317,7 +317,7 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
-                    await db_connection.query("LOCK TABLES eventData WRITE");
+                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
                     INSERT INTO eventData
@@ -366,6 +366,10 @@ module.exports = {
                         req.body.eventDepartmentId,
                         req.body.managerId
                     ]);
+
+                    for (let i = 0; i < req.body.tags.length; i++) {
+                        await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [event.insertId, req.body.tags[i]]);
+                    }
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
@@ -417,7 +421,7 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
-                    await db_connection.query("LOCK TABLES eventData WRITE");
+                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
                     UPDATE eventData
@@ -463,6 +467,12 @@ module.exports = {
                         req.body.eventDepartmentId,
                         req.body.eventId
                     ]);
+
+                    await db_connection.query("DELETE FROM eventTagData WHERE eventId = ?", [req.body.eventId]);
+
+                    for (let i = 0; i < req.body.tags.length; i++) {
+                        await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [req.body.eventId, req.body.tags[i]]);
+                    }
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
