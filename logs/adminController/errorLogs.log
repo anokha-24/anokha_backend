@@ -3,3 +3,7 @@
 2024-01-24T20:05:56.183Z - toggleEventStatus - ReferenceError: isActive is not defined
 2024-01-25T17:46:42.030Z - toggleOfficialStatus - Error: Check constraint 'managerdata_chk_1' is violated.
 2024-01-25T19:48:45.462Z - assignEventToOfficial - Error: Table 'anokha.eventofficialdata' doesn't exist
+2024-01-26T09:50:38.387Z - markGateEntry - Error: Incorrect datetime value: '01/26/2024 15:20:38' for column 'entryTime' at row 1
+2024-01-26T10:12:32.222Z - markGateEntry - Error: Incorrect datetime value: 'NOW()' for column 'entryTime' at row 1
+2024-01-26T11:29:02.664Z - markGateExit - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE exitTime = null' at line 1
+2024-01-26T11:29:52.945Z - markGateExit - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE exitTime is NULL' at line 1

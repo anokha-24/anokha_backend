@@ -20,5 +20,7 @@ adminRouter.post('/toggleOfficialStatus',adminController.toggleOfficialStatus);
 adminRouter.post('/toggleStudentStatus',adminController.toggleStudentStatus);
 adminRouter.post('/assignEventToOfficial',adminController.assignEventToOfficial);
 adminRouter.post('/removeOfficialFromEvent',adminController.removeOfficialFromEvent);
+adminRouter.get('/markGateEntry/:studentId(\\d+)',adminController.markGateEntry);
+adminRouter.get('/markGateExit/:studentId(\\d+)',adminController.markGateExit);
 
 module.exports = adminRouter;

@@ -1238,5 +1238,167 @@ module.exports = {
                 }
             }
         }
-    ]
+    ],
+
+    /*
+    params studentId
+    */
+    // permission for Admin [2] and Super_Admin [1], Gate_entry_exit_marker [8]
+    markGateEntry: [
+      adminTokenValidator,
+      async (req, res) => {
+        if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
+          res.status(400).json({
+            "MESSAGE": "Access Restricted!"
+          });
+          return;
+        }
+        if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+            res.status(400).json({
+                "MESSAGE": "Invalid Request!"
+            });
+            return;
+        }
+        else {
+          req.params.studentId = parseInt(req.params.studentId);
+          const db_connection = await anokha_db.promise().getConnection();
+          try {
+            await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+            const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
+            if (check.length == 0) {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(400).json({
+                "MESSAGE": "Student Doesn't Exist!"
+              });
+              return;
+            }
+            const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+            if (check2.length != 0) {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(400).json({
+                "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+              });
+              return;
+            }
+            else {
+              //console.log(formattedTimestamp);
+              await db_connection.query("INSERT INTO visitLogs (studentId, entryTime) VALUES (?, NOW())", [req.params.studentId]);
+              await db_connection.query("UPDATE studentData SET isInCampus = 1 WHERE studentId = ?", [req.params.studentId]);
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+              res.status(200).json({
+                "MESSAGE": "Successfully Marked Gate Entry."
+              });
+              return;
+            }
+            
+          }
+          catch (err) {
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateEntry - ${err}\n`);
+            res.status(500).json({
+              "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+            return;
+          }
+          finally {
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+          }
+        }
+      }
+    ],
+
+    /*
+    params studentId
+    */
+    // permission for Admin [2] and Super_Admin [1], Gate_entry_exit_marker [8]
+    markGateExit: [
+        adminTokenValidator,
+        async (req, res) => {
+          if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
+            res.status(400).json({
+              "MESSAGE": "Access Restricted!"
+            });
+            return;
+          }
+          if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+              res.status(400).json({
+                  "MESSAGE": "Invalid Request!"
+              });
+              return;
+          }
+          else {
+            req.params.studentId = parseInt(req.params.studentId);
+            const db_connection = await anokha_db.promise().getConnection();
+            try {
+              await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+              const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
+              if (check.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Student Doesn't Exist!"
+                });
+                return;
+              }
+              const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND entryTime IS NULL", [req.params.studentId]);
+              if (check2.length != 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                });
+                return;
+              }
+              const [check3] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=?", [req.params.studentId]);
+              if (check3.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                });
+                return;
+              }
+              const [check4] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+              if (check4.length == 0) {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(400).json({
+                  "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                });
+                return;
+              }
+              else {
+                //console.log(formattedTimestamp);
+                await db_connection.query("UPDATE visitLogs SET studentId = ?, exitTime = NOW() WHERE exitTime is NULL", [req.params.studentId]);
+                await db_connection.query("UPDATE studentData SET isInCampus = 0 WHERE studentId = ?", [req.params.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+                res.status(200).json({
+                  "MESSAGE": "Successfully Marked Gate Exit."
+                });
+                return;
+              }
+              
+            }
+            catch (err) {
+              console.log(err);
+              const time = new Date();
+              fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateExit - ${err}\n`);
+              res.status(500).json({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+              });
+              return;
+            }
+            finally {
+              await db_connection.query("UNLOCK TABLES");
+              db_connection.release();
+            }
+          }
+        }
+      ],
 }
