@@ -51,6 +51,7 @@ module.exports = {
                 const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ? OR studentPhone = ?", [req.body.studentEmail, req.body.studentPhone]);
                 if (result.length > 0) {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     res.status(400).json({
                         "MESSAGE": "Student Already Exists!"
                     });
@@ -99,6 +100,7 @@ module.exports = {
 
                     //await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, needPassport, studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, isInCampus]);
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
 
                     res.status(200).json({
                         "SECRET_TOKEN": secret_token,
@@ -146,6 +148,7 @@ module.exports = {
                     const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
                     if (result.length > 0) {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "User Already Exists!"
                         });
@@ -159,6 +162,7 @@ module.exports = {
                         const [check] = await db_connection.query(`DELETE FROM studentRegister WHERE studentEmail = ? AND otp = ?`, [req.body.studentEmail, req.body.otp]);
                         if (check.affectedRows === 0) {
                             await db_connection.query(`UNLOCK TABLES`);
+                            db_connection.release();
                             return res.status(400).send({ "MESSAGE": "Invalid OTP!" });
                         }
                         //if OTP is valid
@@ -175,6 +179,7 @@ module.exports = {
                             //insert user into studentData
                             await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
                             await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
                             res.status(200).json({
                                 "MESSAGE": "User Registration Verified Successfully!"
                             });
@@ -305,6 +310,7 @@ module.exports = {
                 //if credentials are incorrect
                 if (manager.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
                 }
                 //if credentials are correct
@@ -313,6 +319,7 @@ module.exports = {
                     //if account is blocked
                     if (manager[0].managerAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
                     }
                     else {
@@ -565,6 +572,7 @@ module.exports = {
                 const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
                 if (student.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     res.status(400).json({
                         "MESSAGE": "Account Does Not Exist!"
                     });
@@ -572,6 +580,7 @@ module.exports = {
                 }
                 else if (student[0].studentAccountStatus === "0") {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     res.status(400).json({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
@@ -588,6 +597,7 @@ module.exports = {
                     const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
                     await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp_hashed]);
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
                     res.status(200).json({
                         "MESSAGE": "Check Email for Password Reset OTP!",
@@ -629,6 +639,7 @@ module.exports = {
                 const [manager] = await db_connection.query(`SELECT * from managerData where managerEmail = ?`, [req.body.managerEmail]);
                 if (manager.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     res.status(400).json({
                         "MESSAGE": "Account Does Not Exist!"
                     });
@@ -636,6 +647,7 @@ module.exports = {
                 }
                 else if (manager[0].managerAccountStatus === "0") {
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     res.status(400).json({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
@@ -652,6 +664,7 @@ module.exports = {
                     const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
                     await db_connection.query("INSERT INTO forgotPasswordManager (managerId, otp) VALUES (?,?)", [manager[0].managerId, otp_hashed]);
                     await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
                     mailer.forgotPassword(manager[0].managerFullName, manager[0].managerEmail, otp);
                     res.status(200).json({
                         "MESSAGE": "Check Email for Password Reset OTP!",
@@ -699,6 +712,7 @@ module.exports = {
                     //if user does not exist
                     if (verify.length === 0) {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Account Does Not Exist!"
                         });
@@ -708,6 +722,7 @@ module.exports = {
                     //if account is blocked
                     else if (verify[0].studentAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Account is BLOCKED by Admin!"
                         });
@@ -721,6 +736,7 @@ module.exports = {
                     const [student] = await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ? and otp = ?`, [verify[0].studentId, req.body.otp]);
                     if (student.affectedRows === 0) {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Invalid OTP!"
                         });
@@ -732,6 +748,7 @@ module.exports = {
                         //req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
                         await db_connection.query("UPDATE studentData SET studentPassword = ? WHERE studentId = ?", [req.body.studentPassword, verify[0].studentId]);
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(200).json({
                             "MESSAGE": "Password Reset Successful!"
                         });
@@ -778,6 +795,7 @@ module.exports = {
                     //if user does not exist
                     if (verify.length === 0) {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Account Does Not Exist!"
                         });
@@ -787,6 +805,7 @@ module.exports = {
                     //if account is blocked
                     else if (verify[0].managerAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Account is BLOCKED by Admin!"
                         });
@@ -800,6 +819,7 @@ module.exports = {
                     const [manager] = await db_connection.query(`DELETE from forgotPasswordManager where managerId = ? and otp = ?`, [verify[0].managerId, req.body.otp]);
                     if (manager.affectedRows === 0) {
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Invalid OTP!"
                         });
@@ -811,6 +831,7 @@ module.exports = {
                         //req.body.managerPassword = crypto.createHash('sha256').update(req.body.managerPassword).digest('hex');
                         await db_connection.query("UPDATE managerData SET managerPassword = ? WHERE managerId = ?", [req.body.managerPassword, verify[0].managerId]);
                         await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
                         res.status(200).json({
                             "MESSAGE": "Password Reset Successful!"
                         });
