@@ -6,6 +6,7 @@ const secret_key = "cc660933a1fe35dd9ff11556936e8fe41a873a0fe87a70e75c5de7bedf4c
 async function tokenValidator(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
@@ -13,6 +14,13 @@ async function tokenValidator(req, res, next) {
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -41,6 +49,7 @@ async function tokenValidator(req, res, next) {
 async function tokenValidatorRegister(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
@@ -48,6 +57,13 @@ async function tokenValidatorRegister(req, res, next) {
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -77,6 +93,7 @@ async function adminTokenValidatorSpecial(req, res, next)
 {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
@@ -84,6 +101,13 @@ async function adminTokenValidatorSpecial(req, res, next)
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
