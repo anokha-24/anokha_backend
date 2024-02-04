@@ -6,6 +6,7 @@ const secret_key = "e7465f20b133d294382d1f52dde0cf94994c762a63d796704d55ee9f7a18
 async function otpTokenValidator(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
@@ -13,6 +14,13 @@ async function otpTokenValidator(req, res, next) {
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -49,13 +57,21 @@ async function otpTokenValidator(req, res, next) {
 async function studentResetPasswordValidator(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
-            "ERROR": "No Token. Warning."
+            "MESSAGE": "No Token. Warning."
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -83,13 +99,21 @@ async function studentResetPasswordValidator(req, res, next) {
 async function adminResetPasswordValidator(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
+    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
 
     if (tokenHeader == null || token == null) {
         res.status(401).send({
-            "ERROR": "No Token. Warning."
+            "MESSAGE": "No Token. Warning."
         });
         return;
     }
+    
+    if (!validate) {
+        res.status(401).send({
+            "MESSAGE": "Invalid Token. Warning."
+        });
+        return;
+    } 
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
