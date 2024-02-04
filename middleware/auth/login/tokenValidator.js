@@ -56,11 +56,13 @@ async function validateEventRequest(req, res, next){
 
     if (tokenHeader == null || token == null) {
         req.body.isLoggedIn = "0";
+        next();
         return;
     }
     
     if (!validate) {
         req.body.isLoggedIn = "0";
+        next();
         return;
     } 
 
