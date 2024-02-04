@@ -55,16 +55,12 @@ async function validateEventRequest(req, res, next){
     //console.log(tokenHeader, validate, typeof(tokenHeader), tokenHeader.split(' ').length);
 
     if (tokenHeader == null || token == null) {
-        res.status(401).send({
-            "MESSAGE": "No Token. Warning."
-        });
+        req.body.isLoggedIn = "0";
         return;
     }
     
     if (!validate) {
-        res.status(401).send({
-            "MESSAGE": "Invalid Token. Warning."
-        });
+        req.body.isLoggedIn = "0";
         return;
     } 
 
