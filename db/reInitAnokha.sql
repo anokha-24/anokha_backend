@@ -20,7 +20,6 @@ DROP TABLE IF EXISTS managerData;
 DROP TABLE IF EXISTS tagData;
 DROP TABLE IF EXISTS departmentData;
 DROP TABLE IF EXISTS managerRole;
-
 CREATE TABLE IF NOT EXISTS managerRole (
     roleId INTEGER PRIMARY KEY AUTO_INCREMENT,
     roleName VARCHAR(255) NOT NULL UNIQUE,
@@ -29,27 +28,31 @@ CREATE TABLE IF NOT EXISTS managerRole (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (isActive IN ("0", "1"))
 );
-
-INSERT INTO managerRole (roleId, roleName) VALUES (1,"SUPER_ADMIN");
-INSERT INTO managerRole (roleId, roleName) VALUES (2,"ADMIN");
-INSERT INTO managerRole (roleId, roleName) VALUES (3,"FINANCE");
-INSERT INTO managerRole (roleId, roleName) VALUES (4,"DEPTARTMENT_HEAD");
-INSERT INTO managerRole (roleId, roleName) VALUES (5,"EVENTIDE_ATTENDANCE_MARKER");
-INSERT INTO managerRole (roleId, roleName) VALUES (6,"GLOBAL_ATTENDANCE_MARKER");
-INSERT INTO managerRole (roleId, roleName) VALUES (7,"LOCAL_ATTENDANCE_MARKER");
-INSERT INTO managerRole (roleId, roleName) VALUES (8,"GATE_ENTRY_EXIT_MARKER");
-
-
+INSERT INTO managerRole (roleId, roleName)
+VALUES (1, "SUPER_ADMIN");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (2, "ADMIN");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (3, "FINANCE");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (4, "DEPTARTMENT_HEAD");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (5, "EVENTIDE_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (6, "GLOBAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (7, "LOCAL_ATTENDANCE_MARKER");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (8, "GATE_ENTRY_EXIT_MARKER");
 CREATE TABLE IF NOT EXISTS departmentData (
-    departmentId INTEGER PRIMARY KEY AUTO_INCREMENT, 
-    departmentName VARCHAR(255) NOT NULL UNIQUE, 
+    departmentId INTEGER PRIMARY KEY AUTO_INCREMENT,
+    departmentName VARCHAR(255) NOT NULL UNIQUE,
     departmentAbbreviation VARCHAR(255) NOT NULL UNIQUE,
     isActive CHAR(1) NOT NULL DEFAULT "1",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (isActive IN ("0", "1"))
 );
-
 CREATE TABLE IF NOT EXISTS tagData (
     tagId INTEGER PRIMARY KEY AUTO_INCREMENT,
     tagName VARCHAR(255) NOT NULL UNIQUE,
@@ -59,38 +62,63 @@ CREATE TABLE IF NOT EXISTS tagData (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (isActive IN ("0", "1"))
 );
-
-INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Featured", "FT.");
-INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Coding", "COD");
-INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Computer Science", "CS");
-INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Competitive Programming", "CP");
-INSERT INTO tagData (tagName, tagAbbreviation) VALUES ("Internet Of Things", "IOT");
-
-
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Electrical and Electronics Engineering","EEE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Mechanical Engineering","MEE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Cyber Security", "CYS");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Mathematics", "MATH");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Electronics and Communication Engineering", "ECE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Computer Science and Engineering", "CSE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Social Work", "MSW");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Civil Engineering", "CIE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Agriculture", "AGRI");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("English", "ENG");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Chemical Engineering", "CHE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Aerospace Engineering", "AEE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Computer Engineering and Networking", "CEN");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Team Media - Club", "TM");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Amrita Centre for Entrepreneurship", "ACE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Department of Science", "SCI");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Nivesha - Club", "NIV");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Department of Mass Communication", "ASCOM");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Elite - Club", "ELITE");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Corporate and Industry Relations", "CIR");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Eventide", "EVN");
-INSERT INTO departmentData (departmentName,departmentAbbreviation) VALUES ("Toastmasters - Club", "ATC");
-
-
+INSERT INTO tagData (tagName, tagAbbreviation)
+VALUES ("Featured", "FT.");
+INSERT INTO tagData (tagName, tagAbbreviation)
+VALUES ("Coding", "COD");
+INSERT INTO tagData (tagName, tagAbbreviation)
+VALUES ("Computer Science", "CS");
+INSERT INTO tagData (tagName, tagAbbreviation)
+VALUES ("Competitive Programming", "CP");
+INSERT INTO tagData (tagName, tagAbbreviation)
+VALUES ("Internet Of Things", "IOT");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Electrical and Electronics Engineering", "EEE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Mechanical Engineering", "MEE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Cyber Security", "CYS");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Mathematics", "MATH");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES (
+        "Electronics and Communication Engineering",
+        "ECE"
+    );
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Computer Science and Engineering", "CSE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Social Work", "MSW");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Civil Engineering", "CIE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Agriculture", "AGRI");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("English", "ENG");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Chemical Engineering", "CHE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Aerospace Engineering", "AEE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Computer Engineering and Networking", "CEN");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Team Media - Club", "TM");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Amrita Centre for Entrepreneurship", "ACE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Department of Science", "SCI");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Nivesha - Club", "NIV");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Department of Mass Communication", "ASCOM");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Elite - Club", "ELITE");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Corporate and Industry Relations", "CIR");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Eventide", "EVN");
+INSERT INTO departmentData (departmentName, departmentAbbreviation)
+VALUES ("Toastmasters - Club", "ATC");
 CREATE TABLE IF NOT EXISTS managerData (
     managerId INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerFullName VARCHAR(255) NOT NULL,
@@ -108,55 +136,54 @@ CREATE TABLE IF NOT EXISTS managerData (
     FOREIGN KEY (managerAddedBy) REFERENCES managerData(managerId),
     CHECK (managerAccountStatus IN ("0", "1"))
 );
-
 INSERT INTO managerData (
-    managerFullName, 
-    managerEmail, 
-    managerPhone, 
-    managerPassword, 
-    managerRoleId, 
-    managerDepartmentId
-) VALUES (
-    "Admin WMD Ark",
-    "abhinavramki2@gmail.com", 
-    "9595959599",
-    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-    1,
-    6 
-);
-
+        managerFullName,
+        managerEmail,
+        managerPhone,
+        managerPassword,
+        managerRoleId,
+        managerDepartmentId
+    )
+VALUES (
+        "Admin WMD Ark",
+        "abhinavramki2@gmail.com",
+        "9595959599",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        1,
+        6
+    );
 INSERT INTO managerData (
-    managerFullName, 
-    managerEmail, 
-    managerPhone, 
-    managerPassword, 
-    managerRoleId, 
-    managerDepartmentId
-) VALUES (
-    "Admin WMD Ash",
-    "ashrockzzz2003@gmail.com", 
-    "9696969696",
-    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-    1,
-    6 
-);
-
+        managerFullName,
+        managerEmail,
+        managerPhone,
+        managerPassword,
+        managerRoleId,
+        managerDepartmentId
+    )
+VALUES (
+        "Admin WMD Ash",
+        "ashrockzzz2003@gmail.com",
+        "9696969696",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        1,
+        6
+    );
 INSERT INTO managerData (
-    managerFullName, 
-    managerEmail, 
-    managerPhone, 
-    managerPassword, 
-    managerRoleId, 
-    managerDepartmentId
-) VALUES (
-    "Hariharan",
-    "hariharan.14107@gmail.com",
-    "9545949494",
-    "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-    4,
-    6
-);
-
+        managerFullName,
+        managerEmail,
+        managerPhone,
+        managerPassword,
+        managerRoleId,
+        managerDepartmentId
+    )
+VALUES (
+        "Hariharan",
+        "hariharan.14107@gmail.com",
+        "9545949494",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        4,
+        6
+    );
 -- CREATE TABLE IF NOT EXISTS tagFaculty (
 --     id INTEGER PRIMARY KEY AUTO_INCREMENT,
 --     tagId INTEGER NOT NULL,
@@ -166,7 +193,6 @@ INSERT INTO managerData (
 --     FOREIGN KEY (tagId) REFERENCES tagData(tagId),
 --     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 -- );
-
 CREATE TABLE IF NOT EXISTS studentData (
     studentId INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentFullName VARCHAR(255) NOT NULL,
@@ -184,9 +210,7 @@ CREATE TABLE IF NOT EXISTS studentData (
     CHECK (studentAccountStatus IN ("0", "1", "2")),
     CHECK (isInCampus IN ("0", "1"))
 );
-
 -- studentAccountStatus: 0 = BLOCKED, 1 = REGISTERED, PENDING PASSPORT , 2 = PASSPORT DONE
-
 CREATE TABLE IF NOT EXISTS blockedStudentStatus (
     studentId INTEGER PRIMARY KEY,
     lastStatus CHAR(1) NOT NULL,
@@ -196,29 +220,121 @@ CREATE TABLE IF NOT EXISTS blockedStudentStatus (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     FOREIGN KEY (blockedBy) REFERENCES managerData(managerId)
 );
-
 -- INSERT STUDENT DATA
 -- password = ark123@890
-
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("Abhinav R", "cb.en.u4cse21001@cb.students.amrita.edu", "9595959595", "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "Abhinav R",
+        "cb.en.u4cse21001@cb.students.amrita.edu",
+        "9595959595",
+        "4bc3446b672d30ca045eb57cd661347c27a7ca3edd80cc2fe320159800f8c856",
+        "0",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "1",
+        "2"
+    );
 -- password = password
-
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("Ashwin S", "cb.en.u4cse21008@cb.students.amrita.edu", "9695959595", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "0", "Amrita Vishwa Vidyapeetham", "Coimbatore", "1", "2");
-
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "Ashwin S",
+        "cb.en.u4cse21008@cb.students.amrita.edu",
+        "9695959595",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        "0",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "1",
+        "2"
+    );
 -- password = asdfghjkl
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("Dharma Pravardhana V", "dharmapravardhana7@gmail.com", "8248847564", "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
-
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "Dharma Pravardhana V",
+        "dharmapravardhana7@gmail.com",
+        "8248847564",
+        "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1",
+        "1",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "0",
+        "2"
+    );
 -- password = 123
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("sajith", "saisajith03@gmail.com", "8993939323", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
-
-INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentCollegeName, studentCollegeCity, isInCampus, studentAccountStatus)
-VALUES ("Kalyan", "kalyanguru18@gmail.com", "8248100864", "6b8c049022f412577c6f549c43d2042efe394911d6ac9142c925ef5d20a8ee5f", "1", "Amrita Vishwa Vidyapeetham", "Coimbatore", "0", "1");
-
-
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "sajith",
+        "saisajith03@gmail.com",
+        "8993939323",
+        "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "1",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "0",
+        "1"
+    );
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "Kalyan",
+        "kalyanguru18@gmail.com",
+        "8248100864",
+        "6b8c049022f412577c6f549c43d2042efe394911d6ac9142c925ef5d20a8ee5f",
+        "1",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "0",
+        "1"
+    );
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentEmail VARCHAR(255) NOT NULL UNIQUE,
@@ -226,7 +342,6 @@ CREATE TABLE IF NOT EXISTS studentRegister (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
 CREATE TABLE IF NOT EXISTS forgotPasswordStudent (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
@@ -235,7 +350,6 @@ CREATE TABLE IF NOT EXISTS forgotPasswordStudent (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
-
 CREATE TABLE IF NOT EXISTS forgotPasswordManager (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerId INTEGER NOT NULL,
@@ -244,7 +358,6 @@ CREATE TABLE IF NOT EXISTS forgotPasswordManager (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
-
 CREATE TABLE IF NOT EXISTS eventData (
     eventId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventName VARCHAR(255) NOT NULL,
@@ -282,32 +395,32 @@ CREATE TABLE IF NOT EXISTS eventData (
     CHECK (needGroupData IN ("0", "1"))
 );
 -- eventStatus: 0 = CANCELLED FROM ANOKHA, 1 = ACTIVE, 2 = CLOSED FOR REGISTRATIONS
-
 INSERT INTO eventData (
-    eventName, 
-    eventDescription, 
-    eventMarkdownDescription, 
-    eventDate, 
-    eventTime, 
-    eventVenue, 
-    eventImageURL, 
-    eventPrice, 
-    maxSeats, 
-    minTeamSize, 
-    maxTeamSize,
-    eventDepartmentId, 
-    isWorkshop, 
-    isTechnical, 
-    isGroup, 
-    isPerHeadPrice, 
-    isRefundable, 
-    eventStatus, 
-    needGroupData, 
-    eventCreatedBy
-) VALUES (
-    "Code Clash", 
-    "Welcome to the Code Clash Championship, where the brightest minds in the world of programming come together to engage in an exhilarating battle of algorithms and logic!", 
-    "# Code Clash Championship
+        eventName,
+        eventDescription,
+        eventMarkdownDescription,
+        eventDate,
+        eventTime,
+        eventVenue,
+        eventImageURL,
+        eventPrice,
+        maxSeats,
+        minTeamSize,
+        maxTeamSize,
+        eventDepartmentId,
+        isWorkshop,
+        isTechnical,
+        isGroup,
+        isPerHeadPrice,
+        isRefundable,
+        eventStatus,
+        needGroupData,
+        eventCreatedBy
+    )
+VALUES (
+        "Code Clash",
+        "Welcome to the Code Clash Championship, where the brightest minds in the world of programming come together to engage in an exhilarating battle of algorithms and logic!",
+        "# Code Clash Championship
 
 Welcome to the Code Clash Championship, an electrifying event that brings together the sharpest minds in the programming world. Brace yourself for an intense showdown of algorithms and logic, where participants will be tested on their problem-solving skills, coding prowess, and strategic thinking.
 
@@ -338,51 +451,51 @@ Welcome to the Code Clash Championship, an electrifying event that brings togeth
 - Anyone passionate about honing their coding skills
 
 Gear up for an adrenaline-pumping coding experience where lines of code become your weapons, and logic serves as your armor. Join us at the Code Clash Championship and prove that you have what it takes to be crowned the coding champion!
-", 
-    "2021-03-01", 
-    "10:00:00", 
-    "Anugraha Hall", 
-    "https://i.imgur.com/iQy8GLM.jpg", 
-    200, 
-    10, 
-    2, 
-    4, 
-    6,
-    "0", 
-    "1", 
-    "1", 
-    "0", 
-    "1", 
-    "1", 
-    "1", 
-    1
-);
-
+",
+        "2021-03-01",
+        "10:00:00",
+        "Anugraha Hall",
+        "https://i.imgur.com/iQy8GLM.jpg",
+        200,
+        10,
+        2,
+        4,
+        6,
+        "0",
+        "1",
+        "1",
+        "0",
+        "1",
+        "1",
+        "1",
+        1
+    );
 INSERT INTO eventData (
-    eventName, 
-    eventDescription, 
-    eventMarkdownDescription, 
-    eventDate, 
-    eventTime, 
-    eventVenue, 
-    eventImageURL, 
-    eventPrice, 
-    maxSeats, 
-    minTeamSize, 
-    maxTeamSize,
-    eventDepartmentId, 
-    isWorkshop, 
-    isTechnical, 
-    isGroup, 
-    isPerHeadPrice, 
-    isRefundable, 
-    eventStatus, 
-    needGroupData, 
-    eventCreatedBy
-) VALUES (
-    "IOT Workshop",
-    "Participants will explore the concepts, technologies, and practical applications of IoT that are transforming the way we interact with the world.", 
-    "# IoT Workshop: Bridging the Physical and Digital Worlds
+        eventName,
+        eventDescription,
+        eventMarkdownDescription,
+        eventDate,
+        eventTime,
+        eventVenue,
+        eventImageURL,
+        eventPrice,
+        maxSeats,
+        minTeamSize,
+        maxTeamSize,
+        eventDepartmentId,
+        isWorkshop,
+        isTechnical,
+        isGroup,
+        isPerHeadPrice,
+        isRefundable,
+        eventStatus,
+        needGroupData,
+        eventCreatedBy
+    )
+VALUES (
+        "IOT Workshop",
+        "Participants will explore the concepts, technologies, and practical applications of IoT that are transforming the way we interact with the world.",
+        "# IoT Workshop: Bridging the Physical and Digital Worlds
 
 Welcome to our IoT Workshop, where we dive into the fascinating realm of the Internet of Things (IoT). In this hands-on session, participants will explore the concepts, technologies, and practical applications of IoT that are transforming the way we interact with the world.
 
@@ -406,26 +519,25 @@ IoT is revolutionizing industries, connecting devices, and creating smarter, mor
 
 3. **Protocols and Communication**
    - Overview of MQTT, CoAP, and HTTP protocols.
-   - Hands-on communication between devices.", 
-    "2021-03-03", 
-    "11:00:00", 
-    "Anugraha Hall", 
-    "https://i.imgur.com/iQy8GLM.jpg", 
-    100, 
-    100, 
-    1, 
-    1, 
-    6,
-    "1", 
-    "1", 
-    "0", 
-    "1", 
-    "1", 
-    "1", 
-    "0", 
-    1
-);
-
+   - Hands-on communication between devices.",
+        "2021-03-03",
+        "11:00:00",
+        "Anugraha Hall",
+        "https://i.imgur.com/iQy8GLM.jpg",
+        100,
+        100,
+        1,
+        1,
+        6,
+        "1",
+        "1",
+        "0",
+        "1",
+        "1",
+        "1",
+        "0",
+        1
+    );
 CREATE TABLE IF NOT EXISTS eventTagData (
     eventId INTEGER NOT NULL,
     tagId INTEGER NOT NULL,
@@ -435,12 +547,14 @@ CREATE TABLE IF NOT EXISTS eventTagData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (tagId) REFERENCES tagData(tagId)
 );
-
-INSERT INTO eventTagData (eventId, tagId) VALUES (1, 1);
-INSERT INTO eventTagData (eventId, tagId) VALUES (1, 2);
-INSERT INTO eventTagData (eventId, tagId) VALUES (2, 2);
-INSERT INTO eventTagData (eventId, tagId) VALUES (2, 3);
-
+INSERT INTO eventTagData (eventId, tagId)
+VALUES (1, 1);
+INSERT INTO eventTagData (eventId, tagId)
+VALUES (1, 2);
+INSERT INTO eventTagData (eventId, tagId)
+VALUES (2, 2);
+INSERT INTO eventTagData (eventId, tagId)
+VALUES (2, 3);
 CREATE TABLE IF NOT EXISTS eventOrganizersData (
     eventId INTEGER NOT NULL,
     managerId INTEGER NOT NULL,
@@ -450,7 +564,6 @@ CREATE TABLE IF NOT EXISTS eventOrganizersData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
-
 CREATE TABLE IF NOT EXISTS eventRegistrationData (
     registrationId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,
@@ -466,9 +579,10 @@ CREATE TABLE IF NOT EXISTS eventRegistrationData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     CHECK (isMarketPlacePaymentMode IN ("0", "1")),
-    CHECK  (registrationStatus IN ("1", "2", "3", "4", "5", "6", "7"))
+    CHECK (
+        registrationStatus IN ("1", "2", "3", "4", "5", "6", "7")
+    )
 );
-
 -- isMarketPlacePaymentMode: 0 = 18% GST, 1 = AMRITA WALLET NO GST  
 -- registrationStatus:
 -- 1 -> REGISTRATION INITIATED. PAYMENT PENDING
@@ -478,8 +592,6 @@ CREATE TABLE IF NOT EXISTS eventRegistrationData (
 -- 5 -> EVENT WAS CANCELLED, waiting for refund.
 -- 6 -> EVENT WAS CANCELLED, refund done.
 -- 7 -> EVENT WAS CANCELLED, refund also rejected.
-
-
 -- added eventId field to minimize joins during getAllEvents for logged in Student
 -- added isOwnRegistration field to minimize joins during getAllEvents for logged in Student
 CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
@@ -496,13 +608,29 @@ CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
-
-INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (1, 1, "0", "simpletransactionid", 1, 200,"teamark", "2");
-INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 1, 1, "Member", "1");
-INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 2, 1, "Member", "0");
-
-INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (2, 1, "1", "simpletransactionid2", 1, 200,"teamark", "2");
-
+-- INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (1, 1, "0", "simpletransactionid", 1, 200,"teamark", "2");
+-- INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 1, 1, "Member", "1");
+-- INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (1,"simpletransactionid", 2, 1, "Member", "0");
+INSERT INTO eventRegistrationData (
+        eventId,
+        studentId,
+        isMarketPlacePaymentMode,
+        txnId,
+        totalMembers,
+        totalAmountPaid,
+        teamName,
+        registrationStatus
+    )
+VALUES (
+        2,
+        1,
+        "1",
+        "simpletransactionid2",
+        1,
+        200,
+        "teamark",
+        "2"
+    );
 CREATE TABLE IF NOT EXISTS eventAttendanceData (
     attendanceId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,
@@ -510,11 +638,10 @@ CREATE TABLE IF NOT EXISTS eventAttendanceData (
     entryTime TIMESTAMP,
     exitTime TIMESTAMP,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+    lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
-    FOREIGN KEY (studentId) REFERENCES studentData(studentId)   
+    FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
-
 CREATE TABLE IF NOT EXISTS visitLogs (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
@@ -524,7 +651,6 @@ CREATE TABLE IF NOT EXISTS visitLogs (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
-
 CREATE TABLE IF NOT EXISTS starredEvents (
     studentId INTEGER NOT NULL,
     eventId INTEGER NOT NULL,
@@ -533,14 +659,12 @@ CREATE TABLE IF NOT EXISTS starredEvents (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
-
-INSERT INTO starredEvents (studentId, eventId) VALUES (1, 1);
-
+INSERT INTO starredEvents (studentId, eventId)
+VALUES (1, 1);
 CREATE TABLE IF NOT EXISTS crewDetails (
     crewId INTEGER PRIMARY KEY AUTO_INCREMENT,
     crewName VARCHAR(255) NOT NULL
-); 
-
+);
 CREATE TABLE IF NOT EXISTS crewMembers (
     memberEmail VARCHAR(255) PRIMARY KEY,
     managerName VARCHAR(255) NOT NULL,
@@ -551,19 +675,15 @@ CREATE TABLE IF NOT EXISTS crewMembers (
     FOREIGN KEY (departmentId) REFERENCES departmentData(departmentId),
     FOREIGN KEY (crewId) REFERENCES crewDetails(crewId)
 );
-
 CREATE TABLE IF NOT EXISTS studentLoginLogs(
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
     loginTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
-
 CREATE TABLE IF NOT EXISTS managerLoginLogs(
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerId INTEGER NOT NULL,
     loginTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
-
-
