@@ -6,7 +6,7 @@ const secret_key = "e7465f20b133d294382d1f52dde0cf94994c762a63d796704d55ee9f7a18
 async function tokenValidator(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
-    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
+    const validate = typeof (tokenHeader) == 'string' && tokenHeader.split(' ').length == 2;
 
     //console.log(tokenHeader, validate, typeof(tokenHeader), tokenHeader.split(' ').length);
 
@@ -16,13 +16,13 @@ async function tokenValidator(req, res, next) {
         });
         return;
     }
-    
+
     if (!validate) {
         res.status(401).send({
             "MESSAGE": "Invalid Token. Warning."
         });
         return;
-    } 
+    }
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -47,10 +47,10 @@ async function tokenValidator(req, res, next) {
 
 }
 
-async function validateEventRequest(req, res, next){
+async function validateEventRequest(req, res, next) {
     const tokenHeader = req.headers.authorization;
     const token = tokenHeader && tokenHeader.split(' ')[1];
-    const validate = typeof(tokenHeader)=='string' && tokenHeader.split(' ').length==2;
+    const validate = typeof (tokenHeader) == 'string' && tokenHeader.split(' ').length == 2;
 
     //console.log(tokenHeader, validate, typeof(tokenHeader), tokenHeader.split(' ').length);
 
@@ -59,12 +59,12 @@ async function validateEventRequest(req, res, next){
         next();
         return;
     }
-    
+
     if (!validate) {
         req.body.isLoggedIn = "0";
         next();
         return;
-    } 
+    }
 
     const public_key = fs.readFileSync('middleware/RSA/public_key.pem');
     try {
@@ -90,4 +90,4 @@ async function validateEventRequest(req, res, next){
     }
 }
 
-module.exports = [tokenValidator,validateEventRequest];
+module.exports = [tokenValidator, validateEventRequest];
