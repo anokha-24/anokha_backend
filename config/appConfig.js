@@ -51,7 +51,17 @@ const appConfig = {
             connectionLimit: CONCURRENCY_LIMIT,
             queueLimit: 0
         },
-    }
+    },
+    payU_test: {
+        key: "Pz9v2c",
+        salt: "TbxC2ph02lBUbVYwx0fIB50CvqL27pHo"
+    },
+    payU_prod: {
+        key: "ypfBaj",
+        salt: "aG3tGzBZ"
+    },
+    surlPrefix: "http://localhost:3000/event/register/verify",
+    furlPrefix: "http://localhost:3000/event/register/verify",
 }
 
 module.exports = appConfig;

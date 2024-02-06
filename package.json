@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "deploy": "pm2 start index.js -i max --name anokha_backend_2024 && pm2 save --force",
-    "kill":"pm2 delete all && pm2 save --force"
+    "kill": "pm2 delete all && pm2 save --force"
   },
   "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
   "license": "ISC",
@@ -25,6 +25,7 @@
     "pm2": "^5.3.1",
     "process": "^0.11.10",
     "secure-random-password": "^0.2.3",
+    "uuid": "^9.0.1",
     "validator": "^13.11.0"
   }
 }
