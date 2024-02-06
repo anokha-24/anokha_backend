@@ -1,6 +1,1 @@
 
-2024-02-05T16:36:06.722Z - isValidEventRegistration - ReferenceError: i is not defined
-2024-02-05T16:41:01.160Z - isValidEventRegistration - ReferenceError: validator is not defined
-2024-02-05T16:45:12.847Z - isValidEventRegistration - ReferenceError: teamMembers is not defined
-2024-02-05T16:46:45.115Z - isValidEventRegistration - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'VALUES (2, 'TXN-1-1-1707151605108', 1, 1, 'TEAM LEAD', '1')' at line 1
-2024-02-05T16:48:00.164Z - isValidEventRegistration - Error: Duplicate entry '2-2' for key 'eventregistrationgroupdata.PRIMARY'
