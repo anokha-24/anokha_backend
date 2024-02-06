@@ -1831,14 +1831,14 @@ module.exports = {
                             return;
                         }
 
-                        if (!(typeof (req.body.teamMembers) === "object" && req.body.teamMembers.length === req.body.totalMembers && Array.isArray(req.body.teamMembers))) {
+                        if (!(typeof (req.body.teamMembers) === "object" && req.body.teamMembers.length === req.body.totalMembers - 1 && Array.isArray(req.body.teamMembers))) {
                             res.status(400).json({
                                 "MESSAGE": "Failed to Register. Team Data invalid."
                             });
                             return;
                         }
 
-                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length && Array.isArray(req.body.memberRoles))) {
+                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length - 1 && Array.isArray(req.body.memberRoles))) {
                             res.status(400).json({
                                 "MESSAGE": "Failed to Register. Role Data invalid."
                             });
