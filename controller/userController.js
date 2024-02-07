@@ -1838,7 +1838,7 @@ module.exports = {
                             return;
                         }
 
-                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length - 1 && Array.isArray(req.body.memberRoles))) {
+                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length && Array.isArray(req.body.memberRoles))) {
                             res.status(400).json({
                                 "MESSAGE": "Failed to Register. Role Data invalid."
                             });
@@ -1874,7 +1874,7 @@ module.exports = {
                                 res.status(400).json({
                                     "MESSAGE": "Duplicate team members!"
                                 });
-                                return;
+                                return; 
                             }
 
                             seenStudents[req.body.teamMembers[i]] = true;

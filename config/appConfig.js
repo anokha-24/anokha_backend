@@ -40,7 +40,10 @@ const appConfig = {
             database: 'anokha',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 0
+            queueLimit: 0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
         anokha_transactions_db: {
             host: 'localhost',
@@ -49,7 +52,10 @@ const appConfig = {
             database: 'anokha_transactions',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 0
+            queueLimit: 0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
     },
     payU_test: {
