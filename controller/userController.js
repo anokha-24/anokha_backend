@@ -1153,7 +1153,7 @@ module.exports = {
                                 const result = Array.from(aggregatedDataMap.values());
 
                                 //console.log(result);
-                                await redisClient.set('allEvents', JSON.stringify(result));
+                                await redisClient.setex('allEvents',600, JSON.stringify(result));
                                 //await redisClient.disconnect()
 
                                 // MODE 0 - Not Logged In
