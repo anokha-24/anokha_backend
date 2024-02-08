@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config({ path: '.env.local' })
 
 const CONCURRENCY_LIMIT = 12;
 
@@ -24,14 +24,14 @@ const appConfig = {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASS,
-            database: 'anokha',
+            database: process.env.DB_NAME,
             multipleStatements: true
         },
         anokha_transactions_db: {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASS,
-            database: 'anokha_transactions',
+            database: process.env.TXN_DB_NAME,
             multipleStatements: true
         },
     },
@@ -40,7 +40,7 @@ const appConfig = {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASS,
-            database: 'anokha',
+            database: process.env.DB_NAME,
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
             queueLimit: 0,
@@ -52,7 +52,7 @@ const appConfig = {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASS,
-            database: 'anokha_transactions',
+            database: process.env.TXN_DB_NAME,
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
             queueLimit: 0,
