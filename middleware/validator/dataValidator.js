@@ -658,4 +658,38 @@ module.exports = {
 
         return true;
     },
+
+    isValidRegisterTeamRequest: (req) => {
+        if (!(typeof (req.teamName) === "string" && req.teamName.length > 0 && req.teamName.length <= 255 &&
+            typeof (req.teamMembers) === "object" && req.teamMembers.length >= 2 && req.teamMembers.length <=3  &&
+            typeof (req.idcId) === "object" && req.idcId.length === req.teamMembers.length + 1)) {
+            return false;
+        }
+        let devfolioId="0";
+        if (typeof (req.devfolioId) === "string" && req.devfolioId.length > 0 && req.devfolioId.length <= 255) 
+        {
+            devfolioId="1";
+            //console.log("devfolioId is not null");
+        }
+        let unstopId="0";
+        if (typeof (req.unstopId) === "string" && req.unstopId.length > 0 && req.unstopId.length <= 255) 
+        {
+            unstopId="1";
+            //console.log("unstopId is not null");
+        }
+        let devpostId="0";
+        if (typeof (req.devpostId) === "string" && req.devpostId.length > 0 && req.devpostId.length <= 255) 
+        {
+            devpostId="1";
+            //console.log("devpostId is not null");
+        }
+        if((devfolioId === "1" && unstopId != "1" && devpostId != "1")
+        ||(devfolioId != "1" && unstopId === "1" && devpostId != "1")
+        ||(devfolioId != "1" && unstopId != "1" && devpostId === "1")
+        ||(devfolioId === "0" && unstopId === "0" && devpostId === "0"))
+        {
+            return true;
+        }
+        return false;
+    }
 }

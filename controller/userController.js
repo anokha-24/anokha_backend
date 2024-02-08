@@ -9,6 +9,7 @@ const [tokenValidator, validateEventRequest] = require('../middleware/auth/login
 const { generateHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
+const redisClient = require('../connection/redis');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -1047,106 +1048,139 @@ module.exports = {
                 try {
                     if (req.body.isLoggedIn == "0") {
 
-                        await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
-
-                        const query = `SELECT
-                        eventData.eventId,
-                        eventData.eventName,
-                        eventData.eventDescription,
-                        eventData.eventDate,
-                        eventData.eventTime,
-                        eventData.eventVenue,
-                        eventData.eventImageURL,
-                        eventData.eventPrice,
-                        eventData.maxSeats,
-                        eventData.seatsFilled,
-                        eventData.minTeamSize,
-                        eventData.maxTeamSize,
-                        eventData.isWorkshop,
-                        eventData.isTechnical,
-                        eventData.isGroup,
-                        eventData.needGroupData,
-                        eventData.isPerHeadPrice,
-                        eventData.isRefundable,
-                        eventData.eventStatus,
-                        departmentData.departmentName,
-                        departmentData.departmentAbbreviation,
-                        tagData.tagName,
-                        tagData.tagAbbreviation
-                        FROM eventData 
-                        LEFT JOIN departmentData
-                        ON eventData.eventDepartmentId = departmentData.departmentId
-                        LEFT JOIN eventTagData
-                        ON eventTagData.eventId = eventData.eventId
-                        LEFT JOIN tagData
-                        ON eventTagData.tagId = tagData.tagId
-                        WHERE tagData.isActive != "0" OR tagData.isActive IS NULL
-                        ;`;
-
-
-                        const [rows] = await db_connection.query(query);
-
-                        //console.log(rows);
-
-                        await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-
-                        const aggregatedDataMap = new Map();
-
-                        // Iterate through each event object
-                        rows.forEach((event) => {
-                            // Check if the eventId already exists in the map
-                            if (aggregatedDataMap.has(event.eventId)) {
-                                // If yes, push the current event data to the existing array
-                                const existingData = aggregatedDataMap.get(event.eventId);
-                                existingData.tags.push({
-                                    tagName: event.tagName,
-                                    tagAbbreviation: event.tagAbbreviation,
+                        try{
+                            const events = await redisClient.get('allEvents');
+                            if(events != null){
+                                db_connection.release();
+                                //await redisClient.disconnect()
+                                res.status(200).json({
+                                    "MESSAGE": "Successfully Fetched All Events.",
+                                    "MODE": "0",
+                                    "EVENTS": JSON.parse(events)
                                 });
-                            } else {
-                                // If no, create a new array with the current event data
-                                aggregatedDataMap.set(event.eventId, {
-                                    eventId: event.eventId,
-                                    eventName: event.eventName,
-                                    eventDescription: event.eventDescription,
-                                    eventDate: event.eventDate,
-                                    eventTime: event.eventTime,
-                                    eventVenue: event.eventVenue,
-                                    eventImageURL: event.eventImageURL,
-                                    eventPrice: event.eventPrice,
-                                    maxSeats: event.maxSeats,
-                                    seatsFilled: event.seatsFilled,
-                                    minTeamSize: event.minTeamSize,
-                                    maxTeamSize: event.maxTeamSize,
-                                    isWorkshop: event.isWorkshop,
-                                    isTechnical: event.isTechnical,
-                                    isGroup: event.isGroup,
-                                    needGroupData: event.needGroupData,
-                                    isPerHeadPrice: event.isPerHeadPrice,
-                                    isRefundable: event.isRefundable,
-                                    eventStatus: event.eventStatus,
-                                    departmentName: event.departmentName,
-                                    departmentAbbreviation: event.departmentAbbreviation,
-                                    tags: [{
-                                        tagName: event.tagName,
-                                        tagAbbreviation: event.tagAbbreviation,
-                                    }],
-                                });
+                                return;
                             }
-                        });
+                            else{
+                                await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
 
-                        // Convert the map values to an array
-                        const result = Array.from(aggregatedDataMap.values());
+                                const query = `SELECT
+                                eventData.eventId,
+                                eventData.eventName,
+                                eventData.eventDescription,
+                                eventData.eventDate,
+                                eventData.eventTime,
+                                eventData.eventVenue,
+                                eventData.eventImageURL,
+                                eventData.eventPrice,
+                                eventData.maxSeats,
+                                eventData.seatsFilled,
+                                eventData.minTeamSize,
+                                eventData.maxTeamSize,
+                                eventData.isWorkshop,
+                                eventData.isTechnical,
+                                eventData.isGroup,
+                                eventData.needGroupData,
+                                eventData.isPerHeadPrice,
+                                eventData.isRefundable,
+                                eventData.eventStatus,
+                                departmentData.departmentName,
+                                departmentData.departmentAbbreviation,
+                                tagData.tagName,
+                                tagData.tagAbbreviation
+                                FROM eventData 
+                                LEFT JOIN departmentData
+                                ON eventData.eventDepartmentId = departmentData.departmentId
+                                LEFT JOIN eventTagData
+                                ON eventTagData.eventId = eventData.eventId
+                                LEFT JOIN tagData
+                                ON eventTagData.tagId = tagData.tagId
+                                WHERE tagData.isActive != "0" OR tagData.isActive IS NULL
+                                ;`;
 
-                        //console.log(result);
 
-                        // MODE 0 - Not Logged In
-                        res.status(200).json({
-                            "MESSAGE": "Successfully Fetched All Events.",
-                            "MODE": "0",
-                            "EVENTS": result
-                        });
-                        return;
+                                const [rows] = await db_connection.query(query);
+
+                                //console.log(rows);
+
+                                await db_connection.query("UNLOCK TABLES");
+                                db_connection.release();
+
+                                const aggregatedDataMap = new Map();
+
+                                // Iterate through each event object
+                                rows.forEach((event) => {
+                                    // Check if the eventId already exists in the map
+                                    if (aggregatedDataMap.has(event.eventId)) {
+                                        // If yes, push the current event data to the existing array
+                                        const existingData = aggregatedDataMap.get(event.eventId);
+                                        existingData.tags.push({
+                                            tagName: event.tagName,
+                                            tagAbbreviation: event.tagAbbreviation,
+                                        });
+                                    } else {
+                                        // If no, create a new array with the current event data
+                                        aggregatedDataMap.set(event.eventId, {
+                                            eventId: event.eventId,
+                                            eventName: event.eventName,
+                                            eventDescription: event.eventDescription,
+                                            eventDate: event.eventDate,
+                                            eventTime: event.eventTime,
+                                            eventVenue: event.eventVenue,
+                                            eventImageURL: event.eventImageURL,
+                                            eventPrice: event.eventPrice,
+                                            maxSeats: event.maxSeats,
+                                            seatsFilled: event.seatsFilled,
+                                            minTeamSize: event.minTeamSize,
+                                            maxTeamSize: event.maxTeamSize,
+                                            isWorkshop: event.isWorkshop,
+                                            isTechnical: event.isTechnical,
+                                            isGroup: event.isGroup,
+                                            needGroupData: event.needGroupData,
+                                            isPerHeadPrice: event.isPerHeadPrice,
+                                            isRefundable: event.isRefundable,
+                                            eventStatus: event.eventStatus,
+                                            departmentName: event.departmentName,
+                                            departmentAbbreviation: event.departmentAbbreviation,
+                                            tags: [{
+                                                tagName: event.tagName,
+                                                tagAbbreviation: event.tagAbbreviation,
+                                            }],
+                                        });
+                                    }
+                                });
+
+                                // Convert the map values to an array
+                                const result = Array.from(aggregatedDataMap.values());
+
+                                //console.log(result);
+                                await redisClient.set('allEvents', JSON.stringify(result));
+                                await redisClient.expire('allEvents', 600);
+                                //await redisClient.disconnect()
+
+                                // MODE 0 - Not Logged In
+                                res.status(200).json({
+                                    "MESSAGE": "Successfully Fetched All Events.",
+                                    "MODE": "0",
+                                    "EVENTS": result
+                                });
+                                return;
+                            }
+                        }
+                        catch(err){
+                            console.log(err);
+                            const time = new Date();
+                            fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEvents - ${err}\n`);
+                            res.status(500).json({
+                                "MESSAGE": "Internal Server Error. Contact Web Team"
+                            });
+                            return;
+                        }
+                        finally{
+                            //await redisClient.disconnect()
+                            await db_connection.query('UNLOCK TABLES');
+                            db_connection.release()
+                        }
+
                     }
                     else if (req.body.isLoggedIn == "1") {
 
@@ -1838,7 +1872,7 @@ module.exports = {
                             return;
                         }
 
-                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length - 1 && Array.isArray(req.body.memberRoles))) {
+                        if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length && Array.isArray(req.body.memberRoles))) {
                             res.status(400).json({
                                 "MESSAGE": "Failed to Register. Role Data invalid."
                             });
@@ -1874,7 +1908,7 @@ module.exports = {
                                 res.status(400).json({
                                     "MESSAGE": "Duplicate team members!"
                                 });
-                                return;
+                                return; 
                             }
 
                             seenStudents[req.body.teamMembers[i]] = true;

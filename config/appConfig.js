@@ -1,11 +1,14 @@
 const CONCURRENCY_LIMIT = 12;
 
+const db_pass = 'password';
+
 const appConfig = {
     CONCURRENCY_LIMIT: CONCURRENCY_LIMIT,
     PORT: 5000,
     AUTH_URL_PREFIX: '/api/auth',
     USER_URL_PREFIX: '/api/user',
     ADMIN_URL_PREFIX: '/api/admin',
+    INTEL_URL_PREFIX: '/api/intel',
     mailer:{
         obj: {
             service: 'Gmail',
@@ -20,14 +23,14 @@ const appConfig = {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: db_pass,
             database: 'anokha',
             multipleStatements: true
         },
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: db_pass,
             database: 'anokha_transactions',
             multipleStatements: true
         },
@@ -36,20 +39,26 @@ const appConfig = {
         anokha_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: db_pass,
             database: 'anokha',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 0
+            queueLimit: 0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
         anokha_transactions_db: {
             host: 'localhost',
             user: 'root',
-            password: 'password',
+            password: db_pass,
             database: 'anokha_transactions',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 0
+            queueLimit: 0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
     },
     payU_test: {
