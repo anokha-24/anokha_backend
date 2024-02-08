@@ -13,5 +13,6 @@ intelRouter.post('/editSecondRoundSubmission', intelController.editSecondRoundSu
 intelRouter.post('/admin/intelSelectToSecondRound', intelController.intelSelectToSecondRound);
 intelRouter.post('/admin/intelSelectToThirdRound', intelController.intelSelectToThirdRound);
 intelRouter.get('/getDashBoard', intelController.getDashBoard);
+intelRouter.get('/getAllSubmissions/:round([1-3])', intelController.getAllSubmissions);
 
 module.exports = intelRouter;

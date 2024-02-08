@@ -899,6 +899,62 @@ module.exports = {
             }
         }
     ],
-}
 
-//get intelDashboard api to be done
+    getAllSubmissions: [
+        adminTokenValidator,
+        async (req, res) => {
+            //only SUPER_ADMIN and INTEL_ADMIN can access this
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(req.params.round != 1 && req.params.round != 2 && req.params.round != 3){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamData READ, intelSubmissions READ');
+                    const [submissions] = await db_connection.query(`SELECT
+                    intelSubmissions.teamId,
+                    intelTeamData.teamName,
+                    intelSubmissions.problemStatement,
+                    intelSubmissions.pptFileLink,
+                    intelSubmissions.githubLink,
+                    intelSubmissions.youtubeVideoLink,
+                    intelSubmissions.devmeshLink
+                    FROM intelSubmissions LEFT JOIN intelTeamData
+                    ON intelTeamData.teamId = intelSubmissions.teamId
+                    WHERE round = ?`, [req.params.round]);
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Data Fetched Successfully",
+                        "submissions": submissions
+                    });
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getAllSubmissions - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+}
+//getAllSubmissions
+//markDone
