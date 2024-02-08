@@ -500,7 +500,6 @@ module.exports = {
                         });
                         return;
                     }
-
                     await db_connection.query('UNLOCK TABLES');
 
                     await db_connection.query('LOCK TABLES intelSubmissions WRITE');
@@ -517,7 +516,7 @@ module.exports = {
                     )
                     VALUES (?,?,?,?,?,?,?,?)`,
                     [team[0].teamId,
-                    team[0].problemStatement,
+                    submissions1[0].problemStatement,
                     req.body.pptFileLink,
                     req.body.youtubeVideoLink,
                     req.body.githubLink,
@@ -639,6 +638,84 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editSecondRoundSubmission - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+    getDashBoard:[
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                try{
+                    db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ, intelSubmissions READ, studentData READ');
+                    const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
+                    if(team.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    const [teamData] = await db_connection.query('SELECT teamId, teamName, platformType, platformId, totalMembers, teamStatus FROM intelTeamData WHERE teamId = ?', [team[0].teamId]);
+                    const [teamMembers] = await db_connection.query(`SELECT 
+                    studentData.studentEmail,
+                    studentData.studentFullName,
+                    intelTeamGroupData.idcId,
+                    intelTeamGroupData.isLeader
+                    FROM studentData INNER JOIN intelTeamGroupData 
+                    ON studentData.studentId = intelTeamGroupData.studentId
+                    WHERE intelTeamGroupData.teamId = ?`, [team[0].teamId]);
+                    const [submissions1] = await db_connection.query(`SELECT 
+                    problemStatement,
+                    githubLink,
+                    youtubeVideoLink,
+                    devmeshLink,
+                    pptFileLink
+                    FROM intelSubmissions 
+                    WHERE teamId = ? AND round = ?`, [team[0].teamId, 1]);
+                    const [submissions2] = await db_connection.query(`SELECT 
+                    problemStatement,
+                    githubLink,
+                    youtubeVideoLink,
+                    devmeshLink,
+                    pptFileLink
+                    FROM intelSubmissions 
+                    WHERE teamId = ? AND round = ?`, [team[0].teamId, 2]);
+
+                    db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+
+                    res.status(200).json({
+                        "MESSAGE": "Data Fetched Successfully",
+                        "teamId": teamData[0].teamId,
+                        "teamName": teamData[0].teamName,
+                        "platformType": teamData[0].platformType,
+                        "platformId": teamData[0].platformId,
+                        "totalMembers": teamData[0].totalMembers,
+                        "teamStatus": teamData[0].teamStatus,
+                        "teamMembers": teamMembers,
+                        "firstRoundSubmission": submissions1,
+                        "secondRoundSubmission": submissions2
+                    });
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getDashBoard - ${err}\n`);
                     res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });

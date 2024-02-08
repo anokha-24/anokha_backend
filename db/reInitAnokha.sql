@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS intelTeamGroupData (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     CHECK( isLeader IN ("0", "1") )
 );
--- platform :0 = AMRITA, 1 = DEVFOLIO, 2 = UNSTOP, 3 = DEVPOST  
+
 
 CREATE TABLE IF NOT EXISTS intelSubmissions (
     teamId INTEGER NOT NULL,
