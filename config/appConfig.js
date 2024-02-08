@@ -1,10 +1,10 @@
-const CONCURRENCY_LIMIT = 12;
+require('dotenv').config()
 
-const db_pass = 'password';
+const CONCURRENCY_LIMIT = 12;
 
 const appConfig = {
     CONCURRENCY_LIMIT: CONCURRENCY_LIMIT,
-    PORT: 5000,
+    PORT: process.env.BACKEND_PORT,
     AUTH_URL_PREFIX: '/api/auth',
     USER_URL_PREFIX: '/api/user',
     ADMIN_URL_PREFIX: '/api/admin',
@@ -13,33 +13,33 @@ const appConfig = {
         obj: {
             service: 'Gmail',
             auth: {
-                user: 'auth.amrita.placements@gmail.com',
-                pass: 'huhrfndypcwuaxtn'
+                user: process.env.MAILER_USER,
+                pass: process.env.MAILER_PASS
             }
         },
         name: 'Anokha 2024'
     },
     db: {
         anokha_db: {
-            host: 'localhost',
-            user: 'root',
-            password: db_pass,
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
             database: 'anokha',
             multipleStatements: true
         },
         anokha_transactions_db: {
-            host: 'localhost',
-            user: 'root',
-            password: db_pass,
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
             database: 'anokha_transactions',
             multipleStatements: true
         },
     },
     pool_db: {
         anokha_db: {
-            host: 'localhost',
-            user: 'root',
-            password: db_pass,
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
             database: 'anokha',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
@@ -49,9 +49,9 @@ const appConfig = {
             keepAliveInitialDelay: 0
         },
         anokha_transactions_db: {
-            host: 'localhost',
-            user: 'root',
-            password: db_pass,
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
             database: 'anokha_transactions',
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
@@ -62,12 +62,12 @@ const appConfig = {
         },
     },
     payU_test: {
-        key: "Pz9v2c",
-        salt: "TbxC2ph02lBUbVYwx0fIB50CvqL27pHo"
+        key: process.env.PAYU_TEST_KEY,
+        salt: process.env.PAYU_TEST_SALT
     },
     payU_prod: {
-        key: "ypfBaj",
-        salt: "aG3tGzBZ"
+        key: process.env.PAYU_PROD_KEY,
+        salt: process.env.PAYU_PROD_SALT
     },
     surlPrefix: "http://localhost:3000/event/register/verify",
     furlPrefix: "http://localhost:3000/event/register/verify",

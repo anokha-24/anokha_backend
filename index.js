@@ -11,6 +11,7 @@ const reinitDb = require('./db/reinitDb');
 const authRouter = require('./router/authRouter');
 const userRouter = require('./router/userRouter');
 const adminRouter = require('./router/adminRouter');
+const intelRouter = require('./router/intelRouter');
 
 const { generateRSAKey } = require('./middleware/generateRSAKey');
 
@@ -25,6 +26,7 @@ server.disable('x-powered-by');
 server.use(appConfig.AUTH_URL_PREFIX, authRouter);
 server.use(appConfig.USER_URL_PREFIX, userRouter);
 server.use(appConfig.ADMIN_URL_PREFIX, adminRouter);
+server.use(appConfig.INTEL_URL_PREFIX, intelRouter);
 
 if (cluster.isPrimary) {
     console.log(`[MESSAGE]: Master ${pid} running.`);
