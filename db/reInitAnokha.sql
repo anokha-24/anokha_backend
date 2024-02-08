@@ -261,6 +261,7 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     devmeshLink VARCHAR(500),
     pptFileLink VARCHAR(500),
     submittedBy INTEGER NOT NULL,
+    seenStatus CHAR(1) NOT NULL DEFAULT "0",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (teamId, round),
@@ -268,11 +269,14 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     FOREIGN KEY (submittedBy) REFERENCES studentData(studentId),
     CHECK( round >= 1 AND round <= 3 ),
     CHECK( (round = 1 AND pptFileLink IS NOT NULL AND problemStatement IS NOT NULL) OR round != 1 ),
-    CHECK( (round = 2 AND githubLink IS NOT NULL AND youtubeVideoLink IS NOT NULL AND devmeshLink IS NOT NULL) OR round != 2 )
+    CHECK( (round = 2 AND githubLink IS NOT NULL AND youtubeVideoLink IS NOT NULL AND devmeshLink IS NOT NULL) OR round != 2 ),
+    CHECK(seenStatus IN ("0", "1", "2"))
 );
+-- seenStatus: 0 = NOT SEEN, 1 = SEEN, 2 = UPDATED AND NOT SEEN
 
 -- INSERT STUDENT DATA
 -- password = ark123@890
+
 INSERT INTO studentData (
         studentFullName,
         studentEmail,

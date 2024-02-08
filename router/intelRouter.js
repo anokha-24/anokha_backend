@@ -8,5 +8,6 @@ intelRouter.post('/registerTeam', intelController.registerTeam);
 intelRouter.post('/submitFirstRound', intelController.submitFirstRound);
 intelRouter.post('/editFirstRoundSubmission', intelController.editFirstRoundSubmission);
 intelRouter.post('/submitSecondRound', intelController.submitSecondRound);
+intelRouter.post('/editSecondRoundSubmission', intelController.editSecondRoundSubmission);
 
 module.exports = intelRouter;
