@@ -245,6 +245,107 @@ module.exports = {
             }
         }
     ],
+
+    editFirstRoundSubmission: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!dataValidator.isValidSubmitFirstRoundRequest(req.body)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+                return;
+            }
+            else{
+
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelSubmissions READ');
+                    const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
+                    if(team.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+                    const [submissions] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
+                    if(submissions.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "You have no submissions."
+                        });
+                        return;
+                    }
+
+                    await db_connection.query('UNLOCK TABLES');
+
+                    let youtubeVideoLink = null;
+                    let githubLink = null;
+                    let devmeshLink = null;
+
+                    if (( typeof (req.body.youtubeVideoLink) === "string" && req.body.youtubeVideoLink.length > 0 && req.body.youtubeVideoLink.length <= 500 && validator.isURL(req.body.youtubeVideoLink)))
+                    {
+                        youtubeVideoLink = req.body.youtubeVideoLink;
+                    }
+                    if (( typeof (req.body.githubLink) === "string" && req.body.githubLink.length > 0 && req.body.githubLink.length <= 500 && validator.isURL(req.body.githubLink)))
+                    {
+                        githubLink = req.body.githubLink;
+                    }
+                    if (( typeof (req.body.devmeshLink) === "string" && req.body.devmeshLink.length > 0 && req.body.devmeshLink.length <= 500 && validator.isURL(req.body.devmeshLink)))
+                    {
+                        devmeshLink = req.body.devmeshLink;
+                    }
+
+                    await db_connection.query('LOCK TABLES intelSubmissions WRITE');
+
+                    await db_connection.query(`UPDATE intelSubmissions 
+                    SET
+                    problemStatement = ?,
+                    pptFileLink = ?,
+                    youtubeVideoLink = ?,
+                    githubLink = ?,
+                    devmeshLink = ?,
+                    submittedBy =?,
+                    round = ?
+                    WHERE teamId = ?`,
+                    [req.body.problemStatement,
+                    req.body.pptFileLink,
+                    youtubeVideoLink,
+                    githubLink,
+                    devmeshLink,
+                    req.body.studentId,
+                    1,
+                    team[0].teamId]);
+
+                    await db_connection.query('UNLOCK TABLES');
+
+                    db_connection.release();
+
+                    res.status(200).json({
+                        "MESSAGE": "Round 1 Submission Edited Successfully"
+                    });
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editFirstRoundSubmission - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ]
 }
 
 //get intelDashboard api to be done
