@@ -235,12 +235,10 @@ CREATE TABLE IF NOT EXISTS intelTeamData (
     createdBy INTEGER NOT NULL, 
     FOREIGN KEY (createdBy) REFERENCES studentData(studentId),
     CHECK( totalMembers >=3 AND totalMembers<=4 ),
-    CHECK( platformType IN ("0", "1","2","3") ),
-    CHECK( teamStatus IN ("0", "1") )
-
+    CHECK( platformType IN ("0", "1","2","3") )
 );
 -- platformType: 1 = ANOKHA, 2 = DEVFOLIO, 3 = UNSTOP, 4 = DEVPOST
--- teamStatus: 0 = Disqualified, 1 = Registered
+-- teamStatus: 0 = Disqualified, 1 = Registered, 2 = Qualified for Round 2, 3 = Qualified for Round 3
 
 CREATE TABLE IF NOT EXISTS intelTeamGroupData (
     teamId INTEGER NOT NULL, 

@@ -706,5 +706,18 @@ module.exports = {
             return true;
         }
         return false;
+    },
+
+    isValidSubmitSecondRoundRequest: (req) => {
+        if(
+            typeof (req.pptFileLink) === "string" && req.pptFileLink.length > 0 && req.pptFileLink.length <= 500 && validator.isURL(req.pptFileLink) &&
+            typeof (req.githubLink) === "string" && req.githubLink.length > 0 && req.githubLink.length <= 500 && validator.isURL(req.githubLink) &&
+            typeof (req.youtubeVideoLink) === "string" && req.youtubeVideoLink.length > 0 && req.youtubeVideoLink.length <= 500 && validator.isURL(req.youtubeVideoLink)&&
+            typeof (req.devmeshLink) === "string" && req.devmeshLink.length > 0 && req.devmeshLink.length <= 500 && validator.isURL(req.devmeshLink)  
+        )
+        {
+            return true;
+        }
+        return false;
     }
 }

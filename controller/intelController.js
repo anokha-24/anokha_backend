@@ -345,6 +345,102 @@ module.exports = {
                 }
             }
         }
+    ],
+
+    submitSecondRound: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                //check if user is qualified for second round
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ, intelSubmissions READ');
+                    const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
+                    if(team.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                    const [submissions1] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
+                    if(submissions1.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "Unauthorised Access! You didn't submit for the first round."
+                        });
+                        return;
+                    }
+                    const [submissions2] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 2]);
+                    if(submissions2.length > 0){
+                        res.status(400).json({
+                            "MESSAGE": "You have already submitted for this round."
+                        });
+                        return;
+                    }
+                    const [teamData] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ? AND teamStatus = ?', [team[0].teamId, "2"]);
+                    if(teamData.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "You are not qualified for this round."
+                        });
+                        return;
+                    }
+
+                    await db_connection.query('UNLOCK TABLES');
+
+                    await db_connection.query('LOCK TABLES intelSubmissions WRITE');
+                    await db_connection.query(`INSERT INTO intelSubmissions
+                    (
+                    teamId,
+                    problemStatement,
+                    pptFileLink,
+                    youtubeVideoLink,
+                    githubLink,
+                    devmeshLink,
+                    submittedBy,
+                    round
+                    )
+                    VALUES (?,?,?,?,?,?,?,?)`,
+                    [team[0].teamId,
+                    team[0].problemStatement,
+                    req.body.pptFileLink,
+                    req.body.youtubeVideoLink,
+                    req.body.githubLink,
+                    req.body.devmeshLink,
+                    req.body.studentId, 2]);
+
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+
+                    res.status(200).json({
+                        "MESSAGE": "Round 2 Submission Successful"
+                    });
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - submitSecondRound - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
     ]
 }
 
