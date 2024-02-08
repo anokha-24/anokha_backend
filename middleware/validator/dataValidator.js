@@ -698,6 +698,20 @@ module.exports = {
         return false;
     },
 
+    isValidEditTeamRequest: (req) => {
+        if (!(typeof (req.teamName) === "string" && req.teamName.length > 0 && req.teamName.length <= 255 &&
+            typeof (req.teamMembers) === "object" && req.teamMembers.length >= 2 && req.teamMembers.length <=3  &&
+            typeof (req.idcId) === "object" && req.idcId.length === req.teamMembers.length + 1)) {
+            return false;
+        }
+        for (let i = 0; i < req.teamMembers.length; i++) {
+            if (!(typeof (req.teamMembers[i]) === 'string' && validator.isEmail(req.teamMembers[i]))) {
+                return false;
+            }
+        }
+        return true;
+    },
+
     isValidSubmitFirstRoundRequest: (req) => {
         if(
             typeof (req.problemStatement) === "string" && req.problemStatement.length > 0 && req.problemStatement.length <= 1000 &&

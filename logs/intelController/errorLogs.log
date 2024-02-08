@@ -7,3 +7,4 @@
                     AND round = 2' at line 9
 2024-02-08T07:36:45.037Z - editFirstRoundSubmission - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE teamId = 1 AND round = 2' at line 10
 2024-02-08T07:39:50.718Z - editSecondRoundSubmission - ReferenceError: youtubeVideoLink is not defined
+2024-02-08T10:18:30.751Z - editTeam - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'WHERE teamId != 1' at line 1

@@ -134,6 +134,91 @@ module.exports = {
         }
     ],
 
+    editTeam: [
+        tokenValidator,
+        async (req, res) => {
+            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(!dataValidator.isValidEditTeamRequest(req.body)){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
+                    const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ? AND isLeader = ?', [req.body.studentId, "1"]);
+                    if(checkTeam.length === 0){
+                        res.status(400).json({
+                            "MESSAGE": "You are not a team leader. You can't edit the team details."
+                        });
+                        return;
+                    }
+                    const [checkTeamName] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamName = ? AND teamId != ?', [req.body.teamName, checkTeam[0].teamId]);
+                    if(checkTeamName.length > 0){
+                        res.status(400).json({
+                            "MESSAGE": "Team Name already exists. Please choose a different name."
+                        });
+                        return;
+                    }
+                    await db_connection.query('UNLOCK TABLES');
+                    let member = [];
+                    let memberIds = [];
+                    await db_connection.query('LOCK TABLES studentData READ');
+                    for(let i = 0; i < req.body.teamMembers.length; i++){
+                        [member] = await db_connection.query('SELECT * FROM studentData WHERE studentEmail = ?', [req.body.teamMembers[i]]);
+                        if(member.length === 0){
+                            await db_connection.query('UNLOCK TABLES');
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": `Team Member Not Registered: ${req.body.teamMembers[i]}`
+                            });
+                            return;
+                        }
+                        else{
+                            memberIds.push(member[0].studentId);
+                        }
+                    }
+                    await db_connection.query('UNLOCK TABLES');
+
+                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
+
+                    await db_connection.query('UPDATE intelTeamData SET teamName = ?, totalMembers = ? WHERE teamId = ?', [req.body.teamName, req.body.teamMembers.length+1, checkTeam[0].teamId]);
+                    
+                    await db_connection.query('DELETE FROM intelTeamGroupData WHERE teamId = ? AND studentId != ?', [checkTeam[0].teamId, req.body.studentId]);
+                    for (let i = 0; i < memberIds.length; i++){
+                        await db_connection.query('INSERT INTO intelTeamGroupData (teamId, studentId, idcId) VALUES (?,?,?)', [checkTeam[0].teamId, memberIds[i], req.body.idcId[i+1]]);
+                    }
+
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+
+                    res.status(200).json({
+                        "MESSAGE": "Team Details Edited Successfully"
+                    });
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editTeam - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
     /*
         {
             problemStatement: "Problem Statement",
