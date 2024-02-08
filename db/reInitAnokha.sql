@@ -47,6 +47,9 @@ INSERT INTO managerRole (roleId, roleName)
 VALUES (7, "LOCAL_ATTENDANCE_MARKER");
 INSERT INTO managerRole (roleId, roleName)
 VALUES (8, "GATE_ENTRY_EXIT_MARKER");
+INSERT INTO managerRole (roleId, roleName)
+VALUES (9, "INTEL_ADMIN");
+
 CREATE TABLE IF NOT EXISTS departmentData (
     departmentId INTEGER PRIMARY KEY AUTO_INCREMENT,
     departmentName VARCHAR(255) NOT NULL UNIQUE,
@@ -239,6 +242,8 @@ CREATE TABLE IF NOT EXISTS intelTeamData (
 );
 -- platformType: 1 = ANOKHA, 2 = DEVFOLIO, 3 = UNSTOP, 4 = DEVPOST
 -- teamStatus: 0 = Disqualified, 1 = Registered, 2 = Qualified for Round 2, 3 = Qualified for Round 3
+
+-- insert into intelteamdata (teamName, platformType, platformId, teamStatus, totalMembers, createdBy) values ('poda', '3', 'hi@gmail.com', "1", 3, 5);
 
 CREATE TABLE IF NOT EXISTS intelTeamGroupData (
     teamId INTEGER NOT NULL, 
