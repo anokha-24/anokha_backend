@@ -650,6 +650,7 @@ module.exports = {
             }
         }
     ],
+
     intelSelectToSecondRound: [
         adminTokenValidator,
         async (req, res) => {
@@ -720,6 +721,96 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - intelSelectToSecondRound - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+    intelSelectToThirdRound: [
+        adminTokenValidator,
+        async (req, res) => {
+            //only SUPER_ADMIN and INTEL_ADMIN can access this
+            if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)) {
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else{
+
+                if(!(typeof(req.body.teams)==='object' && req.body.teams.length > 0)){
+                    res.status(400).json({
+                        "MESSAGE": "Invalid Request"
+                    });
+                    return;
+                }
+
+                for(i = 0; i < req.body.teams.length; i++){
+                    if(!(typeof(req.body.teams[i])==='number' && req.body.teams[i] > 0)){
+                        console.log('number');
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request"
+                        });
+                        return;
+                    }
+                }
+
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamData WRITE');
+                    for(i = 0; i < req.body.teams.length; i++){
+                        [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
+                        if(team.length === 0){
+                            await db_connection.query('UNLOCK TABLES');
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": `Invalid Team Id: ${req.body.teams[i]}`
+                            });
+                            return;
+                        }
+                        else if (team[0].teamStatus == "0"){
+                            await db_connection.query('UNLOCK TABLES');
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": `Team ${team[0].teamName}, teamId: ${req.body.teams[i]} is Disqualified. Can't Select for Third Round.`
+                            });
+                            return;
+                        }
+                        else if (!(team[0].teamStatus == "2" || team[0].teamStatus == "3")){
+                            await db_connection.query('UNLOCK TABLES');
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": `Team ${team[0].teamName}, teamId: ${req.body.teams[i]} has not Qualified For Second Round, Can't Select for Third Round.`
+                            });
+                            return;
+                        }
+                    }
+                    for(i = 0; i < req.body.teams.length; i++){
+                        await db_connection.query('UPDATE intelTeamData SET teamStatus = ? WHERE teamId = ?', ["3", req.body.teams[i]]);
+                    }
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Teams Selected for Third Round"
+                    });
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - intelSelectToThirdRound - ${err}\n`);
                     res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
