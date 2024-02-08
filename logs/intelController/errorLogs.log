@@ -1,0 +1,10 @@
+2024-02-07T21:06:48.130Z - registerTeam - Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '= 2' at line 1
+2024-02-07T21:08:05.611Z - registerTeam - Error: Unknown column 'email' in 'where clause'
+2024-02-07T21:08:58.915Z - registerTeam - Error: Column count doesn't match value count at row 1
+2024-02-07T21:12:54.108Z - registerTeam - Error: Column count doesn't match value count at row 1
+2024-02-07T21:16:45.752Z - registerTeam - Error: Column count doesn't match value count at row 1
+2024-02-07T21:19:39.452Z - registerTeam - Error: Check constraint 'intelteamdata_chk_4' is violated.
+2024-02-07T21:21:27.335Z - registerTeam - ReferenceError: register is not defined
+2024-02-07T21:23:18.598Z - registerTeam - TypeError: Cannot read properties of undefined (reading 'insertId')
+2024-02-07T21:25:37.295Z - registerTeam - Error: Column 'studentId' cannot be null
+2024-02-07T21:29:00.999Z - registerTeam - Error: Column 'studentId' cannot be null

@@ -14,6 +14,9 @@ DROP TABLE IF EXISTS forgotPasswordManager;
 DROP TABLE IF EXISTS forgotPasswordStudent;
 DROP TABLE IF EXISTS studentRegister;
 DROP TABLE IF EXISTS blockedStudentStatus;
+DROP TABLE IF EXISTS intelSubmissions;
+DROP TABLE IF EXISTS intelTeamGroupData;
+DROP TABLE IF EXISTS intelTeamData;
 DROP TABLE IF EXISTS studentData;
 DROP TABLE IF EXISTS tagFaculty;
 DROP TABLE IF EXISTS managerData;
@@ -220,6 +223,56 @@ CREATE TABLE IF NOT EXISTS blockedStudentStatus (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     FOREIGN KEY (blockedBy) REFERENCES managerData(managerId)
 );
+
+CREATE TABLE IF NOT EXISTS intelTeamData (
+    teamId INTEGER PRIMARY KEY AUTO_INCREMENT, 
+    teamName VARCHAR(255), 
+    platformType CHAR(1) NOT NULL,
+    platformId VARCHAR(255) NOT NULL,
+    teamStatus CHAR(1) NOT NULL, 
+    totalMembers INTEGER NOT NULL, 
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    createdBy INTEGER NOT NULL, 
+    FOREIGN KEY (createdBy) REFERENCES studentData(studentId),
+    CHECK( totalMembers >=3 AND totalMembers<=4 ),
+    CHECK( platformType IN ("0", "1","2","3") ),
+    CHECK( teamStatus IN ("0", "1") )
+
+);
+-- platformType: 1 = ANOKHA, 2 = DEVFOLIO, 3 = UNSTOP, 4 = DEVPOST
+-- teamStatus: 0 = Disqualified, 1 = Registered
+
+CREATE TABLE IF NOT EXISTS intelTeamGroupData (
+    teamId INTEGER NOT NULL, 
+    studentId INTEGER NOT NULL, 
+    isLeader CHAR(1) NOT NULL DEFAULT "0",
+    idcId VARCHAR(255) NOT NULL, 
+    FOREIGN KEY (teamId) REFERENCES intelTeamData(teamId), 
+    FOREIGN KEY (studentId) REFERENCES studentData(studentId),
+    CHECK( isLeader IN ("0", "1") )
+);
+-- platform :0 = AMRITA, 1 = DEVFOLIO, 2 = UNSTOP, 3 = DEVPOST  
+
+CREATE TABLE IF NOT EXISTS intelSubmissions (
+    teamId INTEGER NOT NULL,
+    round INTEGER NOT NULL,
+    problemStatement VARCHAR(1000),
+    githubLink VARCHAR(500),
+    youtubeVideoLink VARCHAR(500),
+    devmeshLink VARCHAR(500),
+    pptFileUploaded CHAR(1) NOT NULL,
+    submittedBy INTEGER NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (teamId, round),
+    FOREIGN KEY (teamId) REFERENCES intelTeamData(teamId),
+    FOREIGN KEY (submittedBy) REFERENCES studentData(studentId),
+    CHECK( pptFileUploaded IN ("0", "1") ),
+    CHECK( round >= 1 AND round <= 3 ),
+    CHECK( (round = 1 AND pptFileUploaded = "1" AND problemStatement IS NOT NULL) OR round != 1 ),
+    CHECK( (round = 2 AND githubLink IS NOT NULL AND youtubeVideoLink IS NOT NULL AND devmeshLink IS NOT NULL) OR round != 2 )
+);
+
 -- INSERT STUDENT DATA
 -- password = ark123@890
 INSERT INTO studentData (
