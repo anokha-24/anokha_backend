@@ -923,6 +923,7 @@ module.exports = {
                     const [submissions] = await db_connection.query(`SELECT
                     intelSubmissions.teamId,
                     intelTeamData.teamName,
+                    intelSubmissions.seenStatus,
                     intelSubmissions.problemStatement,
                     intelSubmissions.pptFileLink,
                     intelSubmissions.githubLink,
@@ -955,6 +956,57 @@ module.exports = {
         }
     ],
 
+    markSeen:[
+        adminTokenValidator,
+        async (req, res) => {
+            //only SUPER_ADMIN and INTEL_ADMIN can access this
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            if(req.params.round != 1 && req.params.round != 2 && req.params.round != 3){
+                res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+                return;
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelSubmissions WRITE');
+                    const [check] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [req.params.teamId,req.params.round]);
+                    if(check.length === 0){
+                        await db_connection.query('UNLOCK TABLES');
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Submission"
+                        });
+                        return;
+                    }
+                    await db_connection.query('UPDATE intelSubmissions SET seenStatus = ? WHERE teamId = ? AND round = ?', ["1", req.params.teamId,req.params.round]);
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                    res.status(200).json({
+                        "MESSAGE": "Marked Seen Successfully"
+                    });
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - markSeen - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ]
+
 }
-//getAllSubmissions
-//markDone

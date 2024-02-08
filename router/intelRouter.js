@@ -14,5 +14,6 @@ intelRouter.post('/admin/intelSelectToSecondRound', intelController.intelSelectT
 intelRouter.post('/admin/intelSelectToThirdRound', intelController.intelSelectToThirdRound);
 intelRouter.get('/getDashBoard', intelController.getDashBoard);
 intelRouter.get('/getAllSubmissions/:round([1-3])', intelController.getAllSubmissions);
+intelRouter.get('/markSeen/:teamId(\\d+)-:round([1-3])', intelController.markSeen);
 
 module.exports = intelRouter;
