@@ -665,20 +665,25 @@ module.exports = {
             typeof (req.idcId) === "object" && req.idcId.length === req.teamMembers.length + 1)) {
             return false;
         }
+        for (let i = 0; i < req.teamMembers.length; i++) {
+            if (!(typeof (req.teamMembers[i]) === 'string' && validator.isEmail(req.teamMembers[i]))) {
+                return false;
+            }
+        }
         let devfolioId="0";
-        if (typeof (req.devfolioId) === "string" && req.devfolioId.length > 0 && req.devfolioId.length <= 255) 
+        if (typeof (req.devfolioId) === "string" && req.devfolioId.length > 0 && req.devfolioId.length <= 255 && validator.isEmail(req.devfolioId)) 
         {
             devfolioId="1";
             //console.log("devfolioId is not null");
         }
         let unstopId="0";
-        if (typeof (req.unstopId) === "string" && req.unstopId.length > 0 && req.unstopId.length <= 255) 
+        if (typeof (req.unstopId) === "string" && req.unstopId.length > 0 && req.unstopId.length <= 255 && validator.isEmail(req.unstopId)) 
         {
             unstopId="1";
             //console.log("unstopId is not null");
         }
         let devpostId="0";
-        if (typeof (req.devpostId) === "string" && req.devpostId.length > 0 && req.devpostId.length <= 255) 
+        if (typeof (req.devpostId) === "string" && req.devpostId.length > 0 && req.devpostId.length <= 255 && validator.isEmail(req.devpostId)) 
         {
             devpostId="1";
             //console.log("devpostId is not null");
@@ -688,6 +693,16 @@ module.exports = {
         ||(devfolioId != "1" && unstopId != "1" && devpostId === "1")
         ||(devfolioId === "0" && unstopId === "0" && devpostId === "0"))
         {
+            return true;
+        }
+        return false;
+    },
+
+    isValidSubmitFirstRoundRequest: (req) => {
+        if(
+            typeof (req.problemStatement) === "string" && req.problemStatement.length > 0 && req.problemStatement.length <= 1000 &&
+            typeof (req.pptFileLink) === "string" && req.pptFileLink.length > 0 && req.pptFileLink.length <= 500 && validator.isURL(req.pptFileLink) 
+        ){
             return true;
         }
         return false;

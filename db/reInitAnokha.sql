@@ -244,9 +244,10 @@ CREATE TABLE IF NOT EXISTS intelTeamData (
 
 CREATE TABLE IF NOT EXISTS intelTeamGroupData (
     teamId INTEGER NOT NULL, 
-    studentId INTEGER NOT NULL, 
+    studentId INTEGER NOT NULL UNIQUE, 
     isLeader CHAR(1) NOT NULL DEFAULT "0",
     idcId VARCHAR(255) NOT NULL, 
+    PRIMARY KEY (teamId, studentId),
     FOREIGN KEY (teamId) REFERENCES intelTeamData(teamId), 
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     CHECK( isLeader IN ("0", "1") )
@@ -260,16 +261,15 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     githubLink VARCHAR(500),
     youtubeVideoLink VARCHAR(500),
     devmeshLink VARCHAR(500),
-    pptFileUploaded CHAR(1) NOT NULL,
+    pptFileLink VARCHAR(500),
     submittedBy INTEGER NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (teamId, round),
     FOREIGN KEY (teamId) REFERENCES intelTeamData(teamId),
     FOREIGN KEY (submittedBy) REFERENCES studentData(studentId),
-    CHECK( pptFileUploaded IN ("0", "1") ),
     CHECK( round >= 1 AND round <= 3 ),
-    CHECK( (round = 1 AND pptFileUploaded = "1" AND problemStatement IS NOT NULL) OR round != 1 ),
+    CHECK( (round = 1 AND pptFileLink IS NOT NULL AND problemStatement IS NOT NULL) OR round != 1 ),
     CHECK( (round = 2 AND githubLink IS NOT NULL AND youtubeVideoLink IS NOT NULL AND devmeshLink IS NOT NULL) OR round != 2 )
 );
 

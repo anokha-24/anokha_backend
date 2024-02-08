@@ -5,5 +5,6 @@ const intelRouter = express.Router();
 
 intelRouter.get('/test', intelController.testConnection);
 intelRouter.post('/registerTeam', intelController.registerTeam);
+intelRouter.post('/submitFirstRound', intelController.submitFirstRound);
 
 module.exports = intelRouter;
