@@ -290,6 +290,7 @@ module.exports = {
                     await db_connection.query(`INSERT INTO intelSubmissions 
                     (
                     teamId,
+                    theme,
                     problemStatement,
                     pptFileLink,
                     youtubeVideoLink,
@@ -298,8 +299,9 @@ module.exports = {
                     submittedBy,
                     round
                     )
-                    VALUES (?,?,?,?,?,?,?,?)`,
+                    VALUES (?,?,?,?,?,?,?,?,?)`,
                     [team[0].teamId,
+                    req.body.theme,
                     req.body.problemStatement,
                     req.body.pptFileLink,
                     youtubeVideoLink,
@@ -401,6 +403,7 @@ module.exports = {
 
                     await db_connection.query(`UPDATE intelSubmissions 
                     SET
+                    theme = ?,
                     problemStatement = ?,
                     pptFileLink = ?,
                     youtubeVideoLink = ?,
@@ -409,7 +412,8 @@ module.exports = {
                     submittedBy =?,
                     seenStatus = ?
                     WHERE teamId = ? AND round = ?`,
-                    [req.body.problemStatement,
+                    [req.body.theme,
+                    req.body.problemStatement,
                     req.body.pptFileLink,
                     youtubeVideoLink,
                     githubLink,
@@ -506,6 +510,7 @@ module.exports = {
                     await db_connection.query(`INSERT INTO intelSubmissions
                     (
                     teamId,
+                    theme,
                     problemStatement,
                     pptFileLink,
                     youtubeVideoLink,
@@ -514,8 +519,9 @@ module.exports = {
                     submittedBy,
                     round
                     )
-                    VALUES (?,?,?,?,?,?,?,?)`,
+                    VALUES (?,?,?,?,?,?,?,?,?)`,
                     [team[0].teamId,
+                    submissions1[0].theme,
                     submissions1[0].problemStatement,
                     req.body.pptFileLink,
                     req.body.youtubeVideoLink,
@@ -680,6 +686,7 @@ module.exports = {
                     ON studentData.studentId = intelTeamGroupData.studentId
                     WHERE intelTeamGroupData.teamId = ?`, [team[0].teamId]);
                     const [submissions1] = await db_connection.query(`SELECT 
+                    theme,
                     problemStatement,
                     githubLink,
                     youtubeVideoLink,
@@ -688,6 +695,7 @@ module.exports = {
                     FROM intelSubmissions 
                     WHERE teamId = ? AND round = ?`, [team[0].teamId, 1]);
                     const [submissions2] = await db_connection.query(`SELECT 
+                    theme,
                     problemStatement,
                     githubLink,
                     youtubeVideoLink,

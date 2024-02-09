@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "deploy": "pm2 start index.js -i max --name anokha_backend_2024 && pm2 save --force",
-    "kill": "pm2 delete all && pm2 save --force"
+    "kill": "pm2 delete all && pm2 save --force",
+    "backup": "node backups/mySQLBackup.js"
   },
   "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
   "license": "ISC",
@@ -18,6 +19,7 @@
     "fs": "^0.0.1-security",
     "helmet": "^7.1.0",
     "mysql2": "^3.7.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.8",
     "nodemon": "^3.0.2",
     "otp-generator": "^4.0.1",
