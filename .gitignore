@@ -1,4 +1,5 @@
 /node_modules/
 /middleware/RSA/
+/.github/workflows/
 .env
 .env.local
