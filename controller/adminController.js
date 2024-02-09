@@ -16,15 +16,27 @@ module.exports = {
     getAdminProfile: [
         adminTokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES managerData READ, managerRole READ, departmentData READ");
                     const query = `SELECT * FROM managerData
                     LEFT JOIN managerRole ON managerData.managerRoleId = managerRole.roleId
@@ -60,7 +72,7 @@ module.exports = {
                     db_connection.release();
                 }
             } 
-        }
+        //}
     ],
 
     /*{
@@ -71,12 +83,12 @@ module.exports = {
     editAdminProfile: [
         adminTokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!await dataValidator.isValidAdminEditProfile(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -86,6 +98,18 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES managerData WRITE, departmentData READ");
                     const [department] = await db_connection.query("SELECT * from departmentData WHERE departmentId = ?",[req.body.managerDepartmentId]);
                     if(department.length==0){
@@ -137,12 +161,12 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!await dataValidator.isValidTag(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -153,6 +177,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES tagData WRITE");
                     const query = `INSERT INTO tagData (tagName, tagAbbreviation) VALUES (?, ?)`;
                     await db_connection.query(query, [req.body.tagName, req.body.tagAbbreviation]);
@@ -194,13 +229,13 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
-            if(!(dataValidator.isValidToggleTagStatus(req.body))){
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
+            if(!(await dataValidator.isValidToggleTagStatus(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -210,6 +245,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES tagData WRITE");
                     const query = `UPDATE tagData SET isActive=? WHERE tagId=?`;
                     await db_connection.query(query, [req.body.isActive, req.body.tagId]);
@@ -299,13 +345,13 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                //console.log("token");
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     //console.log("token");
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if (!(await dataValidator.isValidCreateEvent(req.body))){
                 //console.log("body");
                 res.status(400).json({
@@ -317,6 +363,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
@@ -403,13 +460,13 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                //console.log("token");
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     //console.log("token");
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if (!(await dataValidator.isValidEditEventData(req.body))){
                 //console.log("body");
                 res.status(400).json({
@@ -421,6 +478,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
                     `
@@ -506,13 +574,13 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                //console.log("token");
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     //console.log("token");
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if (!(await dataValidator.isValidToggleEventStatus(req.body))){
                 //console.log("body");
                 res.status(400).json({
@@ -524,6 +592,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES eventData WRITE");
                     
                     const query =`UPDATE eventData SET eventStatus = ? WHERE eventId = ?`
@@ -563,12 +642,12 @@ module.exports = {
     addTagToEvent:[
         adminTokenValidator,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -584,6 +663,18 @@ module.exports = {
             else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     db_connection.query("LOCK TABLES eventTagData WRITE");
                     const [check] = await db_connection.query("SELECT * FROM eventTagData WHERE eventId=? AND tagId=?", [req.body.eventId, req.body.tagId]);
                     if(check.length!=0){
@@ -627,12 +718,12 @@ module.exports = {
     removeTagFromEvent:[
         adminTokenValidator,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -648,6 +739,18 @@ module.exports = {
             else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     db_connection.query("LOCK TABLES eventTagData WRITE");
                     
                     await db_connection.query("DELETE FROM eventTagData WHERE eventId = ? AND tagId = ?", [req.body.eventId, req.body.tagId]);
@@ -677,16 +780,28 @@ module.exports = {
     getAllOfficials: [
         adminTokenValidator,
         async (req, res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
-            else{
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
+            // else{
                 if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2){
                     const db_connection = await anokha_db.promise().getConnection();
                     try{
+
+                        await db_connection.query("LOCK TABLES managerData READ");
+                        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        }
+
                         await db_connection.query("LOCK TABLES managerData READ, managerRole READ, departmentData READ");
                         const query = 
                         `SELECT
@@ -783,7 +898,7 @@ module.exports = {
                     return;
                 }
             }
-        }
+        //}
     ],
 
     /*
@@ -795,12 +910,12 @@ module.exports = {
     toggleStudentStatus:[
         adminTokenValidator,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -817,6 +932,17 @@ module.exports = {
                 db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     if (req.body.isActive == "0")
                     {
                         db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
@@ -915,13 +1041,13 @@ module.exports = {
     toggleOfficialStatus:[
         adminTokenValidatorSpecial,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.tokenManagerId))){
-                //console.log("token");
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.tokenManagerId))){
+            //     //console.log("token");
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(await dataValidator.isValidToggleOfficialStatus(req.body))){
                 //console.log("body");
                 res.status(400).json({
@@ -930,6 +1056,7 @@ module.exports = {
                 return;
             }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
+                console.log("auth");
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
@@ -947,6 +1074,18 @@ module.exports = {
                 if (req.body.authorizationTier == 1)
                 {
                     try{
+
+                        await db_connection.query("LOCK TABLES managerData READ");
+                        const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.tokenManagerId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Access Restricted!"
+                            });
+                            return;
+                        }
+
                         await db_connection.query("LOCK TABLES managerData WRITE");
                         const [check] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                         if(check.length==0){
@@ -1083,12 +1222,12 @@ module.exports = {
     assignEventToOfficial: [
         adminTokenValidatorSpecial,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -1104,6 +1243,18 @@ module.exports = {
             else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
                         await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
                         const [check] = await db_connection.query("SELECT * FROM eventOrganizersData WHERE eventId=? AND managerId=?", [req.body.eventId, req.body.managerId]);
@@ -1178,12 +1329,12 @@ module.exports = {
     removeOfficialFromEvent: [
         adminTokenValidatorSpecial,
         async (req,res) => {
-            if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-                res.status(400).json({
-                    "MESSAGE": "Invalid Request!"
-                });
-                return;
-            }
+            // if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+            //     res.status(400).json({
+            //         "MESSAGE": "Invalid Request!"
+            //     });
+            //     return;
+            // }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -1199,6 +1350,19 @@ module.exports = {
             else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
                         await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
                         await db_connection.query("DELETE FROM eventOrganizersData WHERE eventId = ? AND managerId = ?", [req.body.eventId, req.body.managerId]);
@@ -1263,16 +1427,29 @@ module.exports = {
           });
           return;
         }
-        if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
-            res.status(400).json({
-                "MESSAGE": "Invalid Request!"
-            });
-            return;
-        }
+        // if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+        //     res.status(400).json({
+        //         "MESSAGE": "Invalid Request!"
+        //     });
+        //     return;
+        // }
         else {
           req.params.studentId = parseInt(req.params.studentId);
           const db_connection = await anokha_db.promise().getConnection();
           try {
+
+            await db_connection.query("LOCK TABLES managerData READ");
+            const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+            await db_connection.query("UNLOCK TABLES");
+            if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                db_connection.release();
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+
+
             await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
             const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
             if (check.length == 0) {
@@ -1335,16 +1512,28 @@ module.exports = {
             });
             return;
           }
-          if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
-              res.status(400).json({
-                  "MESSAGE": "Invalid Request!"
-              });
-              return;
-          }
+        //   if (!(await dataValidator.isValidAdminRequest(req.body.managerId))) {
+        //       res.status(400).json({
+        //           "MESSAGE": "Invalid Request!"
+        //       });
+        //       return;
+        //   }
           else {
             req.params.studentId = parseInt(req.params.studentId);
             const db_connection = await anokha_db.promise().getConnection();
             try {
+
+                await db_connection.query("LOCK TABLES managerData READ");
+                const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                await db_connection.query("UNLOCK TABLES");
+                if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                    return;
+                }
+
               await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
               const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
               if (check.length == 0) {
@@ -1416,12 +1605,12 @@ module.exports = {
     markEventAttendanceEntry: [
         adminTokenValidator,
         async (req, res) => {
-          if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-              res.status(400).json({
-                  "MESSAGE": "Invalid Request!"
-              });
-              return;
-          }
+        //   if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+        //       res.status(400).json({
+        //           "MESSAGE": "Invalid Request!"
+        //       });
+        //       return;
+        //   }
           if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -1429,6 +1618,8 @@ module.exports = {
                 return;
           }
           if (!(await dataValidator.isValidMarkEventAttendance(req.params))) {
+            //console.log("invalid req");
+            //console.log(req.params);
             res.status(400).json({
               "MESSAGE": "Invalid Request!"
             });
@@ -1440,6 +1631,18 @@ module.exports = {
             req.params.eventId = parseInt(req.params.eventId);
             const db_connection = await anokha_db.promise().getConnection();
             try {
+
+                await db_connection.query("LOCK TABLES managerData READ");
+                const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                await db_connection.query("UNLOCK TABLES");
+                if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                    return;
+                }
+
 
                 // super admins, admins and global attendace markers
                 if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){
@@ -1557,12 +1760,12 @@ module.exports = {
     markEventAttendanceExit: [
         adminTokenValidator,
         async (req, res) => {
-          if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
-              res.status(400).json({
-                  "MESSAGE": "Invalid Request!"
-              });
-              return;
-          }
+        //   if(!(await dataValidator.isValidAdminRequest(req.body.managerId))){
+        //       res.status(400).json({
+        //           "MESSAGE": "Invalid Request!"
+        //       });
+        //       return;
+        //   }
           if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
@@ -1581,6 +1784,17 @@ module.exports = {
             req.params.eventId = parseInt(req.params.eventId);
             const db_connection = await anokha_db.promise().getConnection();
             try {
+
+                await db_connection.query("LOCK TABLES managerData READ");
+                const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                await db_connection.query("UNLOCK TABLES");
+                if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                    db_connection.release();
+                    res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+                }
 
                 // super admins, admins and global attendace markers
                 if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){

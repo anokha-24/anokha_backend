@@ -77,7 +77,7 @@ module.exports = {
         return false;
     },
 
-    isValidAdminRegistration: async (manager) => {
+    isValidAdminRegistration: (manager) => {
         if (typeof (manager.managerFullName) === 'string' &&
             manager.managerFullName.length > 0 && manager.managerFullName.length <= 255 &&
             typeof (manager.managerEmail) === 'string' &&
@@ -89,29 +89,30 @@ module.exports = {
             manager.managerDepartmentId != null && manager.managerDepartmentId != undefined && !isNaN(manager.managerDepartmentId)
         ) {
             //console.log(manager.managerRoleId,manager.managerDepartmentId);
-            const db_connection = await anokha_db.promise().getConnection();
-            try {
-                await db_connection.query("LOCK TABLES managerRole READ, departmentData READ");
-                const [role] = await db_connection.query("SELECT * from managerRole WHERE roleId = ?", [manager.managerRoleId]);
-                const [department] = await db_connection.query("SELECT * from departmentData WHERE departmentId = ?", [manager.managerDepartmentId]);
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-                if (role.length != 0 && department.length != 0) {
-                    return true;
-                }
-            }
-            catch (err) {
-                console.log(err);
-                const time = new Date();
-                fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidAdminRegistration - ${err}\n`);
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-                return false;
-            }
-            finally {
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-            }
+            // const db_connection = await anokha_db.promise().getConnection();
+            // try {
+            //     await db_connection.query("LOCK TABLES managerRole READ, departmentData READ");
+            //     const [role] = await db_connection.query("SELECT * from managerRole WHERE roleId = ?", [manager.managerRoleId]);
+            //     const [department] = await db_connection.query("SELECT * from departmentData WHERE departmentId = ?", [manager.managerDepartmentId]);
+            //     await db_connection.query("UNLOCK TABLES");
+            //     db_connection.release();
+            //     if (role.length != 0 && department.length != 0) {
+            //         return true;
+            //     }
+            // }
+            // catch (err) {
+            //     console.log(err);
+            //     const time = new Date();
+            //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidAdminRegistration - ${err}\n`);
+            //     await db_connection.query("UNLOCK TABLES");
+            //     db_connection.release();
+            //     return false;
+            // }
+            // finally {
+            //     await db_connection.query("UNLOCK TABLES");
+            //     db_connection.release();
+            // }
+            return true;
         }
         return false;
     },
@@ -154,31 +155,31 @@ module.exports = {
         }
     },
 
-    isValidAdminRequest: async (managerId) => {
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES managerData READ");
-            const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [managerId]);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidAdminRequest - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
-    },
+    // isValidAdminRequest: async (managerId) => {
+    //     const db_connection = await anokha_db.promise().getConnection();
+    //     try {
+    //         await db_connection.query("LOCK TABLES managerData READ");
+    //         const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [managerId]);
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //         if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+    //             return false;
+    //         }
+    //         return true;
+    //     }
+    //     catch (err) {
+    //         console.log(err);
+    //         const time = new Date();
+    //         fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidAdminRequest - ${err}\n`);
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //         return false;
+    //     }
+    //     finally {
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //     }
+    // },
 
     isValidEditStudentProfile: (student) => {
         if (typeof (student.studentFullName) === 'string' &&

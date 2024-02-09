@@ -373,7 +373,7 @@ module.exports = {
             //Admins and SuperAdmins can register anybody. Except SuperAdmins.
             if((req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 //Validate Request
-                if (!await dataValidator.isValidAdminRegistration(req.body)) {
+                if (!dataValidator.isValidAdminRegistration(req.body)) {
                     res.status(400).json({
                         "MESSAGE": "Invalid Data"
                     });
@@ -397,6 +397,19 @@ module.exports = {
                             return;
                         }
 
+                        await db_connection.query("UNLOCK TABLES");
+                        await db_connection.query("LOCK TABLES managerRole READ, departmentData READ");
+                        const [role] = await db_connection.query("SELECT * from managerRole WHERE roleId = ?", [req.body.managerRoleId]);
+                        const [department] = await db_connection.query("SELECT * from departmentData WHERE departmentId = ?", [req.body.managerDepartmentId]);
+                        await db_connection.query("UNLOCK TABLES");
+                        if (role.length == 0 || department.length == 0) {
+                            await db_connection.query("UNLOCK TABLES");
+                            await db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Data"
+                            });
+                            return;
+                        }
                         
                         // generate a random password for the manager.
                         const managerPassword = passwordGenerator.randomPassword({
@@ -425,6 +438,7 @@ module.exports = {
                         req.body.managerRoleId,
                         req.body.managerDepartmentId,
                         req.body.managerId]);
+
                         await db_connection.query("UNLOCK TABLES");
                         db_connection.release();
 
@@ -452,8 +466,8 @@ module.exports = {
                     }
                 
                 }
-            
             }
+
             // if user is a Department Head, he can register only local attendance markers.
             else if (req.body.authorizationTier == 4){
                 const db_connection = await anokha_db.promise().getConnection();

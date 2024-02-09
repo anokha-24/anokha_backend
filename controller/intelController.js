@@ -746,12 +746,12 @@ module.exports = {
                 });
                 return;
             }
-            if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             else{
 
                 if(!(typeof(req.body.teams)==='object' && req.body.teams.length > 0)){
@@ -773,6 +773,18 @@ module.exports = {
 
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
+                    
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query('LOCK TABLES intelTeamData WRITE');
                     for(i = 0; i < req.body.teams.length; i++){
                         [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
@@ -828,12 +840,14 @@ module.exports = {
                 });
                 return;
             }
-            if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+
+            // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+
             else{
 
                 if(!(typeof(req.body.teams)==='object' && req.body.teams.length > 0)){
@@ -855,6 +869,18 @@ module.exports = {
 
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query('LOCK TABLES intelTeamData WRITE');
                     for(i = 0; i < req.body.teams.length; i++){
                         [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
