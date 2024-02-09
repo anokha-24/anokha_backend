@@ -715,6 +715,7 @@ module.exports = {
     isValidSubmitFirstRoundRequest: (req) => {
         if(
             typeof (req.problemStatement) === "string" && req.problemStatement.length > 0 && req.problemStatement.length <= 1000 &&
+            typeof (req.theme) === "string" && req.theme.length > 0 && req.theme.length <= 2 && ["0","1","2","3","4","5"].includes(req.theme) &&
             typeof (req.pptFileLink) === "string" && req.pptFileLink.length > 0 && req.pptFileLink.length <= 500 && validator.isURL(req.pptFileLink) 
         ){
             return true;

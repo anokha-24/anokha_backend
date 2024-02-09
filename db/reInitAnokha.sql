@@ -261,6 +261,7 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     teamId INTEGER NOT NULL,
     round INTEGER NOT NULL,
     problemStatement VARCHAR(1000),
+    theme VARCHAR(2),
     githubLink VARCHAR(500),
     youtubeVideoLink VARCHAR(500),
     devmeshLink VARCHAR(500),
@@ -278,6 +279,7 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     CHECK(seenStatus IN ("0", "1", "2"))
 );
 -- seenStatus: 0 = NOT SEEN, 1 = SEEN, 2 = UPDATED AND NOT SEEN
+-- theme: 0:GenAI, 1:IOT, 2:Healthcare, 3:AutonomousVehicles, 4:CyberSecurity, 5:OpenEnded 
 
 -- INSERT STUDENT DATA
 -- password = ark123@890
