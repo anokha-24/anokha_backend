@@ -177,6 +177,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES tagData READ");
+                    const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagName = ? OR tagAbbreviation =?", [req.body.tagName, req.body.tagAbbreviation]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (tagData.length != 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Tag Already Exists!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES managerData READ");
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
@@ -245,6 +256,17 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
                     
+                    await db_connection.query("LOCK TABLES tagData READ");
+                    const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId = ?", [req.body.tagId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (tagData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES managerData READ");
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
@@ -565,6 +587,7 @@ module.exports = {
             }
         }
     ],
+
     toggleEventStatus: [
         adminTokenValidator,
         async (req, res) => {
@@ -664,6 +687,18 @@ module.exports = {
                 db_connection = await anokha_db.promise().getConnection();
                 try{
 
+                    await db_connection.query("LOCK TABLES eventData READ, tagData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId = ?", [req.body.tagId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (eventData.length === 0 || tagData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES managerData READ");
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
@@ -739,6 +774,18 @@ module.exports = {
             else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+                    
+                    await db_connection.query("LOCK TABLES eventData READ, tagData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId = ?", [req.body.tagId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (eventData.length === 0 || tagData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
 
                     await db_connection.query("LOCK TABLES managerData READ");
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
