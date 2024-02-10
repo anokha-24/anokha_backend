@@ -1098,6 +1098,59 @@ module.exports = {
         }
     ],
 
+
+    markUnseen:[
+        adminTokenValidator,
+        async (req, res) => {
+            //only SUPER_ADMIN and INTEL_ADMIN can access this
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
+                return res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+            if(req.params.round != 1 && req.params.round != 2 && req.params.round != 3){
+                return res.status(400).json({
+                    "MESSAGE": "Invalid Request"
+                });
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelSubmissions WRITE');
+                    const [check] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [req.params.teamId,req.params.round]);
+                    if(check.length === 0){
+                        await db_connection.query('UNLOCK TABLES');
+                        //db_connection.release();
+                        return res.status(400).json({
+                            "MESSAGE": "Invalid Submission"
+                        });
+                    }
+                    await db_connection.query('UPDATE intelSubmissions SET seenStatus = ? WHERE teamId = ? AND round = ?', ["0", req.params.teamId,req.params.round]);
+                    await db_connection.query('UNLOCK TABLES');
+                    //db_connection.release();
+                    return res.status(200).json({
+                        "MESSAGE": "Marked Unseen Successfully"
+                    });
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - markUnseen - ${err}\n`);
+                    return res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+            }
+        }
+    ],
+
+
+
     getTeamContact:[
         adminTokenValidator,
         async (req, res) => {
