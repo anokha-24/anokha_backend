@@ -129,31 +129,31 @@ module.exports = {
         return false;
     },
 
-    isValidStudentRequest: async (studentId) => {
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES studentData READ");
-            const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [studentId]);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidStudentRequest - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
-    },
+    // isValidStudentRequest: async (studentId) => {
+    //     const db_connection = await anokha_db.promise().getConnection();
+    //     try {
+    //         await db_connection.query("LOCK TABLES studentData READ");
+    //         const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [studentId]);
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //         if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+    //             return false;
+    //         }
+    //         return true;
+    //     }
+    //     catch (err) {
+    //         console.log(err);
+    //         const time = new Date();
+    //         fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidStudentRequest - ${err}\n`);
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //         return false;
+    //     }
+    //     finally {
+    //         await db_connection.query("UNLOCK TABLES");
+    //         db_connection.release();
+    //     }
+    // },
 
     // isValidAdminRequest: async (managerId) => {
     //     const db_connection = await anokha_db.promise().getConnection();
@@ -207,33 +207,34 @@ module.exports = {
         return false;
     },
 
-    isValidToggleStarredEventRequest: async (req) => {
+    isValidToggleStarredEventRequest: (req) => {
         if (req.body.eventId === undefined || req.body.eventId === null || isNaN(req.body.eventId)) {
             return false;
         }
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES eventData READ");
-            const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId=?", [req.body.eventId]);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            if (event.length === 0 || (req.body.isStarred != "0" && req.body.isStarred != "1")) {
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleStarredEventRequest - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
+        // const db_connection = await anokha_db.promise().getConnection();
+        // try {
+        //     await db_connection.query("LOCK TABLES eventData READ");
+        //     const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId=?", [req.body.eventId]);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     if (event.length === 0 || (req.body.isStarred != "0" && req.body.isStarred != "1")) {
+        //         return false;
+        //     }
+        //     return true;
+        // }
+        // catch (err) {
+        //     console.log(err);
+        //     const time = new Date();
+        //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleStarredEventRequest - ${err}\n`);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return false;
+        // }
+        // finally {
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        // }
+        return true;
     },
 
     vaildRegistrationDataRequest: (req) => {

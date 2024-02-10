@@ -24,15 +24,28 @@ module.exports = {
     getStudentProfile: [
         tokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES studentData READ");
                     const query = `SELECT * FROM studentData WHERE studentId=?`;
                     const [student] = await db_connection.query(query, [req.body.studentId]);
@@ -65,7 +78,7 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        }
+        // }
 
     ],
 
@@ -80,12 +93,12 @@ module.exports = {
     editStudentProfile: [
         tokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if (!dataValidator.isValidEditStudentProfile(req.body)) {
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -95,6 +108,19 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query("LOCK TABLES studentData WRITE");
                     const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentPhone =? AND studentId != ?", [req.body.studentPhone, req.body.studentId]);
                     if (check.length > 0) {
@@ -141,13 +167,13 @@ module.exports = {
     toggleStarredEvent: [
         tokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            if (!await dataValidator.isValidToggleStarredEventRequest(req)) {
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            if (!dataValidator.isValidToggleStarredEventRequest(req)) {
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -156,6 +182,32 @@ module.exports = {
             else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    //check if the request is valid
+                    await db_connection.query("LOCK TABLES eventData READ");
+                    const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId=?", [req.body.eventId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (event.length === 0 || (req.body.isStarred != "0" && req.body.isStarred != "1")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query("LOCK TABLES starredEvents WRITE");
                     if (req.body.isStarred == "1") {
                         [check] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.body.eventId]);
@@ -214,15 +266,31 @@ module.exports = {
     getStarredEvents: [
         tokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else {
+
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query("LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ");
                     const query = `
                         SELECT
@@ -415,23 +483,37 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        }
+        // }
     ],
 
     getRegisteredEvents: [
         tokenValidator,
         async (req, res) => {
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
+
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
 
                     const query = `
                     SELECT
@@ -598,7 +680,7 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        }
+        // }
     ],
 
     /*
@@ -609,18 +691,32 @@ module.exports = {
     registeredEventData: [
         tokenValidator,
         async (req, res) => {
-            if (!dataValidator.isValidStudentRequest) {
-                console.log("testerror");
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (!await dataValidator.isValidStudentRequest) {
+            //     console.log("testerror");
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else {
                 const db_connection = await anokha_db.promise().getConnection();
                 const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
                 try {
                     //console.log("test0");
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
 
                     const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?", [req.body.registrationId]);
@@ -771,14 +867,14 @@ module.exports = {
                     transaction_db_connection.release();
                 }
             }
-        }
+        // }
     ],
 
     //to add only the tags that have isActive = '1' 
     getAllEventsJSVersion: [
         validateEventRequest,
         async (req, res) => {
-            if (req.body.isLoggedIn == "1" && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            if (req.body.isLoggedIn == "1"){ //&& !await dataValidator.isValidStudentRequest(req.body.studentId)) {
                 res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
@@ -788,6 +884,21 @@ module.exports = {
             const db_connection = await anokha_db.promise().getConnection();
 
             try {
+
+
+                //check if the student exists and is active
+                await db_connection.query("LOCK TABLES studentData READ");
+                const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                    return;
+                }
+
+
                 if (req.body.isLoggedIn === "0") {
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
 
@@ -1037,14 +1148,34 @@ module.exports = {
     getAllEvents: [
         validateEventRequest,
         async (req, res) => {
-            if (req.body.isLoggedIn == "1" && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else {
+            // if (req.body.isLoggedIn == "1"){ // && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            //else {
                 const db_connection = await anokha_db.promise().getConnection();
+
+                if (req.body.isLoggedIn == "1"){ // && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
+                    // res.status(400).json({
+                    //     "MESSAGE": "Access Restricted!"
+                    // });
+                    // return;
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+                }
+
+                
                 try {
                     if (req.body.isLoggedIn == "0") {
 
@@ -1382,7 +1513,7 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        }
+        //}
     ],
 
     getEventData: [
@@ -1392,7 +1523,7 @@ module.exports = {
             req.params.eventId = parseInt(req.params.eventId);
             //console.log(req.body.isLoggedIn, req.body.studentId);
 
-            if (req.body.isLoggedIn == "0" || !dataValidator.isValidStudentRequest(req.body.studentId)) {
+            if (req.body.isLoggedIn == "0"){// || !dataValidator.isValidStudentRequest(req.body.studentId)) {
                 //console.log("testerror");
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
@@ -1462,9 +1593,74 @@ module.exports = {
                     db_connection.release();
                 }
             }
-            else if (req.body.isLoggedIn == "1" && dataValidator.isValidStudentRequest(req.body.studentId)) {
+            else if (req.body.isLoggedIn == "1"){// && dataValidator.isValidStudentRequest(req.body.studentId)) {
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        // db_connection.release();
+                        // res.status(400).json({
+                        //     "MESSAGE": "Access Restricted!"
+                        // });
+                        // return;
+
+                        await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
+
+                        let [event] = await db_connection.query(`
+                        SELECT * FROM eventData 
+                        LEFT JOIN departmentData
+                        ON eventData.eventDepartmentId = departmentData.departmentId
+                        WHERE eventId=?`, [req.params.eventId]);
+                        if (event.length == 0 || event[0].eventStatus == "0") {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                            return;
+                        }
+                        else {
+                            event = event[0];
+                            const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            //MODE: 0 - Not Logged In, 1 - Logged In
+                            res.status(200).json({
+                                "MESSAGE": "Successfully Fetched Event Data.",
+                                "MODE": "0",
+                                "eventId": event.eventId,
+                                "eventName": event.eventName,
+                                "eventDescription": event.eventDescription,
+                                "eventMarkdownDescription": event.eventMarkdownDescription,
+                                "eventDate": event.eventDate,
+                                "eventTime": event.eventTime,
+                                "eventVenue": event.eventVenue,
+                                "eventImageURL": event.eventImageURL,
+                                "eventPrice": event.eventPrice,
+                                "maxSeats": event.maxSeats,
+                                "seatsFilled": event.seatsFilled,
+                                "minTeamSize": event.minTeamSize,
+                                "maxTeamSize": event.maxTeamSize,
+                                "isWorkshop": event.isWorkshop,
+                                "isTechnical": event.isTechnical,
+                                "isGroup": event.isGroup,
+                                "needGroupData": event.needGroupData,
+                                "isPerHeadPrice": event.isPerHeadPrice,
+                                "isRefundable": event.isRefundable,
+                                "eventStatus": event.eventStatus,
+                                "departmentName": event.departmentName,
+                                "departmentAbbreviation": event.departmentAbbreviation,
+                                "tags": tags
+                            });
+                            return;
+                        }
+
+                    }
+
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ, eventRegistrationGroupData READ");
 
@@ -1560,12 +1756,12 @@ module.exports = {
         tokenValidator,
         async (req, res) => {
             // Validate Student Login
-            if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
 
             // VALIDATE PARAMETER DATA TYPES AND FORMAT
 
@@ -1580,6 +1776,18 @@ module.exports = {
             const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
 
             try {
+
+                //check if the student exists and is active
+                await db_connection.query("LOCK TABLES studentData READ");
+                const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                    return;
+                }
 
                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
@@ -1599,7 +1807,7 @@ module.exports = {
 
                 await db_connection.query("LOCK TABLES eventData READ, eventRegistrationData READ, eventRegistrationGroupData READ, studentData READ");
 
-                const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [req.body.studentId]);
+                //const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [req.body.studentId]);
 
                 // does the event exist
                 const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
