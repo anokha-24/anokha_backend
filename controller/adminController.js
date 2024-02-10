@@ -1377,7 +1377,7 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAssignEventToOfficial(req.body))){
+            if(!(dataValidator.isValidAssignEventToOfficial(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -1397,6 +1397,21 @@ module.exports = {
                         });
                         return;
                     }
+
+
+                    //check if event exists
+                    await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    //const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId = ?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (eventData.length === 0 || managerData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                        return;
+                    }
+
 
                     if(req.body.authorizationTier==1 || req.body.authorizationTier==2){
                         await db_connection.query("LOCK TABLES eventOrganizersData WRITE");
@@ -1484,7 +1499,7 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidAssignEventToOfficial(req.body))){
+            if(!(dataValidator.isValidAssignEventToOfficial(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -1501,6 +1516,20 @@ module.exports = {
                         db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
+                    //check if event exists
+                    await db_connection.query("LOCK TABLES eventData READ, managerData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    //const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId = ?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (eventData.length === 0 || managerData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
                         });
                         return;
                     }
@@ -1760,7 +1789,7 @@ module.exports = {
                 });
                 return;
           }
-          if (!(await dataValidator.isValidMarkEventAttendance(req.params))) {
+          if (!(dataValidator.isValidMarkEventAttendance(req.params))) {
             //console.log("invalid req");
             //console.log(req.params);
             res.status(400).json({
@@ -1784,6 +1813,54 @@ module.exports = {
                         "MESSAGE": "Access Restricted!"
                     });
                     return;
+                }
+
+
+
+                await db_connection.query("LOCK TABLES eventData READ, studentData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
+                const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.params.eventId]);
+                
+                //check if event exists
+                if (eventData.length === 0) {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Event doesn't exist!"
+                    });
+                    return;
+                }
+
+                //check if event is active
+                else if (eventData[0].eventStatus != "1") {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Event Not Active!"
+                    });
+                    return;
+                }
+
+                //check if student is registered for individual event
+                else if (eventData[0].isGroup === "0" || (eventData[0].isGroup === "1" && eventData[0].needGroupData === "0")) {
+                    const [student] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE eventId = ? AND studentId = ?", [req.params.eventId, req.params.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (student.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Student Not Registered for Event!"
+                        });
+                    }
+                }
+
+                //check if student is registered for group event
+                else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "1") {
+                    const [student] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE eventId = ? AND studentId = ?", [req.params.eventId, req.params.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    if (student.length === 0) {
+                        return false;
+                    }
+                    return true;
                 }
 
 
@@ -1915,7 +1992,7 @@ module.exports = {
                 });
                 return;
           }
-          if (!(await dataValidator.isValidMarkEventAttendance(req.params))) {
+          if (!(dataValidator.isValidMarkEventAttendance(req.params))) {
             res.status(400).json({
               "MESSAGE": "Invalid Request!"
             });
@@ -1938,6 +2015,55 @@ module.exports = {
                 });
                 return;
                 }
+
+
+                await db_connection.query("LOCK TABLES eventData READ, studentData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
+                const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.params.eventId]);
+                
+                //check if event exists
+                if (eventData.length === 0) {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Event doesn't exist!"
+                    });
+                    return;
+                }
+
+                //check if event is active
+                else if (eventData[0].eventStatus != "1") {
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    res.status(400).json({
+                        "MESSAGE": "Event Not Active!"
+                    });
+                    return;
+                }
+
+                //check if student is registered for individual event
+                else if (eventData[0].isGroup === "0" || (eventData[0].isGroup === "1" && eventData[0].needGroupData === "0")) {
+                    const [student] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE eventId = ? AND studentId = ?", [req.params.eventId, req.params.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (student.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Student Not Registered for Event!"
+                        });
+                    }
+                }
+
+                //check if student is registered for group event
+                else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "1") {
+                    const [student] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE eventId = ? AND studentId = ?", [req.params.eventId, req.params.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                    if (student.length === 0) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                
 
                 // super admins, admins and global attendace markers
                 if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){
