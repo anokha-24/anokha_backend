@@ -16,11 +16,10 @@ const passwordGenerator = require('secure-random-password');
 
 module.exports = {
     testConnection: async (req, res) => {
-        res.status(200).json({
+        return res.status(200).json({
             "MESSAGE": "It's Working. 👍🏻",
             "WHO": "Auth"
         });
-        return;
     },
 
     /*
@@ -37,10 +36,9 @@ module.exports = {
     registerStudent: async (req, res) => {
         //validate Request
         if (!dataValidator.isValidStudentRegistration(req.body)) {
-            res.status(400).json({
+            return res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });;
-            return;
         }
         //if request is valid
         else {
@@ -51,11 +49,10 @@ module.exports = {
                 const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ? OR studentPhone = ?", [req.body.studentEmail, req.body.studentPhone]);
                 if (result.length > 0) {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    res.status(400).json({
+                    //db_connection.release();
+                    return res.status(400).json({
                         "MESSAGE": "Student Already Exists!"
                     });
-                    return;
                 }
                 // if user does not exist
                 else {
@@ -100,23 +97,21 @@ module.exports = {
 
                     //await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, needPassport, studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, isInCampus]);
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "SECRET_TOKEN": secret_token,
                         "MESSAGE": "User Registered Successfully, Check Email for OTP!"
                     });
-                    return;
                 }
             }
             catch (err) {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerUser - ${err}\n`);
-                res.status(500).json({
+                return res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-                return;
             }
             finally {
                 await db_connection.query("UNLOCK TABLES");
@@ -134,10 +129,9 @@ module.exports = {
         async (req, res) => {
             //validate Request
             if (!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.studentEmail))) {
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Data"
                 });
-                return;
             }
             //if request is valid
             else {
@@ -148,11 +142,10 @@ module.exports = {
                     const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ?", [req.body.studentEmail]);
                     if (result.length > 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "User Already Exists!"
                         });
-                        return;
                     }
                     //if user does not exist
                     else {
@@ -162,8 +155,9 @@ module.exports = {
                         const [check] = await db_connection.query(`DELETE FROM studentRegister WHERE studentEmail = ? AND otp = ?`, [req.body.studentEmail, req.body.otp]);
                         if (check.affectedRows === 0) {
                             await db_connection.query(`UNLOCK TABLES`);
-                            db_connection.release();
+                            //db_connection.release();
                             return res.status(400).send({ "MESSAGE": "Invalid OTP!" });
+                            
                         }
                         //if OTP is valid
                         else {
@@ -179,11 +173,10 @@ module.exports = {
                             //insert user into studentData
                             await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
                             await db_connection.query("UNLOCK TABLES");
-                            db_connection.release();
-                            res.status(200).json({
+                            //db_connection.release();
+                            return res.status(200).json({
                                 "MESSAGE": "User Registration Verified Successfully!"
                             });
-                            return;
                         }
                     }
                 }
@@ -191,10 +184,9 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - verifyStudent - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
-                    return;
                 }
                 finally {
                     await db_connection.query("UNLOCK TABLES");
@@ -210,10 +202,9 @@ module.exports = {
     loginStudent: async (req, res) => {
         //validate Request
         if (!dataValidator.isValidStudentLogin(req.body)) {
-            res.status(400).json({
+            return res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });
-            return;
         }
         //if request is valid
         else {
@@ -231,6 +222,7 @@ module.exports = {
                 //if credentials are incorrect
                 if (student.length === 0) {
                     return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
+                    
                 }
                 //if credentials are correct
                 else {
@@ -238,18 +230,20 @@ module.exports = {
                     //if account is blocked
                     if (student[0].studentAccountStatus === "0") {
                         return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
+                        
                     }
                     else {
                         await db_connection.query("LOCK TABLES studentLoginLogs WRITE");
                         await db_connection.query("INSERT INTO studentLoginLogs (studentId, loginTime) VALUES (?, NOW())", [student[0].studentId]);
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
+                        //db_connection.release();
+                        
                         //generate token and send student details as response
                         const token = await tokenGenerator({
                             "studentEmail": req.body.studentEmail,
                             "studentId": student[0].studentId
                         });
-                        res.status(200).json({
+                        return res.status(200).json({
                             "MESSAGE": "User Login Successful!",
                             "SECRET_TOKEN": token,
                             "studentId": student[0].studentId,
@@ -262,7 +256,6 @@ module.exports = {
                             "studentCollegeCity": student[0].studentCollegeCity,
                             "isInCampus": student[0].isInCampus
                         });
-                        return;
                     }
                 }
             }
@@ -270,10 +263,9 @@ module.exports = {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginStudent - ${err}\n`);
-                res.status(500).json({
+                return res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-                return;
             }
             finally {
                 await db_connection.query("UNLOCK TABLES");
@@ -290,10 +282,9 @@ module.exports = {
     loginAdmin: async (req, res) => {
         //validate Request
         if (!dataValidator.isValidAdminLogin(req.body)) {
-            res.status(400).json({
+            return res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });
-            return;
         }
         //if request is valid
         else {
@@ -310,8 +301,9 @@ module.exports = {
                 //if credentials are incorrect
                 if (manager.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                    //db_connection.release();
                     return res.status(400).send({ "MESSAGE": "Invalid Credentials!" });
+                    
                 }
                 //if credentials are correct
                 else {
@@ -319,8 +311,9 @@ module.exports = {
                     //if account is blocked
                     if (manager[0].managerAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
+                        //db_connection.release();
                         return res.status(400).send({ "MESSAGE": "Account is BLOCKED by Admin!" });
+                        
                     }
                     else {
                         const [role]= await db_connection.query(`SELECT * from managerRole where roleId = ?`, [manager[0].managerRoleId]);
@@ -329,7 +322,7 @@ module.exports = {
                         await db_connection.query("LOCK TABLES managerLoginLogs WRITE");
                         await db_connection.query("INSERT INTO managerLoginLogs (managerId, loginTime) VALUES (?, NOW())", [manager[0].managerId]);
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
+                        //db_connection.release();
                         
                         //generate token and send student details as response
                         const token = await adminTokenGenerator({
@@ -337,7 +330,7 @@ module.exports = {
                             "managerId": manager[0].managerId,
                             "authorizationTier": manager[0].managerRoleId
                         });
-                        res.status(200).json({
+                        return res.status(200).json({
                             "MESSAGE": "Manager Login Successful!",
                             "SECRET_TOKEN": token,
                             "managerFullName": manager[0].managerFullName,
@@ -346,7 +339,6 @@ module.exports = {
                             "managerRoleId": manager[0].managerRoleId,
                             "managerRoleName": role[0].roleName,
                         });
-                        return;
                     }
                 }
             }
@@ -354,10 +346,9 @@ module.exports = {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - loginAdmin - ${err}\n`);
-                res.status(500).json({
+                return res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-                return;
             }
             finally {
                 await db_connection.query("UNLOCK TABLES");
@@ -374,10 +365,9 @@ module.exports = {
             if((req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 //Validate Request
                 if (!dataValidator.isValidAdminRegistration(req.body)) {
-                    res.status(400).json({
+                    return res.status(400).json({
                         "MESSAGE": "Invalid Data"
                     });
-                    return;
                 }
                 else{
                     
@@ -390,11 +380,10 @@ module.exports = {
                         const [result] = await db_connection.query("SELECT * FROM managerData WHERE managerEmail = ? OR managerPhone = ?", [req.body.managerEmail, req.body.managerPhone]);
                         if (result.length > 0) {
                             await db_connection.query("UNLOCK TABLES");
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": "Manager Already Exists!"
                             });
-                            return;
                         }
 
                         await db_connection.query("UNLOCK TABLES");
@@ -404,11 +393,10 @@ module.exports = {
                         await db_connection.query("UNLOCK TABLES");
                         if (role.length == 0 || department.length == 0) {
                             await db_connection.query("UNLOCK TABLES");
-                            await db_connection.release();
-                            res.status(400).json({
+                            //await db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": "Invalid Data"
                             });
-                            return;
                         }
                         
                         // generate a random password for the manager.
@@ -440,25 +428,23 @@ module.exports = {
                         req.body.managerId]);
 
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
+                        //db_connection.release();
 
                         // Email the password to the manager.
                         mailer.managerRegistered(req.body.managerFullName, req.body.managerEmail, managerPassword);
                         
-                        res.status(200).json({
+                        return res.status(200).json({
                             "MESSAGE": "Manager Registered Successfully!"
                         });
-                        return;
                     }
                     catch(err)
                     {
                         console.log(err);
                         const time = new Date();
                         fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerAdmin - ${err}\n`);
-                        res.status(500).json({
+                        return res.status(500).json({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
-                        return;
                     }
                     finally{
                         await db_connection.query("UNLOCK TABLES");
@@ -478,32 +464,29 @@ module.exports = {
                     const [managerData] =  await db_connection.query("SELECT * FROM managerData WHERE managerId = ?",[req.body.managerId]);
                     if(managerData[0].managerDepartmentId != req.body.managerDepartmentId){
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Unauthorised Access! You can only add managers within your department."
                         });
-                        return;
                     }
                     
                     //check if registree is a local attendance marker.
                     if(!(req.body.managerRoleId == 7)){
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Unauthorised Access. Warning."
                         });
-                        return;
                     }
 
                     //check if user already exists
                     const [result] = await db_connection.query("SELECT * FROM managerData WHERE managerEmail = ? OR managerPhone = ?", [req.body.managerEmail, req.body.managerPhone]);
                     if (result.length > 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Manager Already Exists!"
                         });
-                        return;
                     }
 
                     
@@ -535,25 +518,23 @@ module.exports = {
                         req.body.managerDepartmentId,
                         req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                    //db_connection.release();
 
                     // Email the password to the manager.
                     mailer.managerRegistered(req.body.managerFullName, req.body.managerEmail, managerPassword);
                     
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Manager Registered Successfully!"
                     });
-                    return;
                 }
                 catch(err)
                 {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerAdmin - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
-                    return;
                 }
                 finally{
                     await db_connection.query("UNLOCK TABLES");
@@ -561,10 +542,9 @@ module.exports = {
                 }
             }            
             else{
-                res.status(401).json({
+                return res.status(401).json({
                     "MESSAGE": "Unauthorized access. Warning."
                 });
-                return;
             }
         }
     ],
@@ -574,10 +554,9 @@ module.exports = {
     }*/
     forgotPasswordStudent: async (req, res) => {
         if (!dataValidator.isValidEmail(req.body.studentEmail)) {
-            res.status(400).json({
+            return res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });
-            return;
         }
         else {
             const db_connection = await anokha_db.promise().getConnection();
@@ -586,19 +565,17 @@ module.exports = {
                 const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
                 if (student.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    res.status(400).json({
+                    //db_connection.release();
+                    return res.status(400).json({
                         "MESSAGE": "Account Does Not Exist!"
                     });
-                    return;
                 }
                 else if (student[0].studentAccountStatus === "0") {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    res.status(400).json({
+                    //db_connection.release();
+                    return res.status(400).json({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
-                    return;
                 }
                 else {
                     await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ?`, [student[0].studentId]);
@@ -611,23 +588,21 @@ module.exports = {
                     const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
                     await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp_hashed]);
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                    //db_connection.release();
                     mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Check Email for Password Reset OTP!",
                         "SECRET_TOKEN": otp_token
                     });
-                    return;
                 }
             }
             catch (err) {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - forgotPasswordStudent - ${err}\n`);
-                res.status(500).json({
+                return res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-                return;
             }
             finally {
                 await db_connection.query("UNLOCK TABLES");
@@ -641,10 +616,9 @@ module.exports = {
     }*/
     forgotPasswordAdmin: async (req, res) => {
         if (!dataValidator.isValidEmail(req.body.managerEmail)) {
-            res.status(400).json({
+            return res.status(400).json({
                 "MESSAGE": "Invalid Data"
             });
-            return;
         }
         else {
             const db_connection = await anokha_db.promise().getConnection();
@@ -653,19 +627,17 @@ module.exports = {
                 const [manager] = await db_connection.query(`SELECT * from managerData where managerEmail = ?`, [req.body.managerEmail]);
                 if (manager.length === 0) {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    res.status(400).json({
+                    //db_connection.release();
+                    return res.status(400).json({
                         "MESSAGE": "Account Does Not Exist!"
                     });
-                    return;
                 }
                 else if (manager[0].managerAccountStatus === "0") {
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    res.status(400).json({
+                    //db_connection.release();
+                    return res.status(400).json({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
-                    return;
                 }
                 else {
                     await db_connection.query(`DELETE from forgotPasswordManager where managerId = ?`, [manager[0].managerId]);
@@ -678,23 +650,21 @@ module.exports = {
                     const otp_hashed = crypto.createHash('sha256').update(otp).digest('hex');
                     await db_connection.query("INSERT INTO forgotPasswordManager (managerId, otp) VALUES (?,?)", [manager[0].managerId, otp_hashed]);
                     await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
+                    //db_connection.release();
                     mailer.forgotPassword(manager[0].managerFullName, manager[0].managerEmail, otp);
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Check Email for Password Reset OTP!",
                         "SECRET_TOKEN": otp_token
                     });
-                    return;
                 }
             }
             catch (err) {
                 console.log(err);
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - forgotPasswordAdmin - ${err}\n`);
-                res.status(500).json({
+                return res.status(500).json({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-                return;
             }
             finally {
                 await db_connection.query("UNLOCK TABLES");
@@ -711,10 +681,9 @@ module.exports = {
         studentResetPasswordValidator,
         async (req, res) => {
             if (!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.studentEmail) && dataValidator.isValidPassword(req.body.studentPassword))) {
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Data"
                 });
-                return;
             }
             else {
                 const db_connection = await anokha_db.promise().getConnection();
@@ -726,21 +695,19 @@ module.exports = {
                     //if user does not exist
                     if (verify.length === 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Account Does Not Exist!"
                         });
-                        return;
                     }
 
                     //if account is blocked
                     else if (verify[0].studentAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Account is BLOCKED by Admin!"
                         });
-                        return;
                     }
 
                     //sha256 hash the otp
@@ -750,11 +717,10 @@ module.exports = {
                     const [student] = await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ? and otp = ?`, [verify[0].studentId, req.body.otp]);
                     if (student.affectedRows === 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Invalid OTP!"
                         });
-                        return;
                     }
 
                     else {
@@ -762,21 +728,19 @@ module.exports = {
                         //req.body.studentPassword = crypto.createHash('sha256').update(req.body.studentPassword).digest('hex');
                         await db_connection.query("UPDATE studentData SET studentPassword = ? WHERE studentId = ?", [req.body.studentPassword, verify[0].studentId]);
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(200).json({
+                        //db_connection.release();
+                        return res.status(200).json({
                             "MESSAGE": "Password Reset Successful!"
                         });
-                        return;
                     }
                 }
                 catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - resetPasswordStudent - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
-                    return;
                 }
                 finally {
                     await db_connection.query("UNLOCK TABLES");
@@ -794,10 +758,9 @@ module.exports = {
         adminResetPasswordValidator,
         async (req, res) => {
             if (!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.managerEmail) && dataValidator.isValidPassword(req.body.managerPassword))) {
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Data"
                 });
-                return;
             }
             else {
                 const db_connection = await anokha_db.promise().getConnection();
@@ -809,21 +772,19 @@ module.exports = {
                     //if user does not exist
                     if (verify.length === 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Account Does Not Exist!"
                         });
-                        return;
                     }
 
                     //if account is blocked
                     else if (verify[0].managerAccountStatus === "0") {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Account is BLOCKED by Admin!"
                         });
-                        return;
                     }
 
                     //sha256 hash the otp
@@ -833,11 +794,10 @@ module.exports = {
                     const [manager] = await db_connection.query(`DELETE from forgotPasswordManager where managerId = ? and otp = ?`, [verify[0].managerId, req.body.otp]);
                     if (manager.affectedRows === 0) {
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Invalid OTP!"
                         });
-                        return;
                     }
 
                     else {
@@ -845,21 +805,19 @@ module.exports = {
                         //req.body.managerPassword = crypto.createHash('sha256').update(req.body.managerPassword).digest('hex');
                         await db_connection.query("UPDATE managerData SET managerPassword = ? WHERE managerId = ?", [req.body.managerPassword, verify[0].managerId]);
                         await db_connection.query("UNLOCK TABLES");
-                        db_connection.release();
-                        res.status(200).json({
+                        //db_connection.release();
+                        return res.status(200).json({
                             "MESSAGE": "Password Reset Successful!"
                         });
-                        return;
                     }
                 }
                 catch (err) {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - resetPasswordAdmin - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
-                    return;
                 }
                 finally {
                     await db_connection.query("UNLOCK TABLES");
