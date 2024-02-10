@@ -57,6 +57,40 @@ module.exports = {
                         });
                     }
 
+                    for(let i = 0; i < req.body.teamMembers.length; i++){
+                        if(req.body.teamMembers[i] === req.body.studentEmail){
+                            return res.status(400).json({
+                                "MESSAGE": "You're added by default in the team. Kindly remove your email from the list of team members."
+                            });
+                        }
+                    }
+
+                    let checkMembers = {};
+                    for(let i = 0; i < req.body.teamMembers.length; i++){
+                        if(checkMembers[req.body.teamMembers[i]]==1)
+                        {
+                            return res.status(400).json({
+                                "MESSAGE": "Duplicate Team Members"
+                            });
+                        }
+                        else{
+                            checkMembers[req.body.teamMembers[i]] = 1;
+                        }
+                    }
+
+                    let checkIdc = {};
+                    for(let i = 0; i < req.body.idcId.length; i++){
+                        if(checkIdc[req.body.idcId[i]]==1)
+                        {
+                            return res.status(400).json({
+                                "MESSAGE": "Duplicate IDCs"
+                            });
+                        }
+                        else{
+                            checkIdc[req.body.idcId[i]] = 1;
+                        }
+                    }
+
                     await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ?', [req.body.studentId]);
                     if(checkTeam.length > 0){
@@ -171,6 +205,41 @@ module.exports = {
                         return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
+                    }
+
+
+                    for(let i = 0; i < req.body.teamMembers.length; i++){
+                        if(req.body.teamMembers[i] === req.body.studentEmail){
+                            return res.status(400).json({
+                                "MESSAGE": "You're added by default in the team. Kindly remove your email from the list of team members."
+                            });
+                        }
+                    }
+
+                    let checkMembers = {};
+                    for(let i = 0; i < req.body.teamMembers.length; i++){
+                        if(checkMembers[req.body.teamMembers[i]]==1)
+                        {
+                            return res.status(400).json({
+                                "MESSAGE": "Duplicate Team Members"
+                            });
+                        }
+                        else{
+                            checkMembers[req.body.teamMembers[i]] = 1;
+                        }
+                    }
+
+                    let checkIdc = {};
+                    for(let i = 0; i < req.body.idcId.length; i++){
+                        if(checkIdc[req.body.idcId[i]]==1)
+                        {
+                            return res.status(400).json({
+                                "MESSAGE": "Duplicate IDCs"
+                            });
+                        }
+                        else{
+                            checkIdc[req.body.idcId[i]] = 1;
+                        }
                     }
 
 
