@@ -236,7 +236,7 @@ module.exports = {
         }
     },
 
-    vaildRegistrationDataRequest: async (req) => {
+    vaildRegistrationDataRequest: (req) => {
         if (req.body.registrationId === undefined || req.body.registrationId === null || isNaN(req.body.registrationId)) {
             return false;
         }
@@ -276,7 +276,7 @@ module.exports = {
         return true;
     },
 
-    isValidToggleTagStatus: async (tag) => {
+    isValidToggleTagStatus: (tag) => {
         if (tag.tagId === undefined || tag.tagId === null || isNaN(tag.tagId)
             || typeof (tag.isActive) != 'string'
             || tag.isActive === undefined || tag.isActive === null || (tag.isActive != "0" && tag.isActive != "1")
@@ -454,39 +454,40 @@ module.exports = {
         return true;
     },
 
-    isValidToggleEventStatus: async (event) => {
+    isValidToggleEventStatus: (event) => {
         if (event.eventId === undefined || event.eventId === null || isNaN(event.eventId)
             || event.eventStatus === undefined || event.eventStatus === null || (event.eventStatus != "0" && event.eventStatus != "1" && event.eventStatus != "2")
         ) {
             return false;
         }
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES eventData READ");
-            const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [event.eventId]);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            if (eventData.length === 0) {
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleEventStatus - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
+        // const db_connection = await anokha_db.promise().getConnection();
+        // try {
+        //     await db_connection.query("LOCK TABLES eventData READ");
+        //     const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [event.eventId]);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     if (eventData.length === 0) {
+        //         return false;
+        //     }
+        //     return true;
+        // }
+        // catch (err) {
+        //     console.log(err);
+        //     const time = new Date();
+        //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleEventStatus - ${err}\n`);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return false;
+        // }
+        // finally {
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        // }
+        return true;
     },
 
 
-    isValidTagEvent: async (req) => {
+    isValidTagEvent: (req) => {
         if (req.eventId === undefined || req.eventId === null || isNaN(req.eventId)
             || req.tagId === undefined || req.tagId === null || isNaN(req.tagId)
         ) {
@@ -520,38 +521,39 @@ module.exports = {
     },
 
 
-    isValidToggleStudentStatus: async (student) => {
+    isValidToggleStudentStatus: (student) => {
         if (student.studentId === undefined || student.studentId === null || isNaN(student.studentId)
             || student.isActive === undefined || student.isActive === null || (student.isActive != "0" && student.isActive != "1")
         ) {
             return false;
         }
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES studentData READ");
-            const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [student.studentId]);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            if (studentData.length === 0) {
-                return false;
-            }
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleStudentStatus - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
+        // const db_connection = await anokha_db.promise().getConnection();
+        // try {
+        //     await db_connection.query("LOCK TABLES studentData READ");
+        //     const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [student.studentId]);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     if (studentData.length === 0) {
+        //         return false;
+        //     }
+        //     return true;
+        // }
+        // catch (err) {
+        //     console.log(err);
+        //     const time = new Date();
+        //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidToggleStudentStatus - ${err}\n`);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return false;
+        // }
+        // finally {
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        // }
+        return true;
     },
 
-    isValidToggleOfficialStatus: async (manager) => {
+    isValidToggleOfficialStatus: (manager) => {
         if (manager.managerId === undefined || manager.managerId === null || isNaN(manager.managerId)
             || manager.isActive === undefined || manager.isActive === null || (manager.isActive != "0" && manager.isActive != "1")
         ) {

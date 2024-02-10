@@ -89,7 +89,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if(!await dataValidator.isValidAdminEditProfile(req.body)){
+            if(!dataValidator.isValidAdminEditProfile(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -167,7 +167,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if(!await dataValidator.isValidTag(req.body)){
+            if(!dataValidator.isValidTag(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -246,7 +246,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if(!(await dataValidator.isValidToggleTagStatus(req.body))){
+            if(!(dataValidator.isValidToggleTagStatus(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -672,7 +672,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if (!(await dataValidator.isValidToggleEventStatus(req.body))){
+            if (!(dataValidator.isValidToggleEventStatus(req.body))){
                 //console.log("body");
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -694,6 +694,20 @@ module.exports = {
                         return;
                     }
 
+
+                    //check if event exists
+                    await db_connection.query("LOCK TABLES eventData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (eventData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Event!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query("LOCK TABLES eventData WRITE");
                     
                     const query =`UPDATE eventData SET eventStatus = ? WHERE eventId = ?`
@@ -702,10 +716,12 @@ module.exports = {
 
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
+                    
                     res.status(200).json({
                         "MESSAGE": req.body.eventStatus=="1" ? "Successfully Activated Event." : (req.body.eventStatus==2 ? "Successfully Closed Event Registrations." : "Successfully Removed Event from Anokha.")
                     });
                     return;
+
                 }
                 catch(err){
                     console.log(err);
@@ -745,7 +761,7 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidTagEvent(req.body))){
+            if(!(dataValidator.isValidTagEvent(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -833,7 +849,7 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidTagEvent(req.body))){
+            if(!(dataValidator.isValidTagEvent(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -1037,7 +1053,7 @@ module.exports = {
                 });
                 return;
             }
-            if(!(await dataValidator.isValidToggleStudentStatus(req.body))){
+            if(!(dataValidator.isValidToggleStudentStatus(req.body))){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
                 });
@@ -1054,6 +1070,18 @@ module.exports = {
                         db_connection.release();
                         res.status(400).json({
                             "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Request!"
                         });
                         return;
                     }
@@ -1163,7 +1191,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if(!(await dataValidator.isValidToggleOfficialStatus(req.body))){
+            if(!(dataValidator.isValidToggleOfficialStatus(req.body))){
                 //console.log("body");
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
