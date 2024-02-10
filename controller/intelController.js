@@ -32,12 +32,12 @@ module.exports = {
     registerTeam: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidRegisterTeamRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -47,6 +47,19 @@ module.exports = {
             else{
                 const db_connection = await anokha_db.promise().getConnection();
                 try {
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ?', [req.body.studentId]);
                     if(checkTeam.length > 0){
@@ -138,12 +151,12 @@ module.exports = {
     editTeam: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidEditTeamRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -151,8 +164,24 @@ module.exports = {
                 return;
             }
             else{
+
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
+
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ? AND isLeader = ?', [req.body.studentId, "1"]);
                     if(checkTeam.length === 0){
@@ -233,12 +262,12 @@ module.exports = {
     submitFirstRound: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidSubmitFirstRoundRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -249,6 +278,20 @@ module.exports = {
 
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
@@ -347,12 +390,12 @@ module.exports = {
     editFirstRoundSubmission: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidSubmitFirstRoundRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -363,6 +406,20 @@ module.exports = {
 
                 const db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
@@ -459,12 +516,12 @@ module.exports = {
     submitSecondRound: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -475,6 +532,20 @@ module.exports = {
                 const db_connection = await anokha_db.promise().getConnection();
                 //check if user is qualified for second round
                 try{
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
@@ -565,12 +636,12 @@ module.exports = {
     editSecondRoundSubmission: [
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
                 res.status(400).json({
                     "MESSAGE": "Invalid Request"
@@ -578,9 +649,23 @@ module.exports = {
                 return;
             }
             else{
+
                 const db_connection = await anokha_db.promise().getConnection();
                 //check if user is qualified for second round
                 try{
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
@@ -659,15 +744,29 @@ module.exports = {
     getDashBoard:[
         tokenValidator,
         async (req, res) => {
-            if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
-                res.status(400).json({
-                    "MESSAGE": "Access Restricted!"
-                });
-                return;
-            }
-            else{
+            // if(!await dataValidator.isValidStudentRequest(req.body.studentId)){
+            //     res.status(400).json({
+            //         "MESSAGE": "Access Restricted!"
+            //     });
+            //     return;
+            // }
+            // else{
                 db_connection = await anokha_db.promise().getConnection();
                 try{
+
+                    //check if the student exists and is active
+                    await db_connection.query("LOCK TABLES studentData READ");
+                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    await db_connection.query("UNLOCK TABLES");
+                    if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                        return;
+                    }
+
+
                     db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ, intelSubmissions READ, studentData READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
@@ -733,7 +832,7 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        }
+        //}
     ],
 
     intelSelectToSecondRound: [
@@ -957,7 +1056,10 @@ module.exports = {
                     const [submissions] = await db_connection.query(`SELECT
                     intelSubmissions.teamId,
                     intelTeamData.teamName,
+                    intelTeamData.teamStatus,
+                    intelTeamData.totalMembers,
                     intelSubmissions.seenStatus,
+                    intelSubmissions.theme,
                     intelSubmissions.problemStatement,
                     intelSubmissions.pptFileLink,
                     intelSubmissions.githubLink,
@@ -1039,6 +1141,69 @@ module.exports = {
                     await db_connection.query('UNLOCK TABLES');
                     db_connection.release();
                 }
+            }
+        }
+    ],
+
+    getTeamContact:[
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
+                res.status(400).json({
+                    "MESSAGE": "Access Restricted!"
+                });
+                return;
+            }
+            else{
+                if (!(typeof(req.params.teamId)=='string' && validator.isNumeric(req.params.teamId))){
+                    res.status(400).json({
+                        "MESSAGE": "Invalid Request"
+                    });
+                    return;
+                }
+                
+                req.params.teamId = parseInt(req.params.teamId);
+                
+                if (req.params.teamId <= 0){
+                    res.status(400).json({
+                        "MESSAGE": "Invalid Request"
+                    });
+                    return;
+                }
+                
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    await db_connection.query('LOCK TABLES intelTeamGroupData READ, studentData READ');
+                    const [teamMembers] = await db_connection.query(`SELECT 
+                    studentData.studentFullName,
+                    intelTeamGroupData.isLeader,
+                    studentData.studentEmail,
+                    studentData.studentPhone
+                    FROM studentData INNER JOIN intelTeamGroupData 
+                    ON studentData.studentId = intelTeamGroupData.studentId
+                    WHERE intelTeamGroupData.teamId = ?`, [req.params.teamId]);
+                    
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                    
+                    res.status(200).json({
+                        "MESSAGE": "Data Fetched Successfully",
+                        "teamMembers": teamMembers
+                    });
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getTeamContact - ${err}\n`);
+                    res.status(500).json({
+                        "MESSAGE": "Internal Server Error"
+                    });
+                }
+                finally{
+                    await db_connection.query('UNLOCK TABLES');
+                    db_connection.release();
+                }
+
             }
         }
     ]
