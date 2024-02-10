@@ -374,7 +374,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if (!(await dataValidator.isValidCreateEvent(req.body))){
+            if (!(dataValidator.isValidCreateEvent(req.body))){
                 //console.log("body");
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -395,6 +395,33 @@ module.exports = {
                         });
                         return;
                     }
+
+
+                    //check if department exists and tags are valid
+                    await db_connection.query("LOCK TABLES departmentData READ, tagData READ");
+                    const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [req.body.eventDepartmentId]);
+                    if (departmentData.length === 0) {
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Department!"
+                        });
+                        return;
+                    }
+                    if (req.body.tags.length != 0) {
+                        const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [req.body.tags]);
+                        if (tagData.length != req.body.tags.length) {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Tags!"
+                            });
+                            return;
+                        }
+                    }
+                    await db_connection.query("UNLOCK TABLES");
+
+
 
                     await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =
@@ -489,7 +516,7 @@ module.exports = {
             //     });
             //     return;
             // }
-            if (!(await dataValidator.isValidEditEventData(req.body))){
+            if (!(dataValidator.isValidEditEventData(req.body))){
                 //console.log("body");
                 res.status(400).json({
                     "MESSAGE": "Invalid Request!"
@@ -510,6 +537,47 @@ module.exports = {
                         });
                         return;
                     }
+
+
+                    //check if department exists, event exists and tags are valid
+                    await db_connection.query("LOCK TABLES departmentData READ");
+                    const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [req.body.eventDepartmentId]);
+                    if (departmentData.length === 0) {
+                        //console.log("department");
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Department!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("UNLOCK TABLES");
+                    await db_connection.query("LOCK TABLES eventData READ");
+                    const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.body.eventId]);
+                    if (eventData.length === 0) {
+                        //console.log("eventId");
+                        await db_connection.query("UNLOCK TABLES");
+                        db_connection.release();
+                        res.status(400).json({
+                            "MESSAGE": "Invalid Event!"
+                        });
+                        return;
+                    }
+                    await db_connection.query("LOCK TABLES tagData READ");
+                    if (req.body.tags.length != 0) {
+                        const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [req.body.tags]);
+                        if (tagData.length != req.body.tags.length) {
+                            await db_connection.query("UNLOCK TABLES");
+                            db_connection.release();
+                            res.status(400).json({
+                                "MESSAGE": "Invalid Tags!"
+                            });
+                            return;
+                        }
+                    }
+                    await db_connection.query("UNLOCK TABLES");
+
+
 
                     await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
                     const query =

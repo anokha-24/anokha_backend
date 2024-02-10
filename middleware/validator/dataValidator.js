@@ -309,7 +309,7 @@ module.exports = {
         return true;
     },
 
-    isValidCreateEvent: async (event) => {
+    isValidCreateEvent: (event) => {
         if (typeof (event.eventName) != 'string' ||
             event.eventName === undefined || event.eventName === null || event.eventName.length > 255 || event.eventName.length === 0 ||
             typeof (event.eventDescription) != 'string' ||
@@ -339,42 +339,43 @@ module.exports = {
         ) {
             return false;
         }
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES departmentData READ, tagData READ");
-            const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [event.eventDepartmentId]);
-            if (departmentData.length === 0) {
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-                return false;
-            }
-            if (event.tags.length != 0) {
-                const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [event.tags]);
-                if (tagData.length != event.tags.length) {
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    return false;
-                }
-            }
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidCreateEvent - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
+        // const db_connection = await anokha_db.promise().getConnection();
+        // try {
+        //     await db_connection.query("LOCK TABLES departmentData READ, tagData READ");
+        //     const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [event.eventDepartmentId]);
+        //     if (departmentData.length === 0) {
+        //         await db_connection.query("UNLOCK TABLES");
+        //         db_connection.release();
+        //         return false;
+        //     }
+        //     if (event.tags.length != 0) {
+        //         const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [event.tags]);
+        //         if (tagData.length != event.tags.length) {
+        //             await db_connection.query("UNLOCK TABLES");
+        //             db_connection.release();
+        //             return false;
+        //         }
+        //     }
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return true;
+        // }
+        // catch (err) {
+        //     console.log(err);
+        //     const time = new Date();
+        //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidCreateEvent - ${err}\n`);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return false;
+        // }
+        // finally {
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        // }
+        return true;
     },
 
-    isValidEditEventData: async (event) => {
+    isValidEditEventData: (event) => {
         if (typeof (event.eventName) != 'string' ||
             event.eventName === undefined || event.eventName === null || event.eventName.length > 255 || event.eventName.length === 0 ||
             typeof (event.eventDescription) != 'string' ||
@@ -406,50 +407,51 @@ module.exports = {
             //console.log("body");
             return false;
         }
-        const db_connection = await anokha_db.promise().getConnection();
-        try {
-            await db_connection.query("LOCK TABLES departmentData READ");
-            const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [event.eventDepartmentId]);
-            if (departmentData.length === 0) {
-                //console.log("department");
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-                return false;
-            }
-            await db_connection.query("UNLOCK TABLES");
-            await db_connection.query("LOCK TABLES eventData READ");
-            const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [event.eventId]);
-            if (eventData.length === 0) {
-                //console.log("eventId");
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
-                return false;
-            }
-            await db_connection.query("LOCK TABLES tagData READ");
-            if (event.tags.length != 0) {
-                const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [event.tags]);
-                if (tagData.length != event.tags.length) {
-                    await db_connection.query("UNLOCK TABLES");
-                    db_connection.release();
-                    return false;
-                }
-            }
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return true;
-        }
-        catch (err) {
-            console.log(err);
-            const time = new Date();
-            fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidEditEventData - ${err}\n`);
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-            return false;
-        }
-        finally {
-            await db_connection.query("UNLOCK TABLES");
-            db_connection.release();
-        }
+        // const db_connection = await anokha_db.promise().getConnection();
+        // try {
+        //     await db_connection.query("LOCK TABLES departmentData READ");
+        //     const [departmentData] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [event.eventDepartmentId]);
+        //     if (departmentData.length === 0) {
+        //         //console.log("department");
+        //         await db_connection.query("UNLOCK TABLES");
+        //         db_connection.release();
+        //         return false;
+        //     }
+        //     await db_connection.query("UNLOCK TABLES");
+        //     await db_connection.query("LOCK TABLES eventData READ");
+        //     const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [event.eventId]);
+        //     if (eventData.length === 0) {
+        //         //console.log("eventId");
+        //         await db_connection.query("UNLOCK TABLES");
+        //         db_connection.release();
+        //         return false;
+        //     }
+        //     await db_connection.query("LOCK TABLES tagData READ");
+        //     if (event.tags.length != 0) {
+        //         const [tagData] = await db_connection.query("SELECT * FROM tagData WHERE tagId IN (?)", [event.tags]);
+        //         if (tagData.length != event.tags.length) {
+        //             await db_connection.query("UNLOCK TABLES");
+        //             db_connection.release();
+        //             return false;
+        //         }
+        //     }
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return true;
+        // }
+        // catch (err) {
+        //     console.log(err);
+        //     const time = new Date();
+        //     fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidEditEventData - ${err}\n`);
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        //     return false;
+        // }
+        // finally {
+        //     await db_connection.query("UNLOCK TABLES");
+        //     db_connection.release();
+        // }
+        return true;
     },
 
     isValidToggleEventStatus: async (event) => {
