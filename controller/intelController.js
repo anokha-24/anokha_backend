@@ -11,11 +11,10 @@ const redisClient = require('../connection/redis');
 
 module.exports = {
     testConnection: async (req, res) => {
-        res.status(200).json({
+        return res.status(200).json({
             "MESSAGE": "It's Working. 👍🏻",
             "WHO": "Intel Controller"
         });
-        return;
     },
 
     /*
@@ -39,10 +38,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidRegisterTeamRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
                 const db_connection = await anokha_db.promise().getConnection();
@@ -53,27 +51,24 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ?', [req.body.studentId]);
                     if(checkTeam.length > 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You are already part of a team. You can't register a new team."
                         });
-                        return;
                     }
                     const [checkTeamName] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamName = ?', [req.body.teamName]);
                     if(checkTeamName.length > 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Team Name already exists. Please choose a different name."
                         });
-                        return;
                     }
                     await db_connection.query('UNLOCK TABLES');
                     let platformType = "1";
@@ -97,11 +92,10 @@ module.exports = {
                         [member] = await db_connection.query('SELECT * FROM studentData WHERE studentEmail = ?', [req.body.teamMembers[i]]);
                         if(member.length === 0){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Team Member Not Registered: ${req.body.teamMembers[i]}`
                             });
-                            return;
                         }
                         else{
                             memberIds.push(member[0].studentId);
@@ -125,9 +119,9 @@ module.exports = {
                     }
 
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Team Registered Successfully"
                     });
                     
@@ -136,7 +130,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - registerTeam - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -158,10 +152,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidEditTeamRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
 
@@ -174,28 +167,25 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
 
                     await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ? AND isLeader = ?', [req.body.studentId, "1"]);
                     if(checkTeam.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You are not a team leader. You can't edit the team details."
                         });
-                        return;
                     }
                     const [checkTeamName] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamName = ? AND teamId != ?', [req.body.teamName, checkTeam[0].teamId]);
                     if(checkTeamName.length > 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Team Name already exists. Please choose a different name."
                         });
-                        return;
                     }
                     await db_connection.query('UNLOCK TABLES');
                     let member = [];
@@ -205,11 +195,10 @@ module.exports = {
                         [member] = await db_connection.query('SELECT * FROM studentData WHERE studentEmail = ?', [req.body.teamMembers[i]]);
                         if(member.length === 0){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Team Member Not Registered: ${req.body.teamMembers[i]}`
                             });
-                            return;
                         }
                         else{
                             memberIds.push(member[0].studentId);
@@ -227,9 +216,9 @@ module.exports = {
                     }
 
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Team Details Edited Successfully"
                     });
                 }
@@ -237,7 +226,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editTeam - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -269,10 +258,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidSubmitFirstRoundRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
 
@@ -284,29 +272,26 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
 
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     const [submissions] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
                     if(submissions.length > 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You have already submitted for this round."
                         });
-                        return;
                     }
 
                     await db_connection.query('UNLOCK TABLES');
@@ -354,9 +339,9 @@ module.exports = {
 
                     await db_connection.query('UNLOCK TABLES');
 
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Round 1 Submission Successful"
                     });
 
@@ -365,7 +350,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - submitFirstRound - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -397,10 +382,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidSubmitFirstRoundRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
 
@@ -412,29 +396,26 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
 
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     const [submissions] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
                     if(submissions.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You have no submissions."
                         });
-                        return;
                     }
 
                     await db_connection.query('UNLOCK TABLES');
@@ -481,9 +462,9 @@ module.exports = {
 
                     await db_connection.query('UNLOCK TABLES');
 
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Round 1 Submission Edited Successfully"
                     });
 
@@ -492,7 +473,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editFirstRoundSubmission - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -523,10 +504,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
                 const db_connection = await anokha_db.promise().getConnection();
@@ -538,42 +518,37 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
 
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
                     const [submissions1] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
                     if(submissions1.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Unauthorised Access! You didn't submit for the first round."
                         });
-                        return;
                     }
                     const [submissions2] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 2]);
                     if(submissions2.length > 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You have already submitted for this round."
                         });
-                        return;
                     }
                     const [teamData] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ? AND teamStatus = ?', [team[0].teamId, "2"]);
                     if(teamData.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You are not qualified for this round."
                         });
-                        return;
                     }
                     await db_connection.query('UNLOCK TABLES');
 
@@ -601,9 +576,9 @@ module.exports = {
                     req.body.studentId, 2]);
 
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Round 2 Submission Successful"
                     });
 
@@ -612,7 +587,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - submitSecondRound - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -643,10 +618,9 @@ module.exports = {
             //     return;
             // }
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
 
@@ -659,20 +633,18 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ, intelSubmissions READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
                     // const [submissions1] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 1]);
                     // if(submissions1.length === 0){
@@ -683,10 +655,9 @@ module.exports = {
                     // }
                     const [submissions2] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [team[0].teamId, 2]);
                     if(submissions2.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "You have no submissions for this round."
                         });
-                        return;
                     }
                     // const [teamData] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ? AND teamStatus = ?', [team[0].teamId, "2"]);
                     // if(teamData.length === 0){
@@ -718,9 +689,9 @@ module.exports = {
                     team[0].teamId,2]);
 
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Round 2 Submission Edited Successfully"
                     });
 
@@ -729,7 +700,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - editSecondRoundSubmission - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -759,21 +730,19 @@ module.exports = {
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
 
                     db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ, intelSubmissions READ, studentData READ');
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     if(team.length === 0){
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
                     const [teamData] = await db_connection.query('SELECT teamId, teamName, platformType, platformId, totalMembers, teamStatus FROM intelTeamData WHERE teamId = ?', [team[0].teamId]);
                     const [teamMembers] = await db_connection.query(`SELECT 
@@ -804,9 +773,9 @@ module.exports = {
                     WHERE teamId = ? AND round = ?`, [team[0].teamId, 2]);
 
                     db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
 
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Data Fetched Successfully",
                         "teamId": teamData[0].teamId,
                         "teamName": teamData[0].teamName,
@@ -823,7 +792,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getDashBoard - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -840,10 +809,9 @@ module.exports = {
         async (req, res) => {
             //only SUPER_ADMIN and INTEL_ADMIN can access this
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)) {
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
-                return;
             }
             // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
             //     res.status(400).json({
@@ -854,19 +822,17 @@ module.exports = {
             else{
 
                 if(!(typeof(req.body.teams)==='object' && req.body.teams.length > 0)){
-                    res.status(400).json({
+                    return res.status(400).json({
                         "MESSAGE": "Invalid Request"
                     });
-                    return;
                 }
 
                 for(i = 0; i < req.body.teams.length; i++){
                     if(!(typeof(req.body.teams[i])==='number' && req.body.teams[i] > 0)){
                         console.log('number');
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Invalid Request"
                         });
-                        return;
                     }
                 }
 
@@ -877,11 +843,10 @@ module.exports = {
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     await db_connection.query('LOCK TABLES intelTeamData WRITE');
@@ -889,27 +854,25 @@ module.exports = {
                         [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
                         if(team.length === 0){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Invalid Team Id: ${req.body.teams[i]}`
                             });
-                            return;
                         }
                         else if (team[0].teamStatus == "0"){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Team ${team[0].teamName}, teamId: ${req.body.teams[i]} is Disqualified. Can't Select for Second Round.`
                             });
-                            return;
                         }
                     }
                     for(i = 0; i < req.body.teams.length; i++){
                         await db_connection.query('UPDATE intelTeamData SET teamStatus = ? WHERE teamId = ?', ["2", req.body.teams[i]]);
                     }
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
-                    res.status(200).json({
+                    //db_connection.release();
+                    return res.status(200).json({
                         "MESSAGE": "Teams Selected for Second Round"
                     });
                 }
@@ -917,7 +880,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - intelSelectToSecondRound - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -934,14 +897,13 @@ module.exports = {
         async (req, res) => {
             //only SUPER_ADMIN and INTEL_ADMIN can access this
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)) {
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
-                return;
             }
 
             // if (!await dataValidator.isValidAdminRequest(req.body.managerId)) {
-            //     res.status(400).json({
+            //     return res.status(400).json({
             //         "MESSAGE": "Access Restricted!"
             //     });
             //     return;
@@ -950,19 +912,17 @@ module.exports = {
             else{
 
                 if(!(typeof(req.body.teams)==='object' && req.body.teams.length > 0)){
-                    res.status(400).json({
+                    return res.status(400).json({
                         "MESSAGE": "Invalid Request"
                     });
-                    return;
                 }
 
                 for(i = 0; i < req.body.teams.length; i++){
                     if(!(typeof(req.body.teams[i])==='number' && req.body.teams[i] > 0)){
                         console.log('number');
-                        res.status(400).json({
+                        return res.status(400).json({
                             "MESSAGE": "Invalid Request"
                         });
-                        return;
                     }
                 }
 
@@ -973,11 +933,10 @@ module.exports = {
                     const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
                     await db_connection.query("UNLOCK TABLES");
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Access Restricted!"
                         });
-                        return;
                     }
 
                     await db_connection.query('LOCK TABLES intelTeamData WRITE');
@@ -985,35 +944,32 @@ module.exports = {
                         [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
                         if(team.length === 0){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Invalid Team Id: ${req.body.teams[i]}`
                             });
-                            return;
                         }
                         else if (team[0].teamStatus == "0"){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Team ${team[0].teamName}, teamId: ${req.body.teams[i]} is Disqualified. Can't Select for Third Round.`
                             });
-                            return;
                         }
                         else if (!(team[0].teamStatus == "2" || team[0].teamStatus == "3")){
                             await db_connection.query('UNLOCK TABLES');
-                            db_connection.release();
-                            res.status(400).json({
+                            //db_connection.release();
+                            return res.status(400).json({
                                 "MESSAGE": `Team ${team[0].teamName}, teamId: ${req.body.teams[i]} has not Qualified For Second Round, Can't Select for Third Round.`
                             });
-                            return;
                         }
                     }
                     for(i = 0; i < req.body.teams.length; i++){
                         await db_connection.query('UPDATE intelTeamData SET teamStatus = ? WHERE teamId = ?', ["3", req.body.teams[i]]);
                     }
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
-                    res.status(200).json({
+                    //db_connection.release();
+                    return res.status(200).json({
                         "MESSAGE": "Teams Selected for Third Round"
                     });
                 }
@@ -1021,7 +977,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - intelSelectToThirdRound - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -1038,13 +994,13 @@ module.exports = {
         async (req, res) => {
             //only SUPER_ADMIN and INTEL_ADMIN can access this
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
                 return;
             }
             if(req.params.round != 1 && req.params.round != 2 && req.params.round != 3){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
                 return;
@@ -1069,8 +1025,8 @@ module.exports = {
                     ON intelTeamData.teamId = intelSubmissions.teamId
                     WHERE round = ?`, [req.params.round]);
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
-                    res.status(200).json({
+                    //db_connection.release();
+                    return res.status(200).json({
                         "MESSAGE": "Data Fetched Successfully",
                         "submissions": submissions
                     });
@@ -1080,7 +1036,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getAllSubmissions - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -1097,16 +1053,14 @@ module.exports = {
         async (req, res) => {
             //only SUPER_ADMIN and INTEL_ADMIN can access this
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
-                return;
             }
             if(req.params.round != 1 && req.params.round != 2 && req.params.round != 3){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Invalid Request"
                 });
-                return;
             }
             else{
                 const db_connection = await anokha_db.promise().getConnection();
@@ -1115,16 +1069,15 @@ module.exports = {
                     const [check] = await db_connection.query('SELECT * FROM intelSubmissions WHERE teamId = ? AND round = ?', [req.params.teamId,req.params.round]);
                     if(check.length === 0){
                         await db_connection.query('UNLOCK TABLES');
-                        db_connection.release();
-                        res.status(400).json({
+                        //db_connection.release();
+                        return res.status(400).json({
                             "MESSAGE": "Invalid Submission"
                         });
-                        return;
                     }
                     await db_connection.query('UPDATE intelSubmissions SET seenStatus = ? WHERE teamId = ? AND round = ?', ["1", req.params.teamId,req.params.round]);
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
-                    res.status(200).json({
+                    //db_connection.release();
+                    return res.status(200).json({
                         "MESSAGE": "Marked Seen Successfully"
                     });
 
@@ -1133,7 +1086,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - markSeen - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
@@ -1149,26 +1102,23 @@ module.exports = {
         adminTokenValidator,
         async (req, res) => {
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 9)){
-                res.status(400).json({
+                return res.status(400).json({
                     "MESSAGE": "Access Restricted!"
                 });
-                return;
             }
             else{
                 if (!(typeof(req.params.teamId)=='string' && validator.isNumeric(req.params.teamId))){
-                    res.status(400).json({
+                    return res.status(400).json({
                         "MESSAGE": "Invalid Request"
                     });
-                    return;
                 }
                 
                 req.params.teamId = parseInt(req.params.teamId);
                 
                 if (req.params.teamId <= 0){
-                    res.status(400).json({
+                    return res.status(400).json({
                         "MESSAGE": "Invalid Request"
                     });
-                    return;
                 }
                 
                 const db_connection = await anokha_db.promise().getConnection();
@@ -1184,9 +1134,9 @@ module.exports = {
                     WHERE intelTeamGroupData.teamId = ?`, [req.params.teamId]);
                     
                     await db_connection.query('UNLOCK TABLES');
-                    db_connection.release();
+                    //db_connection.release();
                     
-                    res.status(200).json({
+                    return res.status(200).json({
                         "MESSAGE": "Data Fetched Successfully",
                         "teamMembers": teamMembers
                     });
@@ -1195,7 +1145,7 @@ module.exports = {
                     console.log(err);
                     const time = new Date();
                     fs.appendFileSync('./logs/intelController/errorLogs.log', `${time.toISOString()} - getTeamContact - ${err}\n`);
-                    res.status(500).json({
+                    return res.status(500).json({
                         "MESSAGE": "Internal Server Error"
                     });
                 }
