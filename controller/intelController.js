@@ -175,12 +175,11 @@ module.exports = {
                         }
                     }
                     await db_connection.query('UNLOCK TABLES');
-
-                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
-
-                    
+                 
                     let refiater;
                     
+                    await db_connection.beginTransaction();
+
                     if (platformType === '1'){
                         
                         await db_connection.query('INSERT INTO intelTeamData (teamName, platformType, platformId, teamStatus, totalMembers, createdBy) VALUES (?,?,?,?,?,?)', [req.body.teamName, platformType, req.body.studentEmail, "1", req.body.teamMembers.length+1, req.body.studentId]);
@@ -202,7 +201,7 @@ module.exports = {
                     }
 
                     
-                    await db_connection.query('UNLOCK TABLES');
+                    await db_connection.commit();
                     
                     
                     return res.status(200).send({
@@ -213,6 +212,8 @@ module.exports = {
                 
                 catch(err){
                     
+                    await db_connection.rollback();
+
                     console.log(err);
                     
                     const time = new Date();
@@ -313,11 +314,15 @@ module.exports = {
 
 
                     
-                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
+                    await db_connection.query('LOCK TABLES intelTeamGroupData READ, intelTeamData READ');
                     
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ? AND isLeader = ?', [req.body.studentId, "1"]);
                     
+                    
+                    
                     if(checkTeam.length === 0){
+
+                        await db_connection.query('UNLOCK TABLES');
                         
                         return res.status(400).send({
                             "MESSAGE": "You are not a team leader. You can't edit the team details."
@@ -329,6 +334,8 @@ module.exports = {
                     const [checkTeamName] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamName = ? AND teamId != ?', [req.body.teamName, checkTeam[0].teamId]);
                     
                     if(checkTeamName.length > 0){
+
+                        await db_connection.query('UNLOCK TABLES');
                         
                         return res.status(400).send({
                             "MESSAGE": "Team Name already exists. Please choose a different name."
@@ -366,26 +373,30 @@ module.exports = {
 
                     await db_connection.query('UNLOCK TABLES');
 
-                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
+                    
+
+
+                    await db_connection.beginTransaction();
 
                     await db_connection.query('UPDATE intelTeamData SET teamName = ?, totalMembers = ? WHERE teamId = ?', [req.body.teamName, req.body.teamMembers.length+1, checkTeam[0].teamId]);
                     
                     await db_connection.query('DELETE FROM intelTeamGroupData WHERE teamId = ? AND studentId != ?', [checkTeam[0].teamId, req.body.studentId]);
                     
-                    
-                    
                     for (let i = 0; i < memberIds.length; i++){
                         await db_connection.query('INSERT INTO intelTeamGroupData (teamId, studentId, idcId) VALUES (?,?,?)', [checkTeam[0].teamId, memberIds[i], req.body.idcId[i+1]]);
                     }
 
-                    await db_connection.query('UNLOCK TABLES');
+                    await db_connection.commit();
                     
                     
                     return res.status(200).send({
                         "MESSAGE": "Team Details Edited Successfully"
                     });
+
                 }
                 catch(err){
+
+                    await db_connection.rollback();
                     console.log(err);
                     
                     const time = new Date();
@@ -966,7 +977,7 @@ module.exports = {
         tokenValidator,
         async (req, res) => {
         
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 try{
 
                     //check if the student exists and is active
@@ -985,7 +996,7 @@ module.exports = {
 
 
 
-                    db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ, intelSubmissions READ, studentData READ');
+                    await db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ, intelSubmissions READ, studentData READ');
                     
                     const [team] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE studentId = ?', [req.body.studentId]);
                     
@@ -1029,7 +1040,7 @@ module.exports = {
                     FROM intelSubmissions 
                     WHERE teamId = ? AND round = ?`, [team[0].teamId, 2]);
 
-                    db_connection.query('UNLOCK TABLES');
+                    await db_connection.query('UNLOCK TABLES');
                     
                     
                     

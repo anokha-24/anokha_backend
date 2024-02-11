@@ -356,6 +356,8 @@ module.exports = {
             }
         }
     ],
+
+
     getAllTags: async (req,res) =>{
         
         const db_connection = await anokha_db.promise().getConnection();
@@ -515,7 +517,7 @@ module.exports = {
 
 
 
-                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
+                    await db_connection.beginTransaction();
                     
                     const query =
                     `
@@ -570,7 +572,7 @@ module.exports = {
                         await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [event.insertId, req.body.tags[i]]);
                     }
 
-                    await db_connection.query("UNLOCK TABLES");
+                    await db_connection.commit();
                     
                     return res.status(200).send({
                         "MESSAGE": "Successfully Created Event."
@@ -579,6 +581,8 @@ module.exports = {
                 }
                 catch(err){
                     
+                    await db_connection.rollback();
+
                     console.log(err);
                     
                     const time = new Date();
@@ -695,7 +699,7 @@ module.exports = {
 
 
 
-                    await db_connection.query("LOCK TABLES eventData WRITE, eventTagData WRITE");
+                    await db_connection.beginTransaction();
                     
                     const query =
                     `
@@ -749,7 +753,8 @@ module.exports = {
                         await db_connection.query("INSERT INTO eventTagData (eventId, tagId) VALUES (?, ?)", [req.body.eventId, req.body.tags[i]]);
                     }
 
-                    await db_connection.query("UNLOCK TABLES");
+                    await db_connection.commit();
+
                     
                     return res.status(200).send({
                         "MESSAGE": "Successfully Updated Event."
@@ -757,6 +762,8 @@ module.exports = {
                 
                 }
                 catch(err){
+
+                    await db_connection.rollback();
                     
                     console.log(err);
                     
@@ -897,7 +904,7 @@ module.exports = {
             
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
 
@@ -933,7 +940,7 @@ module.exports = {
                     }
 
 
-                    db_connection.query("LOCK TABLES eventTagData WRITE");
+                    await db_connection.query("LOCK TABLES eventTagData WRITE");
                     
                     const [check] = await db_connection.query("SELECT * FROM eventTagData WHERE eventId=? AND tagId=?", [req.body.eventId, req.body.tagId]);
                     
@@ -1010,7 +1017,7 @@ module.exports = {
             
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
                     
@@ -1046,7 +1053,7 @@ module.exports = {
                     }
 
                     
-                    db_connection.query("LOCK TABLES eventTagData WRITE");
+                    await db_connection.query("LOCK TABLES eventTagData WRITE");
                     
                     await db_connection.query("DELETE FROM eventTagData WHERE eventId = ? AND tagId = ?", [req.body.eventId, req.body.tagId]);
                     
@@ -1251,7 +1258,7 @@ module.exports = {
             
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
                     
@@ -1288,14 +1295,14 @@ module.exports = {
                     
                     if (req.body.isActive == "0")
                     {
-                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        await db_connection.query("LOCK TABLES studentData READ");
                         
                         const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
                         
+                        await db_connection.query("UNLOCK TABLES");
+
                         if(check.length==0){
-                            
-                            await db_connection.query("UNLOCK TABLES");
-                            
+                                                        
                             return res.status(400).send({
                                 "MESSAGE": "Student Doesn't Exist!"
                             });
@@ -1303,20 +1310,22 @@ module.exports = {
                         
                         else if(check.length > 0 && check[0].studentAccountStatus =="0" )
                         {
-                            await db_connection.query("UNLOCK TABLES");
                             
                             return res.status(400).send({
                                 "MESSAGE": "Student Already Blocked!"
                             });
                         }
+
                         
                         else{
+
+                            await db_connection.beginTransaction();
                             
                             await db_connection.query("INSERT INTO blockedStudentStatus (studentId, lastStatus, blockedBy) VALUES (?, ?, ?)", [req.body.studentId, check[0].studentAccountStatus, req.body.managerId]);
                             
                             await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [req.body.isActive, req.body.studentId]);
                             
-                            await db_connection.query("UNLOCK TABLES");
+                            await db_connection.commit();
                             
                             return res.status(200).send({
                                 "MESSAGE": "Successfully Blocked Student."
@@ -1326,13 +1335,13 @@ module.exports = {
 
                     else if (req.body.isActive == "1")
                     {
-                        db_connection.query("LOCK TABLES studentData WRITE, blockedStudentStatus WRITE");
+                        await db_connection.query("LOCK TABLES studentData READ");
                         
                         const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
                         
+                        await db_connection.query("UNLOCK TABLES");
+                        
                         if(check.length==0){
-                            
-                            await db_connection.query("UNLOCK TABLES");
                             
                             return res.status(400).send({
                                 "MESSAGE": "Student Doesn't Exist!"
@@ -1341,20 +1350,21 @@ module.exports = {
                         
                         if((check.length > 0) && (check[0].studentAccountStatus !="0") )
                         {
-                            await db_connection.query("UNLOCK TABLES");
-                            
+
                             return res.status(400).send({
                                 "MESSAGE": "Student Already Active!"
                             });
                         }
                         
                         else{
+
+                            await db_connection.query("LOCK TABLES blockedStudentStatus READ");
                             
                             const [lastStatus] = await db_connection.query("SELECT lastStatus FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
                             
+                            await db_connection.query("UNLOCK TABLES");
+
                             if(lastStatus.length==0){
-                                
-                                await db_connection.query("UNLOCK TABLES");
                                 
                                 return res.status(400).send({
                                     "MESSAGE": "Student Doesn't Exist!"
@@ -1362,12 +1372,14 @@ module.exports = {
                             }
                             
                             else{
+
+                                await db_connection.beginTransaction();
                                 
                                 await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [lastStatus[0].lastStatus, req.body.studentId]);
                                 
                                 await db_connection.query("DELETE FROM blockedStudentStatus WHERE studentId=?", [req.body.studentId]);
                                 
-                                await db_connection.query("UNLOCK TABLES");
+                                await db_connection.commit();
                                 
                                 return res.status(200).send({
                                     "MESSAGE": "Successfully Unblocked Student."
@@ -1379,6 +1391,8 @@ module.exports = {
                 }
                 
                 catch(err){
+
+                    await db_connection.rollback();
                     
                     console.log(err);
                     
@@ -1425,7 +1439,7 @@ module.exports = {
             }
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 if (req.body.authorizationTier == 1)
                 {
@@ -1646,7 +1660,7 @@ module.exports = {
             
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
 
@@ -1789,7 +1803,7 @@ module.exports = {
             
             else{
                 
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
 
@@ -1927,38 +1941,39 @@ module.exports = {
 
 
             
-            await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+            await db_connection.query("LOCK TABLES studentData READ");
             
             const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
             
+            await db_connection.query("UNLOCK TABLES");
+            
             if (check.length == 0) {
-              
-                await db_connection.query("UNLOCK TABLES");
               
               return res.status(400).send({
                 "MESSAGE": "Student Doesn't Exist!"
               });
             }
             
-            
+            await db_connection.query("LOCK TABLES visitLogs READ")
             const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+            await db_connection.query("UNLOCK TABLES");
             
             if (check2.length != 0) {
-              
-              await db_connection.query("UNLOCK TABLES");
-              
+                            
               return res.status(400).send({
                 "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
               });
             }
             
             else {
-              
+
+              await db_connection.beginTransaction();
+
               await db_connection.query("INSERT INTO visitLogs (studentId, entryTime) VALUES (?, NOW())", [req.params.studentId]);
               
               await db_connection.query("UPDATE studentData SET isInCampus = 1 WHERE studentId = ?", [req.params.studentId]);
               
-              await db_connection.query("UNLOCK TABLES");
+              await db_connection.commit();
               
               return res.status(200).send({
                 "MESSAGE": "Successfully Marked Gate Entry."
@@ -1968,6 +1983,8 @@ module.exports = {
           }
           
           catch (err) {
+
+            await db_connection.rollback();
             
             console.log(err);
             
@@ -2027,25 +2044,24 @@ module.exports = {
                 }
 
               
-                await db_connection.query("LOCK TABLES visitLogs WRITE, studentData WRITE");
+                await db_connection.query("LOCK TABLES studentData READ");
               
                 const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.params.studentId]);
-              
+                
+                await db_connection.query("UNLOCK TABLES");
+                
                 if (check.length == 0) {
-                
-                    await db_connection.query("UNLOCK TABLES"); 
-                
+                                
                     return res.status(400).send({
                         "MESSAGE": "Student Doesn't Exist!"
                     });
                 }
                 
-                
+                await db_connection.query("LOCK TABLES visitLogs READ");
                 const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND entryTime IS NULL", [req.params.studentId]);
+                await db_connection.query("UNLOCK TABLES");
                 
                 if (check2.length != 0) {
-                    
-                    await db_connection.query("UNLOCK TABLES");
                 
                     return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
@@ -2053,9 +2069,11 @@ module.exports = {
                 }
                 
                 
+                await db_connection.query("LOCK TABLES visitLogs READ");
                 const [check3] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=?", [req.params.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                
                 if (check3.length == 0) {
-                    await db_connection.query("UNLOCK TABLES");
                     
                     return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
@@ -2063,9 +2081,11 @@ module.exports = {
                 }
                 
                 
+                await db_connection.query("LOCK TABLES visitLogs READ");
                 const [check4] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                
                 if (check4.length == 0) {
-                    await db_connection.query("UNLOCK TABLES");
                 
                     return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
@@ -2074,11 +2094,13 @@ module.exports = {
                 
                 else {
 
+                    await db_connection.beginTransaction();
+
                     await db_connection.query("UPDATE visitLogs SET studentId = ?, exitTime = NOW() WHERE exitTime is NULL", [req.params.studentId]);
                     
                     await db_connection.query("UPDATE studentData SET isInCampus = 0 WHERE studentId = ?", [req.params.studentId]);
                     
-                    await db_connection.query("UNLOCK TABLES");
+                    await db_connection.commit();
                 
                     return res.status(200).send({
                         "MESSAGE": "Successfully Marked Gate Exit."
@@ -2088,6 +2110,8 @@ module.exports = {
             }
             
             catch (err) {
+
+              await db_connection.rollback();
               
               console.log(err);
               

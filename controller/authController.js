@@ -53,13 +53,14 @@ module.exports = {
             try {
                 
                 //check if user already exists
-                await db_connection.query("LOCK TABLES studentData READ, studentRegister WRITE");
+                await db_connection.query("LOCK TABLES studentData READ");
                 
                 const [result] = await db_connection.query("SELECT * FROM studentData WHERE studentEmail = ? OR studentPhone = ?", [req.body.studentEmail, req.body.studentPhone]);
                 
+                await db_connection.query("UNLOCK TABLES");
+
+
                 if (result.length > 0) {
-                    
-                    await db_connection.query("UNLOCK TABLES");
                     
                     return res.status(400).send({
                         "MESSAGE": "Student Already Exists!"
@@ -107,6 +108,10 @@ module.exports = {
 
                     mailer.studentRegistered(req.body.studentFullName, req.body.studentEmail, otp);
 
+
+                    
+                    await db_connection.beginTransaction();
+
                     await db_connection.query("DELETE FROM studentRegister WHERE studentEmail = ?", [req.body.studentEmail]);
                     
                     //sha256 hash the otp
@@ -115,7 +120,9 @@ module.exports = {
                     //insert OTP into studentRegister
                     await db_connection.query("INSERT INTO studentRegister (studentEmail, otp) VALUES (?,?)", [req.body.studentEmail, otp_hashed]);
 
-                    await db_connection.query("UNLOCK TABLES");
+                    await db_connection.commit();
+                    
+                    
                     
                     return res.status(200).send({
                         "SECRET_TOKEN": secret_token,
@@ -128,6 +135,8 @@ module.exports = {
                 
                 console.log(err);
                 
+                await db_connection.rollback();
+
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerUser - ${err}\n`);
                 
@@ -154,6 +163,7 @@ module.exports = {
             
             //validate Request
             if (!(dataValidator.isValidOtp(req.body.otp) && dataValidator.isValidEmail(req.body.studentEmail))) {
+                
                 return res.status(400).send({
                     "MESSAGE": "Invalid Data"
                 });
@@ -682,12 +692,14 @@ module.exports = {
             
             try {
                 
-                await db_connection.query("LOCK TABLES studentData READ,forgotPasswordStudent WRITE");
+                await db_connection.query("LOCK TABLES studentData READ");
                 
                 const [student] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
                 
+                await db_connection.query("UNLOCK TABLES");
+
+
                 if (student.length === 0) {
-                    await db_connection.query("UNLOCK TABLES");
                     
                     return res.status(400).send({
                         "MESSAGE": "Account Does Not Exist!"
@@ -696,14 +708,14 @@ module.exports = {
                 
                 else if (student[0].studentAccountStatus === "0") {
                     
-                    await db_connection.query("UNLOCK TABLES");
-                    
                     return res.status(400).send({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
                 }
                 
                 else {
+                    
+                    await db_connection.beginTransaction();
                     
                     await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ?`, [student[0].studentId]);
                     
@@ -720,9 +732,10 @@ module.exports = {
                     
                     await db_connection.query("INSERT INTO forgotPasswordStudent (studentId, otp) VALUES (?,?)", [student[0].studentId, otp_hashed]);
                     
-                    await db_connection.query("UNLOCK TABLES");
-                    
                     mailer.forgotPassword(student[0].studentFullName, student[0].studentEmail, otp);
+                    
+                    await db_connection.commit();
+                    
                     
                     return res.status(200).send({
                         "MESSAGE": "Check Email for Password Reset OTP!",
@@ -732,6 +745,8 @@ module.exports = {
             }
             catch (err) {
                 
+                await db_connection.rollback();
+
                 console.log(err);
                 
                 const time = new Date();
@@ -749,6 +764,8 @@ module.exports = {
         }
     },
 
+
+    
     /*{
         "managerEmail": ""
     }*/
@@ -767,12 +784,13 @@ module.exports = {
             
             try {
                 
-                await db_connection.query("LOCK TABLES managerData READ,forgotPasswordManager WRITE");
+                await db_connection.query("LOCK TABLES managerData READ");
                 
                 const [manager] = await db_connection.query(`SELECT * from managerData where managerEmail = ?`, [req.body.managerEmail]);
                 
+                await db_connection.query("UNLOCK TABLES");
+                
                 if (manager.length === 0) {
-                    await db_connection.query("UNLOCK TABLES");
                     
                     return res.status(400).send({
                         "MESSAGE": "Account Does Not Exist!"
@@ -781,14 +799,14 @@ module.exports = {
                 
                 else if (manager[0].managerAccountStatus === "0") {
                     
-                    await db_connection.query("UNLOCK TABLES");
-                    
                     return res.status(400).send({
                         "MESSAGE": "Account is BLOCKED by Admin!"
                     });
                 }
                 
                 else {
+
+                    await db_connection.beginTransaction();
                     
                     await db_connection.query(`DELETE from forgotPasswordManager where managerId = ?`, [manager[0].managerId]);
                     
@@ -806,9 +824,9 @@ module.exports = {
                     
                     await db_connection.query("INSERT INTO forgotPasswordManager (managerId, otp) VALUES (?,?)", [manager[0].managerId, otp_hashed]);
                     
-                    await db_connection.query("UNLOCK TABLES");
-                    
                     mailer.forgotPassword(manager[0].managerFullName, manager[0].managerEmail, otp);
+
+                    await db_connection.commit();
                     
                     return res.status(200).send({
                         "MESSAGE": "Check Email for Password Reset OTP!",
@@ -817,6 +835,8 @@ module.exports = {
                 }
             }
             catch (err) {
+
+                await db_connection.rollback();
                 
                 console.log(err);
                 
@@ -856,24 +876,23 @@ module.exports = {
                 
                 try {
                     
-                    await db_connection.query("LOCK TABLES forgotPasswordStudent WRITE, studentData WRITE");
+                    await db_connection.query("LOCK TABLES studentData READ");
 
                     const [verify] = await db_connection.query(`SELECT * from studentData where studentEmail = ?`, [req.body.studentEmail]);
 
+                    await db_connection.query("UNLOCK TABLES");
+
                     //if user does not exist
                     if (verify.length === 0) {
-                        
-                        await db_connection.query("UNLOCK TABLES");
-                        
+                                                
                         return res.status(400).send({
                             "MESSAGE": "Account Does Not Exist!"
                         });
                     }
 
+
                     //if account is blocked
                     else if (verify[0].studentAccountStatus === "0") {
-                        
-                        await db_connection.query("UNLOCK TABLES");
                         
                         return res.status(400).send({
                             "MESSAGE": "Account is BLOCKED by Admin!"
@@ -881,6 +900,7 @@ module.exports = {
                     }
 
                     
+                    await db_connection.query("LOCK TABLES forgotPasswordStudent WRITE, studentData WRITE");
 
                     //check if OTP is correct
                     const [student] = await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ? and otp = ?`, [verify[0].studentId, req.body.otp]);

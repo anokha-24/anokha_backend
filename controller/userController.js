@@ -821,7 +821,7 @@ module.exports = {
                                 
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
-                                transaction_db_connection.query('UNLOCK TABLES');
+                                await transaction_db_connection.query('UNLOCK TABLES');
                             }
                             
                             
@@ -831,7 +831,7 @@ module.exports = {
                                 
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
-                                transaction_db_connection.query('UNLOCK TABLES');
+                                await transaction_db_connection.query('UNLOCK TABLES');
                             }
 
                             
@@ -891,7 +891,7 @@ module.exports = {
                                 
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
-                                transaction_db_connection.query('UNLOCK TABLES');
+                                await transaction_db_connection.query('UNLOCK TABLES');
                             }
                             
                             
@@ -901,7 +901,7 @@ module.exports = {
                                 
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
-                                transaction_db_connection.query('UNLOCK TABLES');
+                                await transaction_db_connection.query('UNLOCK TABLES');
                             }
                             
                             
@@ -2066,7 +2066,10 @@ module.exports = {
 
                         // Inserting into transactionData as PENDING
 
-                        await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                        //await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+
+                        await transaction_db_connection.beginTransaction();
+                        await db_connection.beginTransaction();
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
@@ -2086,19 +2089,21 @@ module.exports = {
                             console.log("Failed to INSERT transactionData.");
                             
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
+
+                            throw new Error("Failed to INSERT transactionData.");
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
 
-                        await transaction_db_connection.query("UNLOCK TABLES");
+                        //await transaction_db_connection.query("UNLOCK TABLES");
 
                         // INSERTING INTO eventRegistrationData as PENDING: LOCKING THE SEATS
 
-                        await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
+                        //await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
 
                         
                         
@@ -2112,9 +2117,11 @@ module.exports = {
                             
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to INSERT insertEventRegistrationData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
                         
@@ -2126,14 +2133,17 @@ module.exports = {
                             console.log("Failed to UPDATE eventData.");
                             
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
+
+                            throw new Error("Failed to UPDATE eventData.");
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
-                        
-                        await db_connection.query("UNLOCK TABLES");
+                        await transaction_db_connection.commit();
+                        await db_connection.commit();
+                        //await db_connection.query("UNLOCK TABLES");
 
                         
                         const hash = generateHash({
@@ -2182,7 +2192,7 @@ module.exports = {
                         
                         // Inserting into transactionData as PENDING
 
-                        await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                        await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
@@ -2193,6 +2203,10 @@ module.exports = {
                             });
                         }
 
+                        await transaction_db_connection.query("UNLOCK TABLES");
+
+                        await transaction_db_connection.beginTransaction();
+                        await db_connection.beginTransaction();
                         
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
@@ -2202,29 +2216,35 @@ module.exports = {
                             
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to INSERT transactionData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
                         
                         
-                        await transaction_db_connection.query("UNLOCK TABLES");
+                        //await transaction_db_connection.query("UNLOCK TABLES");
 
                         
                         // INSERTING INTO eventRegistrationData as PENDING: LOCKING THE SEATS
 
-                        await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
+                        //await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
 
                         const [insertEventRegistrationData] = await db_connection.query("INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
 
                         
                         if (insertEventRegistrationData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT insertEventRegistrationData.");
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            
+                            throw new Error("Failed to INSERT insertEventRegistrationData.");
+                            
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
@@ -2232,15 +2252,22 @@ module.exports = {
                         const [eventDataUpdate] = await db_connection.query("UPDATE eventData SET seatsFilled = ? WHERE eventId = ?", [eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
 
                         if (eventDataUpdate.affectedRows !== 1) {
+                            
                             console.log("Failed to UPDATE eventData.");
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            
+                            throw new Error("Failed to UPDATE eventData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
-                        await db_connection.query("UNLOCK TABLES");
+                        // await db_connection.query("UNLOCK TABLES");
+
+                        await transaction_db_connection.commit();
+                        await db_connection.commit();
 
                         const hash = generateHash({
                             "txnid": txnId,
@@ -2399,10 +2426,11 @@ module.exports = {
 
                         // Inserting into transactionData as PENDING
 
-                        await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                        await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
+                        await transaction_db_connection.query("UNLOCK TABLES");
                         
                         if (tDataTest.length > 0) {
                             return res.status(400).send({
@@ -2410,8 +2438,10 @@ module.exports = {
                             });
                         }
 
-                        
-                        
+                                                
+                        await transaction_db_connection.beginTransaction();
+                        await db_connection.beginTransaction();
+
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         if (insertTransactionData.affectedRows !== 1) {
@@ -2420,18 +2450,19 @@ module.exports = {
                             
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
                             
-                            
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to INSERT transactionData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
-                        await transaction_db_connection.query("UNLOCK TABLES");
+                        //await transaction_db_connection.query("UNLOCK TABLES");
 
 
                         // INSERTING INTO eventRegistrationData as PENDING: LOCKING THE SEATS
 
-                        await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE, eventRegistrationGroupData WRITE");
+                        //await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE, eventRegistrationGroupData WRITE");
 
                         const [insertEventRegistrationData] = await db_connection.query("INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, req.body.teamName, "1"]);
 
@@ -2442,9 +2473,11 @@ module.exports = {
                             
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to INSERT insertEventRegistrationData.");
+                            
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
@@ -2458,9 +2491,11 @@ module.exports = {
                             
                             console.log([insertEventRegistrationData.insertId, txnId, req.body.studentId, req.body.eventId, "TEAM LEAD", "1"]);
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to INSERT insertGroupData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
@@ -2474,9 +2509,11 @@ module.exports = {
                                 
                                 console.log([insertEventRegistrationData.insertId, txnId, studentIds[i], req.body.eventId, req.body.memberRoles[i], "0"]);
                                 
-                                return res.status(500).send({
-                                    "MESSAGE": "Internal Server Error. Contact Web Team"
-                                });
+                                throw new Error("Failed to INSERT insertTeamData.");
+                                
+                                // return res.status(500).send({
+                                //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                                // });
                             }
                         }
 
@@ -2491,13 +2528,18 @@ module.exports = {
                             
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
                             
-                            return res.status(500).send({
-                                "MESSAGE": "Internal Server Error. Contact Web Team"
-                            });
+                            throw new Error("Failed to UPDATE eventData.");
+
+                            // return res.status(500).send({
+                            //     "MESSAGE": "Internal Server Error. Contact Web Team"
+                            // });
                         }
 
 
-                        await db_connection.query("UNLOCK TABLES");
+                        //await db_connection.query("UNLOCK TABLES");
+
+                        await transaction_db_connection.commit();
+                        await db_connection.commit();
 
                         const hash = generateHash({
                             "txnid": txnId,
@@ -2538,13 +2580,16 @@ module.exports = {
 
             } catch (err) {
                 
+                await db_connection.rollback();
+                await transaction_db_connection.rollback();
+
                 console.log(err);
                 
                 const time = new Date();
                 fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidEventRegistration - ${err}\n`);
                 
-                await db_connection.query("UNLOCK TABLES");
-                await transaction_db_connection.query("UNLOCK TABLES");
+                //await db_connection.query("UNLOCK TABLES");
+                //await transaction_db_connection.query("UNLOCK TABLES");
                 
                 return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team"
