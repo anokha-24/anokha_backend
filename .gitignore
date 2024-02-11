@@ -1,5 +1,7 @@
 /node_modules/
 /middleware/RSA/
+/controller/testController.js
+/router/testRouter.js
 /.github/workflows/
 .env
 .env.local

@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '.env.local' })
 
-const CONCURRENCY_LIMIT = 12;
+const CONCURRENCY_LIMIT = 8;
 
 const appConfig = {
     CONCURRENCY_LIMIT: CONCURRENCY_LIMIT,
@@ -11,7 +11,7 @@ const appConfig = {
     INTEL_URL_PREFIX: '/api/intel',
     mailer:{
         obj: {
-            service: 'Gmail',
+            service: process.env.MAILER_SERVICE,
             auth: {
                 user: process.env.MAILER_USER,
                 pass: process.env.MAILER_PASS
@@ -43,10 +43,11 @@ const appConfig = {
             database: process.env.DB_NAME,
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 1000,
-            //idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
-            //enableKeepAlive: true,
-            //keepAliveInitialDelay: 0
+            queueLimit: 0,
+            maxIdle:0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
         anokha_transactions_db: {
             host: process.env.DB_HOST,
@@ -55,10 +56,11 @@ const appConfig = {
             database: process.env.TXN_DB_NAME,
             waitForConnections: true,
             connectionLimit: CONCURRENCY_LIMIT,
-            queueLimit: 1000,
-            //idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
-            //enableKeepAlive: true,
-            //keepAliveInitialDelay: 0
+            queueLimit: 0,
+            maxIdle:0,
+            idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0
         },
     },
     payU_test: {

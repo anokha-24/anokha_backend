@@ -12,8 +12,10 @@ const validator = require("validator");
 const redisClient = require('../connection/redis');
 
 module.exports = {
+    
     testConnection: async (req, res) => {
-        return res.status(200).json({
+        
+        return res.status(200).send({
             "MESSAGE": "It's Working. 👍🏻",
             "WHO": "User/Student"
         });
@@ -22,34 +24,38 @@ module.exports = {
 
     getStudentProfile: [
         tokenValidator,
+        
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-            // else {
+                
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
 
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
+                    
+                    
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const query = `SELECT * FROM studentData WHERE studentId=?`;
+                    
                     const [student] = await db_connection.query(query, [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
-                    //db_connection.release();
-                    return res.status(200).json({
+                    
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched Student Profile.",
                         "studentFullName": student[0].studentFullName,
                         "studentEmail": student[0].studentEmail,
@@ -61,21 +67,25 @@ module.exports = {
                         "isInCampus": student[0].isInCampus
                     });
                 }
+                
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - studentProfile - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
             }
-        // }
-
+        
     ],
 
     /*
@@ -89,58 +99,74 @@ module.exports = {
     editStudentProfile: [
         tokenValidator,
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
+            
             if (!dataValidator.isValidEditStudentProfile(req.body)) {
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
+            
             else {
+                
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
 
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
+                    
+                    
                     await db_connection.query("LOCK TABLES studentData WRITE");
+                    
                     const [check] = await db_connection.query("SELECT * FROM studentData WHERE studentPhone =? AND studentId != ?", [req.body.studentPhone, req.body.studentId]);
+                    
                     if (check.length > 0) {
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Phone Number Associated with Another Account!"
                         });
                     }
+                    
+                    
+                    
                     const query = `UPDATE studentData SET studentFullName=?, studentPhone=?, studentCollegeName=?, studentCollegeCity=? WHERE studentId=?`;
+                    
                     await db_connection.query(query, [req.body.studentFullName, req.body.studentPhone, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
-                    //db_connection.release();
-                    return res.status(200).json({
+                    
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Edited Student Profile."
                     });
                 }
+                
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - editStudentProfile - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
@@ -158,86 +184,110 @@ module.exports = {
     toggleStarredEvent: [
         tokenValidator,
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
+            
             if (!dataValidator.isValidToggleStarredEventRequest(req)) {
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
+            
             else {
+                
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
-
+                    
                     //check if the request is valid
                     await db_connection.query("LOCK TABLES eventData READ");
+                    
                     const [event] = await db_connection.query("SELECT * FROM eventData WHERE eventId=?", [req.body.eventId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (event.length === 0 || (req.body.isStarred != "0" && req.body.isStarred != "1")) {
                         //db_connection.release();
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
 
+                    
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
 
                     await db_connection.query("LOCK TABLES starredEvents WRITE");
+                    
                     if (req.body.isStarred == "1") {
+                        
                         [check] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.body.eventId]);
+                        
                         if (check.length > 0) {
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-                            return res.status(200).json({
+                            
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Starred Event!"
                             });
                         }
+                        
                         const query = `INSERT INTO starredEvents (studentId, eventId) VALUES (?, ?);`;
+                        
                         await db_connection.query(query, [req.body.studentId, req.body.eventId]);
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(200).json({
+                        
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Starred Event!"
                         });
                     }
+                    
                     else if (req.body.isStarred == "0") {
+                        
                         const query = `DELETE FROM starredEvents WHERE studentId=? AND eventId=?;`;
+                        
                         await db_connection.query(query, [req.body.studentId, req.body.eventId]);
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(200).json({
+                        
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Unstarred Event!"
                         });
                     }
+                    
                     else {
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
                 }
+                
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
+                    
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - toggleStarredEvent - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
+                
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
@@ -246,34 +296,35 @@ module.exports = {
         }
     ],
 
+    
     getStarredEvents: [
+        
         tokenValidator,
+        
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-            // else {
-
+            
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
-
 
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
 
+                    
                     await db_connection.query("LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ");
+                    
                     const query = `
                         SELECT
                             eventData.eventId,
@@ -325,6 +376,7 @@ module.exports = {
                             (tagData.isActive != "0" OR tagData.isActive IS NULL)
                         ;`;
 
+                    
                     const query2 = `
                         SELECT
                             eventData.eventId,
@@ -375,32 +427,42 @@ module.exports = {
                         AND
                             (tagData.isActive != "0" OR tagData.isActive IS NULL)`;
 
+                    
+                    
                     await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
-
                     const [rows] = await db_connection.query(query);
+                    
                     const [rows2] = await db_connection.query(query2);
 
                     const concat_rows = [...new Set([...rows, ...rows2])];
 
                     await db_connection.query("UNLOCK TABLES");
 
-                    //console.log("test");
-
+                    
+                    
+                    
                     const aggregatedDataMap = new Map();
 
                     // Iterate through each event object
                     concat_rows.forEach((event) => {
+                        
                         // Check if the eventId already exists in the map
+                        
                         if (aggregatedDataMap.has(event.eventId)) {
+                            
                             // If yes, push the current event data to the existing array
                             const existingData = aggregatedDataMap.get(event.eventId);
+                            
                             existingData.tags.push({
                                 tagName: event.tagName,
                                 tagAbbreviation: event.tagAbbreviation,
                             });
+                        
                         } else {
+                            
                             // If no, create a new array with the current event data
+                            
                             aggregatedDataMap.set(event.eventId, {
                                 eventId: event.eventId,
                                 eventName: event.eventName,
@@ -429,12 +491,14 @@ module.exports = {
                                     tagAbbreviation: event.tagAbbreviation,
                                 }],
                             });
+                        
                         }
                     });
 
                     // Convert the map values to an array
                     const result = Array.from(aggregatedDataMap.values());
 
+                    
                     // let finalData = [];
 
                     // for (let i = 0; i < result.length; i++) {
@@ -445,16 +509,20 @@ module.exports = {
 
                     //console.log(result);
 
-                    return res.status(200).json({
+                    
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched Starred Events.",
                         "EVENTS": result
                     });
                 }
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getStarredEvents - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
@@ -463,37 +531,34 @@ module.exports = {
                     db_connection.release();
                 }
             }
-        // }
     ],
 
     getRegisteredEvents: [
         tokenValidator,
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-            // else {
+            
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
 
-
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
 
+                    
                     const query = `
                     SELECT
                     eventData.eventId,
@@ -536,6 +601,7 @@ module.exports = {
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
 
+                    
                     const query2 = `
                     SELECT
                     eventData.eventId,
@@ -578,7 +644,10 @@ module.exports = {
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
 
+                    
+                    
                     const [rows] = await db_connection.query(query);
+                    
                     const [rows2] = await db_connection.query(query2);
 
                     const concat_rows = [...new Set([...rows, ...rows2])];
@@ -587,17 +656,23 @@ module.exports = {
 
                     const aggregatedDataMap = new Map();
 
+                    
                     // Iterate through each event object
                     concat_rows.forEach((event) => {
+                        
                         // Check if the eventId already exists in the map
                         if (aggregatedDataMap.has(event.eventId)) {
+                            
                             // If yes, push the current event data to the existing array
+                            
                             const existingData = aggregatedDataMap.get(event.eventId);
                             existingData.tags.push({
                                 tagName: event.tagName,
                                 tagAbbreviation: event.tagAbbreviation,
                             });
+                        
                         } else {
+                            
                             // If no, create a new array with the current event data
                             aggregatedDataMap.set(event.eventId, {
                                 eventId: event.eventId,
@@ -632,12 +707,13 @@ module.exports = {
                         }
                     });
 
+                    
                     // Convert the map values to an array
                     const result = Array.from(aggregatedDataMap.values());
 
                     //console.log(result);
 
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched Registered Events.",
                         "EVENTS": result
                     });
@@ -645,21 +721,25 @@ module.exports = {
 
                 }
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getRegisteredEvents - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
             }
-        // }
     ],
 
+    
     /*
     {
         "registrationId": 1
@@ -668,89 +748,94 @@ module.exports = {
     registeredEventData: [
         tokenValidator,
         async (req, res) => {
-            // if (!await dataValidator.isValidStudentRequest) {
-            //     console.log("testerror");
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-            // else {
+            
                 const db_connection = await anokha_db.promise().getConnection();
                 const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
                 try {
-                    //console.log("test0");
-
+                    
+                    
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
 
 
+
                     await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
 
                     const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?", [req.body.registrationId]);
-                    //console.log("test0.1",event.length,event);
+                    
                     if (event.length == 0) {
-                        //console.log("test1");
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
+                    
                     if (event[0].eventStatus == "0") {
-                        //console.log("test2");
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Event Cancelled from Anokha!"
                         });
                     }
+                    
+                    
                     if (event[0].isGroup == "0" || event[0].needGroupData == "0") {
-                        //console.log("test3");
+                        
                         const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ", [req.body.registrationId, req.body.studentId]);
+                        
                         if (registration.length == 0) {
-                            //console.log("test4");
+                            
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Invalid Request!"
                             });
                         }
+                        
                         else {
-                            //console.log("test5");
+                            
                             [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
 
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-
+                            
+    
                             let trasactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
-                                //console.log("test6");
+                                
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
+                                
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
+                            
+                            
                             else if (registration[0].isMarketPlacePaymentMode == "0") {
-                                //console.log("test7");
+                                
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
+                                
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
 
-                            //transaction_db_connection.release();
-
-                            //console.log("test8",trasactionDetails);
-
-                            return res.status(200).json({
+                            
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
                                 "txnId": trasactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
@@ -761,21 +846,25 @@ module.exports = {
                             });
                         }
                     }
+                    
                     else if (event[0].isGroup == "1" && event[0].needGroupData == "1") {
+                        
                         const [registration] = await db_connection.query(`
+                        
                         SELECT * FROM eventRegistrationGroupData
                         LEFT JOIN eventRegistrationData ON
                         eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId 
                         WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `, [req.body.registrationId, req.body.studentId]);
-                        //console.log("test3",registration);
+                        
                         if (registration.length == 0) {
-                            //console.log("test4");
+                            
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Invalid Request!"
                             });
                         }
+                        
                         else {
                             const [team] = await db_connection.query(`
                             SELECT eventRegistrationGroupData.studentId,
@@ -790,25 +879,34 @@ module.exports = {
                             LEFT JOIN studentData
                             ON eventRegistrationGroupData.studentId = studentData.studentId
                             WHERE eventRegistrationGroupData.registrationId=?`
-                                , [req.body.registrationId]);
+                            , [req.body.registrationId]);
 
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-
+                            
                             let trasactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
+                                
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
+                                
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
+                            
+                            
                             else if (registration[0].isMarketPlacePaymentMode == "0") {
+                                
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
+                                
                                 [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                
                                 transaction_db_connection.query('UNLOCK TABLES');
                             }
-                            //transaction_db_connection.release();
-                            return res.status(200).json({
+                            
+                            
+                            
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
                                 "txnId": trasactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
@@ -822,16 +920,21 @@ module.exports = {
                     }
                 }
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - registeredEventData - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
+                    
                     await transaction_db_connection.query("UNLOCK TABLES");
                     transaction_db_connection.release();
                 }
@@ -843,8 +946,10 @@ module.exports = {
     getAllEventsJSVersion: [
         validateEventRequest,
         async (req, res) => {
+            
             if (req.body.isLoggedIn == "1"){ //&& !await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                return res.status(400).json({
+                
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
@@ -856,17 +961,22 @@ module.exports = {
 
                 //check if the student exists and is active
                 await db_connection.query("LOCK TABLES studentData READ");
+                
                 const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                
                 await db_connection.query("UNLOCK TABLES");
+                
                 if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                    //db_connection.release();
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 }
 
 
+                
                 if (req.body.isLoggedIn === "0") {
+                    
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
 
                     const query = `SELECT
@@ -902,24 +1012,29 @@ module.exports = {
                         ON eventTagData.tagId = tagData.tagId
                         ;`;
 
+                    
                     const [rows] = await db_connection.query(query);
 
                     await db_connection.query("UNLOCK TABLES");
-                    //db_connection.release();
-
+                    
                     const aggregatedDataMap = new Map();
 
                     // Iterate through each event object
                     rows.forEach((event) => {
+                        
                         // Check if the eventId already exists in the map
                         if (aggregatedDataMap.has(event.eventId)) {
+                            
                             // If yes, push the current event data to the existing array
                             const existingData = aggregatedDataMap.get(event.eventId);
+                            
                             existingData.tags.push({
                                 tagName: event.tagName,
                                 tagAbbreviation: event.tagAbbreviation,
                             });
+                        
                         } else {
+                            
                             // If no, create a new array with the current event data
                             aggregatedDataMap.set(event.eventId, {
                                 eventId: event.eventId,
@@ -955,11 +1070,13 @@ module.exports = {
                     const result = Array.from(aggregatedDataMap.values());
 
                     //console.log(result);
-                    return res.status(200).json({
+                    
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched All Events.",
                         "MODE": "0",
                         "EVENTS": result
                     });
+                
                 } else {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, eventRegistrationData READ, eventRegistrationGroupData READ, starredEvents READ");
@@ -1022,21 +1139,24 @@ module.exports = {
                     const [rows] = await db_connection.query(query);
 
                     await db_connection.query("UNLOCK TABLES");
-                    //db_connection.release();
-
+                    
                     const aggregatedDataMap = new Map();
 
                     // Iterate through each event object
                     rows.forEach((event) => {
+                        
                         // Check if the eventId already exists in the map
                         if (aggregatedDataMap.has(event.eventId)) {
+                            
                             // If yes, push the current event data to the existing array
                             const existingData = aggregatedDataMap.get(event.eventId);
+                            
                             existingData.tags.push({
                                 tagName: event.tagName,
                                 tagAbbreviation: event.tagAbbreviation,
                             });
                         } else {
+                            
                             // If no, create a new array with the current event data
                             aggregatedDataMap.set(event.eventId, {
                                 eventId: event.eventId,
@@ -1072,24 +1192,33 @@ module.exports = {
                     const result = Array.from(aggregatedDataMap.values());
 
                     for (let i = 0; i < result.length; i++) {
+                        
                         if (registeredEventDataDict[result[i].eventId] == 1 && registeredByTeamEventDataDict[result[i].eventId] == 1) {
+                            
                             result[i].isOwnRegistration = "1";
                             result[i].registrationId = registrationIdDict[result[i].eventId];
+                        
                         }
                         if (registeredByTeamEventDataDict[result[i].eventId] == 1 && registeredEventDataDict[result[i].eventId] != 1) {
+                            
                             result[i].isOwnRegistration = "0";
                             result[i].registrationId = registrationIdDict[result[i].eventId];
+                        
                         }
 
                         if (starredEventDataDict[result[i].eventId] == 1) {
+                            
                             result[i].isStarred = "1";
+                        
                         }
                         if (starredEventDataDict[result[i].eventId] != 1) {
+                            
                             result[i].isStarred = "0";
+                       
                         }
                     }
 
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched All Events.",
                         "MODE": "1",
                         "EVENTS": result
@@ -1098,14 +1227,18 @@ module.exports = {
                 }
             } catch (error) {
                 console.log(error);
+                
                 const time = new Date();
                 fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEventsJSVersion - ${error}\n`);
-                return res.status(500).json({
+                
+                return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
             } finally {
+                
                 await db_connection.query("UNLOCK TABLES");
                 db_connection.release();
+            
             }
         }
     ],
@@ -1113,27 +1246,21 @@ module.exports = {
     getAllEvents: [
         validateEventRequest,
         async (req, res) => {
-            // if (req.body.isLoggedIn == "1"){ // && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-            //else {
+            
                 const db_connection = await anokha_db.promise().getConnection();
 
                 if (req.body.isLoggedIn == "1"){ // && !await dataValidator.isValidStudentRequest(req.body.studentId)) {
-                    // res.status(400).json({
-                    //     "MESSAGE": "Access Restricted!"
-                    // });
-                    // return;
+                    
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -1144,17 +1271,23 @@ module.exports = {
                     if (req.body.isLoggedIn == "0") {
 
                         try{
+
+
+                            // Fetch all events from Redis
                             const events = await redisClient.get('allEvents');
                             if(events != null){
-                                //db_connection.release();
-                                //await redisClient.disconnect()
-                                return res.status(200).json({
+                                
+                                return res.status(200).send({
                                     "MESSAGE": "Successfully Fetched All Events.",
                                     "MODE": "0",
                                     "EVENTS": JSON.parse(events)
                                 });
                             }
+                            
+                            
+                            
                             else{
+                                
                                 await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
 
                                 const query = `SELECT
@@ -1197,21 +1330,26 @@ module.exports = {
                                 //console.log(rows);
 
                                 await db_connection.query("UNLOCK TABLES");
-                                //db_connection.release();
 
                                 const aggregatedDataMap = new Map();
 
+                                
+                                
                                 // Iterate through each event object
                                 rows.forEach((event) => {
+                                    
                                     // Check if the eventId already exists in the map
                                     if (aggregatedDataMap.has(event.eventId)) {
+                                        
                                         // If yes, push the current event data to the existing array
                                         const existingData = aggregatedDataMap.get(event.eventId);
+                                        
                                         existingData.tags.push({
                                             tagName: event.tagName,
                                             tagAbbreviation: event.tagAbbreviation,
                                         });
                                     } else {
+                                        
                                         // If no, create a new array with the current event data
                                         aggregatedDataMap.set(event.eventId, {
                                             eventId: event.eventId,
@@ -1243,16 +1381,23 @@ module.exports = {
                                     }
                                 });
 
+                                
                                 // Convert the map values to an array
                                 const result = Array.from(aggregatedDataMap.values());
 
                                 //console.log(result);
-                                await redisClient.set('allEvents', JSON.stringify(result));
-                                await redisClient.expire('allEvents', 600);
-                                //await redisClient.disconnect()
 
+
+                                // Store the events in Redis
+                                await redisClient.set('allEvents', JSON.stringify(result));
+                                
+                                // Set the expiry time for 10mins
+                                await redisClient.expire('allEvents', 600);
+
+                                
+                                
                                 // MODE 0 - Not Logged In
-                                return res.status(200).json({
+                                return res.status(200).send({
                                     "MESSAGE": "Successfully Fetched All Events.",
                                     "MODE": "0",
                                     "EVENTS": result
@@ -1260,17 +1405,21 @@ module.exports = {
                             }
                         }
                         catch(err){
+                            
                             console.log(err);
+                            
                             const time = new Date();
                             fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEvents - ${err}\n`);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
                         finally{
-                            //await redisClient.disconnect()
+                            
                             await db_connection.query('UNLOCK TABLES');
                             db_connection.release()
+                        
                         }
 
                     }
@@ -1329,6 +1478,7 @@ module.exports = {
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;
 
+                        
                         const query2 = `
                         SELECT
                             eventData.eventId,
@@ -1382,6 +1532,7 @@ module.exports = {
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL)
                         ;`;
 
+                        
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
 
@@ -1392,21 +1543,24 @@ module.exports = {
 
                         await db_connection.query("UNLOCK TABLES");
 
-                        //console.log("test");
-
+                        
                         const aggregatedDataMap = new Map();
 
                         // Iterate through each event object
                         concat_rows.forEach((event) => {
+                            
                             // Check if the eventId already exists in the map
                             if (aggregatedDataMap.has(event.eventId)) {
+                                
                                 // If yes, push the current event data to the existing array
                                 const existingData = aggregatedDataMap.get(event.eventId);
+                                
                                 existingData.tags.push({
                                     tagName: event.tagName,
                                     tagAbbreviation: event.tagAbbreviation,
                                 });
                             } else {
+                                
                                 // If no, create a new array with the current event data
                                 aggregatedDataMap.set(event.eventId, {
                                     eventId: event.eventId,
@@ -1440,50 +1594,59 @@ module.exports = {
                             }
                         });
 
+                        
+                        
                         // Convert the map values to an array
                         const result = Array.from(aggregatedDataMap.values());
 
-                        //console.log(result);
-
+                        
                         // MODE 1 - Logged In
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Fetched All Events.",
                             "MODE": "1",
                             "EVENTS": result
                         });
                     }
+                    
                     else {
-                        return res.status(401).json({
+                        
+                        return res.status(401).send({
                             "MESSAGE": "Unauthorized access. Warning."
                         });
                     }
                 }
+                
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllEvents - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
             }
-        //}
     ],
 
+    
     getEventData: [
         validateEventRequest,
         async (req, res) => {
 
             req.params.eventId = parseInt(req.params.eventId);
-            //console.log(req.body.isLoggedIn, req.body.studentId);
-
+            
             if (req.body.isLoggedIn == "0"){// || !dataValidator.isValidStudentRequest(req.body.studentId)) {
-                //console.log("testerror");
+                
                 const db_connection = await anokha_db.promise().getConnection();
+                
+                
                 try {
 
                     await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
@@ -1493,20 +1656,29 @@ module.exports = {
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
                     WHERE eventId=?`, [req.params.eventId]);
+                    
+                    
                     if (event.length == 0 || event[0].eventStatus == "0") {
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
+                    
+                    
                     else {
+                        
                         event = event[0];
+                        
                         const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
+                        
+                        
                         //MODE: 0 - Not Logged In, 1 - Logged In
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Fetched Event Data.",
                             "MODE": "0",
                             "eventId": event.eventId,
@@ -1533,37 +1705,44 @@ module.exports = {
                             "departmentAbbreviation": event.departmentAbbreviation,
                             "tags": tags
                         });
-                        return;
+                        
                     }
                 }
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
             }
+            
             else if (req.body.isLoggedIn == "1"){// && dataValidator.isValidStudentRequest(req.body.studentId)) {
+                
                 const db_connection = await anokha_db.promise().getConnection();
+                
                 try {
 
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
+                    
                     const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    
                     await db_connection.query("UNLOCK TABLES");
+                    
+                    
+                    
                     if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                        // db_connection.release();
-                        // res.status(400).json({
-                        //     "MESSAGE": "Access Restricted!"
-                        // });
-                        // return;
-
+                        
                         await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ, starredEvents READ, eventRegistrationData READ");
 
                         let [event] = await db_connection.query(`
@@ -1571,20 +1750,27 @@ module.exports = {
                         LEFT JOIN departmentData
                         ON eventData.eventDepartmentId = departmentData.departmentId
                         WHERE eventId=?`, [req.params.eventId]);
+                        
                         if (event.length == 0 || event[0].eventStatus == "0") {
+                            
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Invalid Request!"
                             });
                         }
+                        
+                        
                         else {
                             event = event[0];
+                            
                             const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
+                            
                             await db_connection.query("UNLOCK TABLES");
-                            //db_connection.release();
+                            
+                            
                             //MODE: 0 - Not Logged In, 1 - Logged In
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Event Data.",
                                 "MODE": "0",
                                 "eventId": event.eventId,
@@ -1616,41 +1802,60 @@ module.exports = {
                     }
 
 
+                    
                     await db_connection.query(`LOCK TABLES eventData READ,
                     departmentData READ, tagData READ,
                     eventTagData READ, starredEvents READ,
                     eventRegistrationData READ,
                     eventRegistrationGroupData READ`);
 
+                    
+                    
                     let [event] = await db_connection.query(`
                     SELECT * FROM eventData 
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
                     WHERE eventId=?`, [req.params.eventId]);
                     
+                    
                     if (event.length == 0 || event[0].eventStatus == "0") {
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
-                        return res.status(400).json({
+                        
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
+                    
+                    
                     else {
+                        
                         event = event[0];
+                        
                         const [tags] = await db_connection.query(`SELECT tagName, tagAbbreviation FROM eventTagData LEFT JOIN tagData ON eventTagData.tagId = tagData.tagId WHERE eventId=?`, [req.params.eventId]);
+                        
                         const [starred] = await db_connection.query("SELECT * FROM starredEvents WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                        
                         let registration;
+                        
                         if (event.isGroup == "0" || event.needGroupData == "0") {
+                            
                             [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
                         }
+                        
                         else if (event.isGroup == "1" && event.needGroupData == "1") {
+                            
                             [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
                         }
+                        
+                        
+                        
                         await db_connection.query("UNLOCK TABLES");
-                        //db_connection.release();
+                        
+                        
                         
                         //MODE: 0 - Not Logged In, 1 - Logged In
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Fetched Event Data.",
                             "MODE": "1",
                             "eventId": event.eventId,
@@ -1682,15 +1887,21 @@ module.exports = {
                         });
                     }
                 }
+                
                 catch (err) {
+                    
                     console.log(err);
+                    
                     const time = new Date();
                     fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getEventData - ${err}\n`);
-                    return res.status(500).json({
+                    
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team"
                     });
                 }
+                
                 finally {
+                    
                     await db_connection.query("UNLOCK TABLES");
                     db_connection.release();
                 }
@@ -1698,6 +1909,8 @@ module.exports = {
         }
     ],
 
+
+    
     /*
     {
         "eventId": "integer",
@@ -1712,112 +1925,128 @@ module.exports = {
     registerForEventStepOne: [
         tokenValidator,
         async (req, res) => {
-            // Validate Student Login
-            // if (!await dataValidator.isValidStudentRequest(req.body.studentId)) {
-            //     res.status(400).json({
-            //         "MESSAGE": "Access Restricted!"
-            //     });
-            //     return;
-            // }
-
-            // VALIDATE PARAMETER DATA TYPES AND FORMAT
-
+            
+            // Validate parameter type and format
             if (!dataValidator.isValidEventRegistration(req)) {
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Registration Details!"
                 });
             }
 
+            
             const db_connection = await anokha_db.promise().getConnection();
             const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
 
             try {
 
+                
                 //check if the student exists and is active
                 await db_connection.query("LOCK TABLES studentData READ");
+                
                 const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                
                 await db_connection.query("UNLOCK TABLES");
+                
                 if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
-                    //db_connection.release();
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 }
 
+                
+                
                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
                 // check for any pending payments
                 const [tT2] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE userId = ? AND transactionStatus = '0'", [req.body.studentId]);
 
                 if (tT2.length > 0) {
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "You have made an attempt to register for an event that is still in pending state. Go to your profile -> Transactions and then click on verify now to proceed!"
                     });
                 }
 
+                
+                
                 await transaction_db_connection.query("UNLOCK TABLES");
-
 
 
                 await db_connection.query("LOCK TABLES eventData READ, eventRegistrationData READ, eventRegistrationGroupData READ, studentData READ");
 
-                //const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId = ?", [req.body.studentId]);
-
+                
+                
                 // does the event exist
                 const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
 
                 if (!(eventData.length > 0)) {
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Event not found!"
                     });
                 }
 
+                
+                
                 // DATE EXECEEDED LOGIC PENDING
 
                 if (!(eventData[0].eventStatus === "1")) {
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Registrations closed for this event!"
                     });
                 }
 
+                
+                
                 if (!(req.body.totalMembers >= eventData[0].minTeamSize && req.body.totalMembers <= eventData[0].maxTeamSize)) {
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Invalid Team Size!"
                     });
                 }
 
+                
+                
                 if (!(eventData[0].maxSeats - eventData[0].seatsFilled >= req.body.totalMembers)) {
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Registrations closed! Seats are full!"
                     });
                 }
 
+                
+                
                 // Event Registration Check
                 const [regData] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE studentId = ? AND eventId = ?', [req.body.studentId, req.body.eventId]);
                 const [eventRegGroupData] = await db_connection.query('SELECT * FROM eventRegistrationGroupData WHERE studentId = ? AND eventId = ?', [req.body.studentId, req.body.eventId]);
 
 
                 if (regData.length > 0) {
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "You have already registered for the event or the registration is pending! Complete it before moving forward for another attempt!"
                     });
                 }
 
+                
                 if (eventRegGroupData.length > 0) {
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "You are already in a group for the same event or the registration is pending! Complete it before moving forward for another attempt!!"
                     });
                 }
 
                 if (studentData[0].studentAccountStatus !== "2") {
-                    return res.status(400).json({
+                    
+                    return res.status(400).send({
                         "MESSAGE": "Failed to register. You need to buy a passport to register for events!"
                     });
                 }
 
+                
                 await db_connection.query("UNLOCK TABLES");
 
+                
                 if (req.body.isMarketPlacePaymentMode === "0") {
+                    
                     // payU
 
                     const txnId = `TXN-${req.body.studentId.toString()}-${req.body.eventId.toString()}-${new Date().getTime()}`;
@@ -1830,6 +2059,7 @@ module.exports = {
 
                     // INDIVIDUAL REGISTRATION
                     if (eventData[0].isGroup === "0") {
+                        
                         // Adding GST
                         amount = eventData[0].eventPrice + Math.ceil(eventData[0].eventPrice * 0.18);
                         productinfo = `EIP-${req.body.studentId}-${req.body.eventId}-${req.body.totalMembers}-${amount}`;
@@ -1840,21 +2070,29 @@ module.exports = {
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
+                        
                         if (tDataTest.length > 0) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Duplicate Transaction Attempt!"
                             });
                         }
 
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
+                        
                         if (insertTransactionData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT transactionData.");
+                            
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
+
+
 
                         await transaction_db_connection.query("UNLOCK TABLES");
 
@@ -1862,28 +2100,42 @@ module.exports = {
 
                         await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
 
+                        
+                        
                         const [insertEventRegistrationData] = await db_connection.query("INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
 
+                        
+                        
                         if (insertEventRegistrationData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT insertEventRegistrationData.");
+                            
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
 
+                        
                         const [eventDataUpdate] = await db_connection.query("UPDATE eventData SET seatsFilled = ? WHERE eventId = ?", [eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
 
+                        
                         if (eventDataUpdate.affectedRows !== 1) {
+                            
                             console.log("Failed to UPDATE eventData.");
+                            
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
 
+                        
                         await db_connection.query("UNLOCK TABLES");
 
+                        
                         const hash = generateHash({
                             "txnid": txnId,
                             "amount": amount,
@@ -1892,8 +2144,10 @@ module.exports = {
                             "email": email
                         });
 
+                        
                         // DONE. Move to Transaction from frontend.
 
+                        
                         return res.status(200).send({
                             "MESSAGE": "Proceed to pay. Seats Locked for 5 mins.",
                             "txnid": txnId,
@@ -1909,15 +2163,23 @@ module.exports = {
 
 
 
-                    } else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "0") {
+                    } 
+                    
+                    else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "0") {
 
                         if (eventData[0].isPerHeadPrice === "1") {
                             amount = (eventData[0].eventPrice * eventData[0].totalMembers) + Math.ceil((eventData[0].eventPrice * eventData[0].totalMembers) * 0.18);
-                        } else if (eventData[0].isPerHeadPrice === "0") {
+                        } 
+                        
+                        else if (eventData[0].isPerHeadPrice === "0") {
                             amount = eventData[0].eventPrice + Math.ceil(eventData[0].eventPrice * 0.18);
                         }
+
+
                         productinfo = `EGPI-${req.body.studentId}-${req.body.eventId}-${req.body.totalMembers}-${amount}`;
 
+                        
+                        
                         // Inserting into transactionData as PENDING
 
                         await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
@@ -1925,46 +2187,58 @@ module.exports = {
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
                         if (tDataTest.length > 0) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Duplicate Transaction Attempt!"
                             });
                         }
 
+                        
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         if (insertTransactionData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT transactionData.");
+                            
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
 
+                        
+                        
                         await transaction_db_connection.query("UNLOCK TABLES");
 
+                        
                         // INSERTING INTO eventRegistrationData as PENDING: LOCKING THE SEATS
 
                         await db_connection.query("LOCK TABLES eventRegistrationData WRITE, eventData WRITE");
 
                         const [insertEventRegistrationData] = await db_connection.query("INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
 
+                        
                         if (insertEventRegistrationData.affectedRows !== 1) {
                             console.log("Failed to INSERT insertEventRegistrationData.");
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
-                            return res.status(500).json({
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
+
+
 
                         const [eventDataUpdate] = await db_connection.query("UPDATE eventData SET seatsFilled = ? WHERE eventId = ?", [eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
 
                         if (eventDataUpdate.affectedRows !== 1) {
                             console.log("Failed to UPDATE eventData.");
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
-                            return res.status(500).json({
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
+
 
                         await db_connection.query("UNLOCK TABLES");
 
@@ -1976,6 +2250,8 @@ module.exports = {
                             "email": email
                         });
 
+
+                        
                         // DONE. Move to Transaction from frontend.
 
                         return res.status(200).send({
@@ -1992,59 +2268,77 @@ module.exports = {
                         });
 
 
-                    } else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "1") {
+                    } 
+                    
+                    else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "1") {
 
                         // teamMembers, memberRoles, teamName
 
                         if (eventData[0].isPerHeadPrice === "1") {
                             amount = (eventData[0].eventPrice * eventData[0].totalMembers) + Math.ceil((eventData[0].eventPrice * eventData[0].totalMembers) * 0.18);
-                        } else if (eventData[0].isPerHeadPrice === "0") {
+                        } 
+                        
+                        else if (eventData[0].isPerHeadPrice === "0") {
                             amount = eventData[0].eventPrice + Math.ceil(eventData[0].eventPrice * 0.18);
                         }
+
                         productinfo = `EGPT-${req.body.studentId}-${req.body.eventId}-${req.body.totalMembers}-${amount}`;
 
+                        
                         if (!(typeof (req.body.teamName) === "string" && req.body.teamName.length > 0 && req.body.teamName.length < 255)) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. Invalid Team Name"
                             });
                         }
 
+                        
                         if (!(typeof (req.body.teamMembers) === "object" && req.body.teamMembers.length === req.body.totalMembers - 1 && Array.isArray(req.body.teamMembers))) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. Team Data invalid."
                             });
                         }
 
                         if (!(typeof (req.body.memberRoles) === "object" && req.body.memberRoles.length === req.body.teamMembers.length && Array.isArray(req.body.memberRoles))) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. Role Data invalid."
                             });
                         }
 
+                        
                         let seenStudents = {};
                         seenStudents[studentData[0].studentEmail] = true;
 
+                        
+                        
                         for (let i = 0; i < req.body.teamMembers.length; i++) {
+                            
                             if (!(typeof (req.body.teamMembers[i]) === "string" && req.body.teamMembers[i].length > 0 && req.body.teamMembers[i].length < 255)) {
-                                return res.status(400).json({
+                                
+                                return res.status(400).send({
                                     "MESSAGE": "Failed to Register. Team Data invalid email."
                                 });
                             }
 
                             if (validator.isEmail(req.body.teamMembers[i]) === false) {
-                                return res.status(400).json({
+                                
+                                return res.status(400).send({
                                     "MESSAGE": "Failed to Register. Team Data invalid email."
                                 });
                             }
 
                             if (!(typeof (req.body.memberRoles[i]) === "string" && req.body.memberRoles[i].length > 0 && req.body.memberRoles[i].length < 255)) {
-                                return res.status(400).json({
+                                
+                                return res.status(400).send({
                                     "MESSAGE": "Failed to Register. Team Data invalid role."
                                 });
                             }
 
                             if (seenStudents[req.body.teamMembers[i]] === true) {
-                                return res.status(400).json({
+                                
+                                return res.status(400).send({
                                     "MESSAGE": "Duplicate team members!"
                                 });
                             }
@@ -2052,41 +2346,55 @@ module.exports = {
                             seenStudents[req.body.teamMembers[i]] = true;
                         }
 
+
+
                         // check if team members are not already registered for the same event and does have a passport.
 
                         await db_connection.query("LOCK TABLES studentData READ, eventRegistrationData READ, eventRegistrationGroupData READ");
 
                         const [studentDataCheck] = await db_connection.query("SELECT * FROM studentData WHERE studentAccountStatus = '2' AND studentEmail IN (?)", [req.body.teamMembers]);
 
+                        
                         if (studentDataCheck.length !== req.body.teamMembers.length) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. One of your teammates do not have a passport yet or you gave a wrong email!"
                             });
                         }
 
                         let studentIds = [];
+                        
                         for (let i = 0; i < studentDataCheck.length; i++) {
                             studentIds.push(studentDataCheck[i].studentId);
                         }
 
+                        
+                        
                         const [eventRegistrationCheck] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE eventId = ? AND studentId IN (?)", [req.body.eventId, studentIds]);
 
                         if (eventRegistrationCheck.length > 0) {
-                            return res.status(400).json({
+                            
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. One of your teammates have already registered for the same event."
                             });
                         }
 
+                        
                         const [eventRegistrationGroupCheck] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE eventId = ? AND studentId IN (?)", [req.body.eventId, studentIds]);
 
+                        
+                        
                         if (eventRegistrationGroupCheck.length > 0) {
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Failed to Register. One of your teammates is already part of another team!"
                             });
                         }
 
+                        
                         await db_connection.query("UNLOCK TABLES");
 
+                        
+                        
                         // Team Members Verified.
 
                         // Inserting into transactionData as PENDING
@@ -2095,18 +2403,25 @@ module.exports = {
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
+                        
                         if (tDataTest.length > 0) {
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Duplicate Transaction Attempt!"
                             });
                         }
 
+                        
+                        
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         if (insertTransactionData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT transactionData.");
+                            
                             console.log([txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
-                            return res.status(500).json({
+                            
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
@@ -2120,48 +2435,67 @@ module.exports = {
 
                         const [insertEventRegistrationData] = await db_connection.query("INSERT INTO eventRegistrationData (eventId, studentId, isMarketPlacePaymentMode, txnId, totalMembers, totalAmountPaid, teamName, registrationStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, req.body.teamName, "1"]);
 
+                        
                         if (insertEventRegistrationData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT insertEventRegistrationData.");
+                            
                             console.log([req.body.eventId, req.body.studentId, "0", txnId, req.body.totalMembers, amount, "INDIVIDUAL REGISTRATION", "1"]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
+
+
 
                         // INSERTING INTO eventRegistrationGroupData.
                         const [insertGroupData] = await db_connection.query("INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (?, ?, ?, ?, ?, ?)", [insertEventRegistrationData.insertId, txnId, req.body.studentId, req.body.eventId, "TEAM LEAD", "1"]);
 
                         if (insertGroupData.affectedRows !== 1) {
+                            
                             console.log("Failed to INSERT insertGroupData.");
+                            
                             console.log([insertEventRegistrationData.insertId, txnId, req.body.studentId, req.body.eventId, "TEAM LEAD", "1"]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
 
+
                         for (let i = 0; i < req.body.teamMembers.length; i++) {
+                            
                             const [insertTeamData] = await db_connection.query("INSERT INTO eventRegistrationGroupData (registrationId, txnId, studentId, eventId, roleDescription, isOwnRegistration) VALUES (?, ?, ?, ?, ?, ?)", [insertEventRegistrationData.insertId, txnId, studentIds[i], req.body.eventId, req.body.memberRoles[i], "0"]);
 
                             if (insertTeamData.affectedRows !== 1) {
+                                
                                 console.log("Failed to INSERT insertTeamData.");
+                                
                                 console.log([insertEventRegistrationData.insertId, txnId, studentIds[i], req.body.eventId, req.body.memberRoles[i], "0"]);
-                                return res.status(500).json({
+                                
+                                return res.status(500).send({
                                     "MESSAGE": "Internal Server Error. Contact Web Team"
                                 });
                             }
                         }
+
 
                         // Update eventData seatsFilled. Lock for 5 mins.
 
                         const [eventDataUpdate] = await db_connection.query("UPDATE eventData SET seatsFilled = ? WHERE eventId = ?", [eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
 
                         if (eventDataUpdate.affectedRows !== 1) {
+                            
                             console.log("Failed to UPDATE eventData.");
+                            
                             console.log([eventData[0].seatsFilled + req.body.totalMembers, req.body.eventId]);
-                            return res.status(500).json({
+                            
+                            return res.status(500).send({
                                 "MESSAGE": "Internal Server Error. Contact Web Team"
                             });
                         }
+
 
                         await db_connection.query("UNLOCK TABLES");
 
@@ -2173,6 +2507,7 @@ module.exports = {
                             "email": email
                         });
 
+                        
                         // DONE. Move to Transaction from frontend.
 
                         return res.status(200).send({
@@ -2188,32 +2523,40 @@ module.exports = {
                             "hash": hash
                         });
                     }
+
                 } else {
+                    
                     return res.status(400).send({
                         "MESSAGE": "MarketPlace Payment mode coming soon. Kindly use PayU till then!",
                     });
                 }
+
 
                 // GROUP REGISTRATION DONE. 
                 // MARKETPLACE IMPLEMENTATION PENDING;
 
 
             } catch (err) {
+                
                 console.log(err);
+                
                 const time = new Date();
                 fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidEventRegistration - ${err}\n`);
+                
                 await db_connection.query("UNLOCK TABLES");
                 await transaction_db_connection.query("UNLOCK TABLES");
-                //db_connection.release();
-                //transaction_db_connection.release();
-                return res.status(500).json({
+                
+                return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team"
                 });
 
             } finally {
                 await db_connection.query("UNLOCK TABLES");
+                
                 await transaction_db_connection.query("UNLOCK TABLES");
+                
                 db_connection.release();
+                
                 transaction_db_connection.release();
             }
 
