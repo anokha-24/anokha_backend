@@ -2068,18 +2068,23 @@ module.exports = {
 
                         //await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
 
-                        await transaction_db_connection.beginTransaction();
-                        await db_connection.beginTransaction();
-
-                        const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
-
                         
+                        await transaction_db_connection.query("LOCK TABLES transactionData READ");
+                        
+                        const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
+                       
+                        await transaction_db_connection.query("UNLOCK TABLES");
+
                         if (tDataTest.length > 0) {
                             
                             return res.status(400).send({
                                 "MESSAGE": "Duplicate Transaction Attempt!"
                             });
                         }
+
+
+                        await transaction_db_connection.beginTransaction();
+                        await db_connection.beginTransaction();
 
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
@@ -2196,6 +2201,8 @@ module.exports = {
 
                         const [tDataTest] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [txnId]);
 
+                        await transaction_db_connection.query("UNLOCK TABLES");
+
                         if (tDataTest.length > 0) {
                             
                             return res.status(400).send({
@@ -2203,7 +2210,7 @@ module.exports = {
                             });
                         }
 
-                        await transaction_db_connection.query("UNLOCK TABLES");
+                        
 
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
