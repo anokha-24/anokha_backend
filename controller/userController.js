@@ -9,7 +9,7 @@ const [tokenValidator, validateEventRequest] = require('../middleware/auth/login
 const { generateHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
-const redisClient = require('../connection/redis');
+//const redisClient = require('../connection/redis');
 
 module.exports = {
     
@@ -115,7 +115,7 @@ module.exports = {
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
                     
-                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
                     
                     await db_connection.query("UNLOCK TABLES");
                     
@@ -141,6 +141,20 @@ module.exports = {
                         });
                     }
                     
+                    
+                    if( studentData[0].isAmrita == "1")
+                    {
+                        const query = `UPDATE studentData SET studentFullName=?, studentPhone=?  WHERE studentId=?`;
+
+                        await db_connection.query(query, [req.body.studentFullName, req.body.studentPhone, req.body.studentId]);
+
+                        await db_connection.query("UNLOCK TABLES");
+
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Edited Student Profile."
+                        });
+                                            
+                    }
                     
                     
                     const query = `UPDATE studentData SET studentFullName=?, studentPhone=?, studentCollegeName=?, studentCollegeCity=? WHERE studentId=?`;
@@ -1274,19 +1288,19 @@ module.exports = {
 
 
                             // Fetch all events from Redis
-                            const events = await redisClient.get('allEvents');
-                            if(events != null){
+                            // const events = await redisClient.get('allEvents');
+                            // if(events != null){
                                 
-                                return res.status(200).send({
-                                    "MESSAGE": "Successfully Fetched All Events.",
-                                    "MODE": "0",
-                                    "EVENTS": JSON.parse(events)
-                                });
-                            }
+                            //     return res.status(200).send({
+                            //         "MESSAGE": "Successfully Fetched All Events.",
+                            //         "MODE": "0",
+                            //         "EVENTS": JSON.parse(events)
+                            //     });
+                            // }
                             
                             
                             
-                            else{
+                            //else{
                                 
                                 await db_connection.query("LOCK TABLES eventData READ, departmentData READ, tagData READ, eventTagData READ");
 
@@ -1389,10 +1403,10 @@ module.exports = {
 
 
                                 // Store the events in Redis
-                                await redisClient.set('allEvents', JSON.stringify(result));
+                                //await redisClient.set('allEvents', JSON.stringify(result));
                                 
                                 // Set the expiry time for 10mins
-                                await redisClient.expire('allEvents', 600);
+                                //await redisClient.expire('allEvents', 600);
 
                                 
                                 
@@ -1402,7 +1416,7 @@ module.exports = {
                                     "MODE": "0",
                                     "EVENTS": result
                                 });
-                            }
+                            //}
                         }
                         catch(err){
                             

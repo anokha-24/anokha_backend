@@ -5,6 +5,7 @@ const appConfig = require('../../config/appConfig');
 const TEMPLATE_STUDENT_REGISTERED = require('./template_student_registered');
 const TEMPLATE_FORGOT_PASSWORD = require('./template_forgot_password');
 const TEMPLATE_MANAGER_REGISTERED = require('./template_manager_registered');
+const TEMPLATE_WELCOME_MAIL = require('./welcome_mail');
 
 
 const transporter = mailer.createTransport(appConfig.mailer.obj);
@@ -26,6 +27,26 @@ module.exports = {
                 console.log(error);
             } else {
                 console.log('Student Verification OTP sent: ' + userEmail);
+            }
+        });
+    },
+
+    welcomeMail: (fullName, userEmail) => {
+        var mailOptions = {
+            from: {
+                name: appConfig.mailer.name,
+                address: appConfig.mailer.obj.auth.user
+            },
+            to: userEmail,
+            subject: '[Welcome to Anokha 2024]',
+            html: TEMPLATE_WELCOME_MAIL(fullName)
+        }
+
+        transporter.sendMail(mailOptions, function (error, info) { 
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Welcome Mail sent: ' + userEmail);
             }
         });
     },

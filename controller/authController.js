@@ -228,7 +228,8 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            
+                            mailer.welcomeMail(req.body.studentFullName, req.body.studentEmail);
+
                             return res.status(200).send({
                                 "MESSAGE": "User Registration Verified Successfully!"
                             });
