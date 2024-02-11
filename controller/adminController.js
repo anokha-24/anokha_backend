@@ -6,7 +6,7 @@ const { db } = require('../config/appConfig');
 
 module.exports = {
     testConnection: async (req, res) => {
-        return res.status(200).json({
+        return res.status(200).send({
             "MESSAGE": "It's Working. 👍🏻",
             "WHO": "Admin"
         });
@@ -27,7 +27,7 @@ module.exports = {
                     await db_connection.query("UNLOCK TABLES");
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -45,7 +45,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Fetched Admin Profile.",
                         "managerFullName": manager[0].managerFullName,
                         "managerEmail": manager[0].managerEmail,
@@ -65,7 +65,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAdminProfile - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -80,6 +80,7 @@ module.exports = {
             } 
     ],
 
+    
     /*{
         "managerFullName": "",
         "managerPhone": "",
@@ -91,7 +92,7 @@ module.exports = {
             
             if(!dataValidator.isValidAdminEditProfile(req.body)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -111,7 +112,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -124,7 +125,7 @@ module.exports = {
                     
                     if(department.length==0){
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Department Doesn't exist!"
                         });
                     
@@ -135,7 +136,7 @@ module.exports = {
                     
                     if(manager.length!=0){
                     
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Phone Number Associated with Another Account!"
                         });
                     
@@ -148,7 +149,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Edited Admin Profile."
                     });
                 
@@ -160,7 +161,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - editAdminProfile - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -180,7 +181,7 @@ module.exports = {
         async (req, res) => {
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
 
@@ -188,7 +189,7 @@ module.exports = {
             
             if(!dataValidator.isValidTag(req.body)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
 
@@ -208,7 +209,7 @@ module.exports = {
                     
                     if (tagData.length != 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Tag Already Exists!"
                         });
                     
@@ -222,7 +223,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                     
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -237,7 +238,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Added Tag."
                     });
                 
@@ -249,7 +250,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - addTag - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
@@ -274,13 +275,13 @@ module.exports = {
         async (req,res) =>{
             
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
 
             if(!(dataValidator.isValidToggleTagStatus(req.body))){
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
@@ -299,7 +300,7 @@ module.exports = {
                     
                     if (tagData.length === 0) {
 
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     
@@ -314,7 +315,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -329,7 +330,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Toggled Tag Status."
                     });
                 
@@ -341,7 +342,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleTagStatus - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -367,7 +368,7 @@ module.exports = {
             
             await db_connection.query("UNLOCK TABLES");
             
-            return res.status(200).json({
+            return res.status(200).send({
                 "MESSAGE": "Successfully Fetched All Tags.",
                 "tags": tags
             });
@@ -381,7 +382,7 @@ module.exports = {
             const time = new Date();
             fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllTags - ${err}\n`);
             
-            return res.status(500).json({
+            return res.status(500).send({
                 "MESSAGE": "Internal Server Error. Contact Web Team."
             });
         
@@ -408,7 +409,7 @@ module.exports = {
             
             await db_connection.query("UNLOCK TABLES");
             
-            return res.status(200).json({
+            return res.status(200).send({
                 "MESSAGE": "Successfully Fetched Active Tags.",
                 "tags": tags
             });
@@ -422,7 +423,7 @@ module.exports = {
             const time = new Date();
             fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getActiveTags - ${err}\n`);
             
-            return res.status(500).json({
+            return res.status(500).send({
                 "MESSAGE": "Internal Server Error. Contact Web Team."
             });
         
@@ -443,7 +444,7 @@ module.exports = {
             
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             
@@ -451,7 +452,7 @@ module.exports = {
 
             if (!(dataValidator.isValidCreateEvent(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -471,7 +472,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -487,7 +488,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Department!"
                         });
                     
@@ -501,7 +502,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Invalid Tags!"
                             });
                         
@@ -571,7 +572,7 @@ module.exports = {
 
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Created Event."
                     });
                 
@@ -583,7 +584,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - createEvent - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -605,7 +606,7 @@ module.exports = {
             
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             
@@ -613,7 +614,7 @@ module.exports = {
 
             if (!(dataValidator.isValidEditEventData(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -633,7 +634,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -649,7 +650,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Department!"
                         });
 
@@ -665,7 +666,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Event!"
                         });
                     
@@ -682,7 +683,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Invalid Tags!"
                             });
                         
@@ -750,7 +751,7 @@ module.exports = {
 
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Updated Event."
                     });
                 
@@ -762,7 +763,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - editEventData - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -784,7 +785,7 @@ module.exports = {
             
             if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             
@@ -792,7 +793,7 @@ module.exports = {
             
             if (!(dataValidator.isValidToggleEventStatus(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -809,7 +810,7 @@ module.exports = {
                     await db_connection.query("UNLOCK TABLES");
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -825,7 +826,7 @@ module.exports = {
                     
                     if (eventData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Event!"
                         });
                     
@@ -840,7 +841,7 @@ module.exports = {
 
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": req.body.eventStatus=="1" ? "Successfully Activated Event." : (req.body.eventStatus==2 ? "Successfully Closed Event Registrations." : "Successfully Removed Event from Anokha.")
                     });
 
@@ -853,7 +854,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleEventStatus - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -880,7 +881,7 @@ module.exports = {
             
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             
@@ -888,7 +889,7 @@ module.exports = {
             
             if(!(dataValidator.isValidTagEvent(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -910,7 +911,7 @@ module.exports = {
                     
                     if (eventData.length === 0 || tagData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     
@@ -925,7 +926,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -938,7 +939,7 @@ module.exports = {
                     
                     if(check.length!=0){
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Tag Already Exists for given event!"
                         });
                     
@@ -951,7 +952,7 @@ module.exports = {
                         await db_connection.query("UNLOCK TABLES");
                     
     
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Added Tag to Event."
                         });
                     
@@ -966,7 +967,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - addTagToEvent - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -993,7 +994,7 @@ module.exports = {
             
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             
@@ -1001,7 +1002,7 @@ module.exports = {
             
             if(!(dataValidator.isValidTagEvent(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
@@ -1023,7 +1024,7 @@ module.exports = {
                     
                     if (eventData.length === 0 || tagData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     
@@ -1038,7 +1039,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -1051,7 +1052,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Removed Tag from Event."
                     });
                 
@@ -1063,7 +1064,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - removeTagFromEvent - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 
@@ -1098,7 +1099,7 @@ module.exports = {
                         
                         if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         
@@ -1128,7 +1129,7 @@ module.exports = {
                         const [officials] = await db_connection.query(query, [req.body.managerId]);
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Fetched All Officials.",
                             "officials": officials
                         });
@@ -1142,7 +1143,7 @@ module.exports = {
                         const time = new Date();
                         fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllOfficials - ${err}\n`);
                         
-                        return res.status(500).json({
+                        return res.status(500).send({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
                     
@@ -1188,7 +1189,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Fetched All Officials.",
                             "officials": officials
                         });
@@ -1202,7 +1203,7 @@ module.exports = {
                         const time = new Date();
                         fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllOfficials - ${err}\n`);
                         
-                        return res.status(500).json({
+                        return res.status(500).send({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
                     
@@ -1217,7 +1218,7 @@ module.exports = {
                 
                 else{
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 
@@ -1237,13 +1238,13 @@ module.exports = {
         async (req,res) => {
             
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2)){
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
             
             if(!(dataValidator.isValidToggleStudentStatus(req.body))){
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
@@ -1262,7 +1263,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     
@@ -1277,7 +1278,7 @@ module.exports = {
                     
                     if (studentData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     
@@ -1295,7 +1296,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Student Doesn't Exist!"
                             });
                         }
@@ -1304,7 +1305,7 @@ module.exports = {
                         {
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Student Already Blocked!"
                             });
                         }
@@ -1317,7 +1318,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Blocked Student."
                             });
                         }
@@ -1333,7 +1334,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Student Doesn't Exist!"
                             });
                         }
@@ -1342,7 +1343,7 @@ module.exports = {
                         {
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Student Already Active!"
                             });
                         }
@@ -1355,7 +1356,7 @@ module.exports = {
                                 
                                 await db_connection.query("UNLOCK TABLES");
                                 
-                                return res.status(400).json({
+                                return res.status(400).send({
                                     "MESSAGE": "Student Doesn't Exist!"
                                 });
                             }
@@ -1368,7 +1369,7 @@ module.exports = {
                                 
                                 await db_connection.query("UNLOCK TABLES");
                                 
-                                return res.status(200).json({
+                                return res.status(200).send({
                                     "MESSAGE": "Successfully Unblocked Student."
                                 });
                             }
@@ -1384,7 +1385,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleStudentStatus - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
@@ -1405,20 +1406,20 @@ module.exports = {
             
             if(!(dataValidator.isValidToggleOfficialStatus(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             
             }
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
                 //console.log("auth");
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
             if((req.body.managerId == req.body.tokenManagerId)){
                 //console.log("manager");
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
@@ -1439,7 +1440,7 @@ module.exports = {
                         
                         if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         }
@@ -1454,7 +1455,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Official Doesn't Exist!"
                             });
                         }
@@ -1465,7 +1466,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         }
@@ -1476,7 +1477,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
                             });
                         }
@@ -1490,7 +1491,7 @@ module.exports = {
                         const time = new Date();
                         fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
                         
-                        return res.status(500).json({
+                        return res.status(500).send({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
                     }
@@ -1513,7 +1514,7 @@ module.exports = {
                         if(check.length==0){
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Official Doesn't Exist!"
                             });
                         }
@@ -1523,7 +1524,7 @@ module.exports = {
                         if(check.length > 0 && (check[0].managerRoleId == 1 || check[0].managerRoleId == 2)){
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         }
@@ -1533,7 +1534,7 @@ module.exports = {
                             await db_connection.query("UPDATE managerData SET managerAccountStatus = ? WHERE managerId = ?", [req.body.isActive, req.body.managerId]);
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
                             });
                         }
@@ -1546,7 +1547,7 @@ module.exports = {
                         const time = new Date();
                         fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
                         
-                        return res.status(500).json({
+                        return res.status(500).send({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
                     }
@@ -1572,7 +1573,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Official Doesn't Exist!"
                             });
                         
@@ -1585,7 +1586,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         }
@@ -1597,7 +1598,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": (req.body.isActive == "1") ? "Successfully Activated Official." : "Successfully Blocked Official."
                             });
                         }
@@ -1610,7 +1611,7 @@ module.exports = {
                         const time = new Date();
                         fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - toggleOfficialStatus - ${err}\n`);
                         
-                        return res.status(500).json({
+                        return res.status(500).send({
                             "MESSAGE": "Internal Server Error. Contact Web Team."
                         });
                     }
@@ -1631,14 +1632,14 @@ module.exports = {
             
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
             
             if(!(dataValidator.isValidAssignEventToOfficial(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
@@ -1657,7 +1658,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -1672,7 +1673,7 @@ module.exports = {
                     
                     if (eventData.length === 0 || managerData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
@@ -1688,7 +1689,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Official Already Assigned to Event!"
                             });
                         }
@@ -1699,7 +1700,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Assigned Official to Event."
                             });
                         }
@@ -1717,7 +1718,7 @@ module.exports = {
                         {
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         
@@ -1730,7 +1731,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Official Already Assigned to Event!"
                             });
                         }
@@ -1740,7 +1741,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Assigned Official to Event."
                             });
                         }
@@ -1754,7 +1755,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - assignEventToOfficial - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
@@ -1774,14 +1775,14 @@ module.exports = {
             
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
             
             if(!(dataValidator.isValidAssignEventToOfficial(req.body))){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
             }
@@ -1800,7 +1801,7 @@ module.exports = {
                     
                     if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -1816,7 +1817,7 @@ module.exports = {
                     
                     if (eventData.length === 0 || managerData.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Invalid Request!"
                         });
                     }
@@ -1831,7 +1832,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Removed Official from Event."
                         });
                     }
@@ -1850,7 +1851,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(400).json({
+                            return res.status(400).send({
                                 "MESSAGE": "Access Restricted!"
                             });
                         
@@ -1861,7 +1862,7 @@ module.exports = {
                             
                             await db_connection.query("UNLOCK TABLES");
                             
-                            return res.status(200).json({
+                            return res.status(200).send({
                                 "MESSAGE": "Successfully Removed Official from Event."
                             });
                         }
@@ -1874,7 +1875,7 @@ module.exports = {
                     const time = new Date();
                     fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - removeOfficialFromEvent - ${err}\n`);
                     
-                    return res.status(500).json({
+                    return res.status(500).send({
                         "MESSAGE": "Internal Server Error. Contact Web Team."
                     });
                 }
@@ -1898,7 +1899,7 @@ module.exports = {
         
         if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
             
-            return res.status(400).json({
+            return res.status(400).send({
             "MESSAGE": "Access Restricted!"
           });
         }
@@ -1919,7 +1920,7 @@ module.exports = {
             
             if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
             }
@@ -1934,7 +1935,7 @@ module.exports = {
               
                 await db_connection.query("UNLOCK TABLES");
               
-              return res.status(400).json({
+              return res.status(400).send({
                 "MESSAGE": "Student Doesn't Exist!"
               });
             }
@@ -1946,7 +1947,7 @@ module.exports = {
               
               await db_connection.query("UNLOCK TABLES");
               
-              return res.status(400).json({
+              return res.status(400).send({
                 "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
               });
             }
@@ -1959,7 +1960,7 @@ module.exports = {
               
               await db_connection.query("UNLOCK TABLES");
               
-              return res.status(200).json({
+              return res.status(200).send({
                 "MESSAGE": "Successfully Marked Gate Entry."
               });
             }
@@ -1973,7 +1974,7 @@ module.exports = {
             const time = new Date();
             fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateEntry - ${err}\n`);
             
-            return res.status(500).json({
+            return res.status(500).send({
               "MESSAGE": "Internal Server Error. Contact Web Team."
             });
           }
@@ -1999,7 +2000,7 @@ module.exports = {
         async (req, res) => {
           
           if (!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 8)) {
-            return res.status(400).json({
+            return res.status(400).send({
               "MESSAGE": "Access Restricted!"
             });
           }
@@ -2020,7 +2021,7 @@ module.exports = {
                 
                 if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 }
@@ -2034,7 +2035,7 @@ module.exports = {
                 
                     await db_connection.query("UNLOCK TABLES"); 
                 
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Student Doesn't Exist!"
                     });
                 }
@@ -2046,7 +2047,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                 
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                     });
                 }
@@ -2056,7 +2057,7 @@ module.exports = {
                 if (check3.length == 0) {
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                     });
                 }
@@ -2066,7 +2067,7 @@ module.exports = {
                 if (check4.length == 0) {
                     await db_connection.query("UNLOCK TABLES");
                 
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
                     });
                 }
@@ -2079,7 +2080,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                 
-                    return res.status(200).json({
+                    return res.status(200).send({
                         "MESSAGE": "Successfully Marked Gate Exit."
                     });
                 }
@@ -2093,7 +2094,7 @@ module.exports = {
               const time = new Date();
               fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markGateExit - ${err}\n`);
               
-              return res.status(500).json({
+              return res.status(500).send({
                 "MESSAGE": "Internal Server Error. Contact Web Team."
               });
             }
@@ -2115,14 +2116,14 @@ module.exports = {
         
           if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
           }
           
           if (!(dataValidator.isValidMarkEventAttendance(req.params))) {
 
-            return res.status(400).json({
+            return res.status(400).send({
               "MESSAGE": "Invalid Request!"
             });
           }
@@ -2145,7 +2146,7 @@ module.exports = {
                 
                 if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 
@@ -2162,7 +2163,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Event doesn't exist!"
                     });
                 }
@@ -2172,7 +2173,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Event Not Active!"
                     });
                 }
@@ -2187,7 +2188,7 @@ module.exports = {
                     
                     if (student.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Student Not Registered for Event!"
                         });
                     }
@@ -2202,7 +2203,7 @@ module.exports = {
                     
                     if (student.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Student Not Registered for Event!"
                         });
                     }
@@ -2221,7 +2222,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
                         });
                     }
@@ -2231,7 +2232,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Entry."
                         });
                     }
@@ -2252,7 +2253,7 @@ module.exports = {
                     {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -2264,7 +2265,7 @@ module.exports = {
                     if (check.length != 0) {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
                         });
                     }
@@ -2275,7 +2276,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Entry."
                         });
                     }
@@ -2294,7 +2295,7 @@ module.exports = {
                     {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -2306,7 +2307,7 @@ module.exports = {
                     if (check.length != 0) {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
                         });
                     }
@@ -2317,7 +2318,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Entry."
                         });
                     }
@@ -2331,7 +2332,7 @@ module.exports = {
             const time = new Date();
             fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markEventAttendanceEntry - ${err}\n`);
             
-            return res.status(500).json({
+            return res.status(500).send({
                 "MESSAGE": "Internal Server Error. Contact Web Team."
             });
           }
@@ -2352,14 +2353,14 @@ module.exports = {
         
           if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Access Restricted!"
                 });
           }
           
           if (!(dataValidator.isValidMarkEventAttendance(req.params))) {
                 
-                return res.status(400).json({
+                return res.status(400).send({
                     "MESSAGE": "Invalid Request!"
                 });
           }
@@ -2381,7 +2382,7 @@ module.exports = {
                 
                 if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Access Restricted!"
                     });
                 }
@@ -2401,7 +2402,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Event doesn't exist!"
                     });
                 }
@@ -2412,7 +2413,7 @@ module.exports = {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
-                    return res.status(400).json({
+                    return res.status(400).send({
                         "MESSAGE": "Event Not Active!"
                     });
                 }
@@ -2427,7 +2428,7 @@ module.exports = {
                     
                     if (student.length === 0) {
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Student Not Registered for Event!"
                         });
                     }
@@ -2442,7 +2443,7 @@ module.exports = {
                     await db_connection.query("UNLOCK TABLES");
                     
                     if (student.length === 0) {
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Student Not Registered for Event!"
                         });
                     }
@@ -2461,7 +2462,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2471,7 +2472,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2482,7 +2483,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2493,7 +2494,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Exit."
                         });
                     }
@@ -2514,7 +2515,7 @@ module.exports = {
                     {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -2527,7 +2528,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2538,7 +2539,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2548,7 +2549,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2559,7 +2560,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Exit."
                         });
                     }
@@ -2578,7 +2579,7 @@ module.exports = {
                     {
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Access Restricted!"
                         });
                     }
@@ -2591,7 +2592,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2602,7 +2603,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2613,7 +2614,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(400).json({
+                        return res.status(400).send({
                             "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
                         });
                     }
@@ -2624,7 +2625,7 @@ module.exports = {
                         
                         await db_connection.query("UNLOCK TABLES");
                         
-                        return res.status(200).json({
+                        return res.status(200).send({
                             "MESSAGE": "Successfully Marked Attendance Exit."
                         });
                     }
@@ -2638,7 +2639,7 @@ module.exports = {
             const time = new Date();
             fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - markEventAttendanceExit - ${err}\n`);
             
-            return res.status(500).json({
+            return res.status(500).send({
                 "MESSAGE": "Internal Server Error. Contact Web Team."
             });
           }
