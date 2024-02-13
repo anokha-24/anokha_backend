@@ -127,7 +127,7 @@ const TEMPLATE_STUDENT_REGISTERED = (userName,otp) => {
                 <p>${otp[5]}</p>
             </div>
     
-            <p class="expiration-text">This verification code will expire in the next 5 minutes. Please do not share this OTP with anyone for security reasons. It's important to keep your OTP confidential to prevent unauthorized access to your account.</p>
+            <p class="expiration-text">This verification code will expire in the next 5 minutes. Please do not share this OTP with anyone to prevent unauthorized access to your account.</p>
     
             <p class="regards-text">
                 Regards, <br>
@@ -139,7 +139,7 @@ const TEMPLATE_STUDENT_REGISTERED = (userName,otp) => {
         </main>
     
         <footer>
-            <p class="contact-text">Should you have any questions or require assistance, please feel free to reach out to our team at <a href="mailto:anokhapr@cb.amrita.edu" class="contact-link">anokhapr@cb.amrita.edu</a>.</p>
+            <p class="contact-text">If you have any questions or require assistance, please feel free to reach out to our team at <a href="mailto:anokhapr@cb.amrita.edu" class="contact-link">anokhapr@cb.amrita.edu</a>.</p>
         </footer>
     </div>
 </body>

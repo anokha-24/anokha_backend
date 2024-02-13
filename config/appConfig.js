@@ -12,6 +12,12 @@ const appConfig = {
     mailer:{
         obj: {
             service: process.env.MAILER_SERVICE,
+            host: process.env.MAILER_HOST,
+            port: process.env.MAILER_PORT,
+            tls: {
+                ciphers: 'SSLv3',
+                rejectUnauthorized: false,
+            },
             auth: {
                 user: process.env.MAILER_USER,
                 pass: process.env.MAILER_PASS

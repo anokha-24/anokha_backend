@@ -130,7 +130,7 @@ const TEMPLATE_WELCOME_MAIL = (userName) => {
         innovations you'll bring to the table. See you soon at Anokha 2024!</p>
       <p>Warm Regards,<br>WMD Team<br>Anokha 2024<br>Amrita Vishwa Vidyapeetham<br>Coimbatore Campus</p>
 
-      <p>Should you have any questions or require assistance, please feel free to reach out to our team at 
+      <p>If you have any questions or require assistance, please feel free to reach out to our team at 
         <a href="mailto:anokhapr@cb.amrita.edu" class="contact-link">anokhapr@cb.amrita.edu</a>.</p>
     </div>
     
