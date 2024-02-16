@@ -15,13 +15,13 @@
 // await cluster.set('key', 'value');
 // const value = await cluster.get('key');
 
-const Redis = require('redis');
+// const Redis = require('redis');
 
-const redisClient = Redis.createClient();
+// const redisClient = Redis.createClient();
 
-redisClient.on('error', err => console.log('Redis Client Error', err)).connect();
+// redisClient.on('error', err => console.log('Redis Client Error', err)).connect();
 
-module.exports = redisClient;
+// module.exports = redisClient;
 
 
 

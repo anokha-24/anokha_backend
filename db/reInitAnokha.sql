@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS intelTeamData (
     teamId INTEGER PRIMARY KEY AUTO_INCREMENT, 
     teamName VARCHAR(255), 
     platformType CHAR(1) NOT NULL,
-    platformId VARCHAR(255) NOT NULL,
+    platformId VARCHAR(255) NOT NULL, 
     teamStatus CHAR(1) NOT NULL, 
     totalMembers INTEGER NOT NULL, 
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
