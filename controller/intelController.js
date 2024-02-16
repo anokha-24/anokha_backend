@@ -108,7 +108,7 @@ module.exports = {
                     }
 
                     
-                    await db_connection.query('LOCK TABLES intelTeamData WRITE, intelTeamGroupData WRITE');
+                    await db_connection.query('LOCK TABLES intelTeamData READ, intelTeamGroupData READ');
                     
                     const [checkTeam] = await db_connection.query('SELECT * FROM intelTeamGroupData WHERE  studentId = ?', [req.body.studentId]);
                     
@@ -156,7 +156,7 @@ module.exports = {
                     let member = [];
                     let memberIds = [];
                     
-                    await db_connection.query('LOCK TABLES studentData READ');
+                    await db_connection.query('LOCK TABLES studentData READ, intelTeamGroupData READ');
                     
                     for(let i = 0; i < req.body.teamMembers.length; i++){
                         
@@ -171,6 +171,15 @@ module.exports = {
                             });
                         }
                         else{
+                            let [checkTeamMember] = await db_connection.query('SELECT * from intelTeamGroupData where studentId = ?',[member[0].studentId]);
+                            if (checkTeamMember.length > 0)
+                            {
+                                await db_connection.query('UNLOCK TABLES');
+
+                                return res.status(400).send({
+                                    "MESSAGE": `Team Member already part of a team: ${req.body.teamMembers[i]}`
+                                });
+                            }
                             memberIds.push(member[0].studentId);
                         }
                     }
@@ -349,7 +358,7 @@ module.exports = {
                     let member = [];
                     let memberIds = [];
                     
-                    await db_connection.query('LOCK TABLES studentData READ');
+                    await db_connection.query('LOCK TABLES studentData READ, intelTeamGroupData READ');
                     
                     for(let i = 0; i < req.body.teamMembers.length; i++){
                         
@@ -365,6 +374,15 @@ module.exports = {
                         }
 
                         else{
+                            let [checkTeamMember] = await db_connection.query('SELECT * from intelTeamGroupData where studentId = ?',[member[0].studentId]);
+                            if (checkTeamMember.length > 0)
+                            {
+                                await db_connection.query('UNLOCK TABLES');
+
+                                return res.status(400).send({
+                                    "MESSAGE": `Team Member already part of a team: ${req.body.teamMembers[i]}`
+                                });
+                            }
                             memberIds.push(member[0].studentId);
                         }
                     }

@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS transactionData;
 DROP TABLE IF EXISTS marketPlaceTransactionData;
 
+-- select * from transactionData where transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP; 
+
 CREATE TABLE IF NOT EXISTS transactionData (
     txnId VARCHAR(255) NOT NULL,
     userId INT NOT NULL,
@@ -11,6 +13,7 @@ CREATE TABLE IF NOT EXISTS transactionData (
     phone VARCHAR(10) NOT NULL,
     transactionStatus VARCHAR(1) NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expiryTime TIMESTAMP NOT NULL DEFAULT ( createdAt + INTERVAL 5 MINUTE ),
     lastUpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (txnid),
     CHECK (transactionStatus IN ('0', '1', '2'))

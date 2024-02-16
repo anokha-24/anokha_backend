@@ -1402,11 +1402,11 @@ module.exports = {
                                 //console.log(result);
 
 
-                                // Store the events in Redis
-                                //await redisClient.set('allEvents', JSON.stringify(result));
+                                // // Store the events in Redis
+                                // await redisClient.set('allEvents', JSON.stringify(result));
                                 
-                                // Set the expiry time for 10mins
-                                //await redisClient.expire('allEvents', 600);
+                                // // Set the expiry time for 10mins
+                                // await redisClient.expire('allEvents', 600);
 
                                 
                                 
@@ -1936,6 +1936,282 @@ module.exports = {
 
     }
     */
+    buyPassport: [
+        tokenValidator,
+        async (req, res) => {
+            const db_connection = await anokha_db.promise().getConnection();
+            const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
+
+            try {
+
+                // check if the student exists and is active
+                await db_connection.query("LOCK TABLES studentData READ");
+
+                const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+
+                await db_connection.query("UNLOCK TABLES");
+
+                if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+
+                    return res.status(400).send({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                }
+
+                if(studentData[0].isAmritaStudent === "1") {
+
+                    return res.status(400).send({
+                        "MESSAGE": "You are an Amrita Student. You don't need a passport!"
+                    });
+                }
+
+                if(studentData[0].needPassport === "0") {
+                    return res.status(400).send({
+                        "MESSAGE": "You don't need a passport!"
+                    });
+                }
+
+                if(studentData[0].studentEmail.split("@")[1] === "cb.students.amrita.edu") {
+                    return res.status(400).send({
+                        "MESSAGE": "You are an Amrita Student. You don't need a passport!"
+                    });
+                }
+
+                await transaction_db_connection.query("LOCK TABLES transactionData READ");
+
+                // check for any pending payments
+                const [tT2] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE userId = ? AND transactionStatus = '0'", [req.body.studentId]);
+
+                if (tT2.length > 0) {
+
+                    return res.status(400).send({
+                        "MESSAGE": "You have made a payment attempt that is still in pending state. Go to your profile -> Transactions and then click on verify now to proceed!"
+                    });
+                }
+
+                await transaction_db_connection.query("UNLOCK TABLES");
+
+                if (studentData[0].studentAccountStatus === "2") {
+                    return res.status(400).send({
+                        "MESSAGE": "You Already have a passport!"
+                    });
+                }
+
+                if (studentData[0].studentAccountStatus !== "1") {
+                    return res.status(400).send({
+                        "MESSAGE": "Something's wrong on our end. Contact 7871602673 Dilip Parasu WMD Head !"
+                    });
+                }
+
+                const txnId = `TXN-P-${req.body.studentId.toString()}-${new Date().getTime()}`;
+                let amount = 500;
+                let productinfo = `P-${req.body.studentId.toString()}`;
+                let firstname = studentData[0].studentFullName;
+                let email = studentData[0].studentEmail;
+                let phone = studentData[0].studentPhone;
+                
+                transaction_db_connection.query('LOCK TABLES transactionData WRITE');
+
+                const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, studentData[0].studentId, amount, productinfo, firstname, email, phone, "0"]);
+                
+                transaction_db_connection.query('UNLOCK TABLES');
+
+                if (insertTransactionData.affectedRows !== 1) {
+                    return res.status(500).send({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+
+                const hash = generateHash({
+                    "txnid": txnId,
+                    "amount": amount,
+                    "productinfo": productinfo,
+                    "firstname": firstname,
+                    "email": email
+                });
+
+                
+                // DONE. Move to Transaction from frontend.
+                
+                return res.status(200).send({
+                    "MESSAGE": "Proceed to pay. Seats Locked for 5 mins.",
+                    "txnid": txnId,
+                    "amount": amount,
+                    "productinfo": productinfo,
+                    "firstname": firstname,
+                    "email": email,
+                    "phone": phone,
+                    "surl": `${appConfig.surlPrefix}/${txnId}`,
+                    "furl": `${appConfig.furlPrefix}/${txnId}`,
+                    "hash": hash
+                });
+
+            } catch (err) {
+                console.log(err);
+
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - buyPassport - ${err}\n`);
+
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_connection.query("UNLOCK TABLES");
+
+                await transaction_db_connection.query("UNLOCK TABLES");
+
+                db_connection.release();
+
+                transaction_db_connection.release();
+            }
+        },
+    ],
+
+    verifyTransactionPayU: async (req,res) => {
+        const db_connection = await anokha_db.promise().getConnection();
+        const transaction_db_connection = await anokha_transactions_db.promise().getConnection(); 
+        try{
+            
+            if(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.subtring(0,2)==='Txn'){
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Transaction ID!"
+                });
+            }
+
+            await transaction_db_connection.query("LOCK TABLES transactionData READ");
+
+            const [transactionData] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [req.body.transactionId]);
+
+            await transaction_db_connection.query("UNLOCK TABLES");
+            
+            if(transactionData.length === 0){
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Transaction ID!"
+                });
+            }
+
+            if(transactionData[0].transactionStatus === "1"){
+                return res.status(200).send({
+                    "MESSAGE": "Transaction already verified!"
+                });
+            }
+
+            if(transactionData[0].transactionStatus === "2"){
+                return res.status(202).send({
+                    "MESSAGE": "Transaction Failed!"
+                });
+            }
+
+            if(transactionData[0].transactionStatus != "0"){
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Transaction Status!"
+                });
+            }
+
+            req.body.studentId = transactionData[0].userId;
+
+            // check if the student exists and is active
+            await db_connection.query("LOCK TABLES studentData READ");
+
+            const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+
+            await db_connection.query("UNLOCK TABLES");
+
+            if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            const txnId = req.body.transactionId;
+
+            const productInfo = transactionData[0].productinfo;
+
+            if (productInfo[0] === 'P') {
+
+
+                const hash = generateVerifyHash({ command: "verify_payment", var1: transactionData[0].txnId });
+                const response = await fetch(appConfig.payU_test.verifyURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `key=${appConfig.payU_test.key}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
+                });
+
+                const responseText = await response.json();
+                const transactionDetails = responseText.transaction_details;
+
+                console.log(transactionDetails[transactionData[0].txnId]);
+
+                if (transactionDetails[transactionData[0].txnId].status === "success") {
+                    
+                    await db_connection.beginTransaction();
+                    await transaction_db_connection.beginTransaction();
+
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
+                    await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
+                    
+                    await transaction_db_connection.commit();
+                    await db_connection.commit();
+
+                    return res.status(200).send({   
+                        "MESSAGE": "Transaction Verified!"
+                    });
+
+                }
+                else if (transactionDetails[transactionData[0].txnId].status === "failure") {
+
+                    await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+
+                    await transaction_db_connection.query("UNLOCK TABLES");
+
+                    return res.status(202).send({
+                        "MESSAGE": "Transaction Failed!"
+                    });
+
+                }
+            } else if (productInfo[0] === 'E') {
+
+                return res.status(400).send({
+                    "MESSAGE": "Yet to be implemented!"
+                });
+                   
+            } else {
+                return res.status(400).send({
+                    "MESSAGE": "Unauthorized!"
+                });
+            }
+            
+
+
+
+        }
+        catch(err){
+            console.log(err);
+
+            await transaction_db_connection.rollback();
+            await db_connection.rollback();
+
+            const time = new Date();
+            fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - verifyTransactionPayU - ${err}\n`);
+            return res.status(500).send({
+                "MESSAGE": "Internal Server Error. Contact Web Team."
+            });
+        }
+        finally{
+            await db_connection.query("UNLOCK TABLES");
+            await transaction_db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+            transaction_db_connection.release();
+        }
+    },
+
+
     registerForEventStepOne: [
         tokenValidator,
         async (req, res) => {

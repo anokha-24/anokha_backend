@@ -12,6 +12,12 @@ const appConfig = {
     mailer:{
         obj: {
             service: process.env.MAILER_SERVICE,
+            host: process.env.MAILER_HOST,
+            port: process.env.MAILER_PORT,
+            tls: {
+                ciphers: 'SSLv3',
+                rejectUnauthorized: false,
+            },
             auth: {
                 user: process.env.MAILER_USER,
                 pass: process.env.MAILER_PASS
@@ -65,11 +71,13 @@ const appConfig = {
     },
     payU_test: {
         key: process.env.PAYU_TEST_KEY,
-        salt: process.env.PAYU_TEST_SALT
+        salt: process.env.PAYU_TEST_SALT,
+        verifyURL: "https://test.payu.in/merchant/postservice?form=2",
     },
     payU_prod: {
         key: process.env.PAYU_PROD_KEY,
-        salt: process.env.PAYU_PROD_SALT
+        salt: process.env.PAYU_PROD_SALT,
+        verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
     surlPrefix: "http://localhost:3000/event/register/verify",
     furlPrefix: "http://localhost:3000/event/register/verify",
