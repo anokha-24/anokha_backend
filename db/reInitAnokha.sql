@@ -350,7 +350,7 @@ VALUES (
         "Amrita Vishwa Vidyapeetham",
         "Coimbatore",
         "0",
-        "2"
+        "1"
     );
 -- password = 123
 INSERT INTO studentData (

@@ -79,8 +79,16 @@ const appConfig = {
         salt: process.env.PAYU_PROD_SALT,
         verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
-    surlPrefix: "http://localhost:3000/event/register/verify",
-    furlPrefix: "http://localhost:3000/event/register/verify",
+    surlPrefix: "http://127.0.0.1:3002/events/registration/verify",
+    furlPrefix: "http://127.0.0.1:3002/events/registration/verify"
 }
+
+const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test; 
+
+appConfig.payUKey = payUMode.key,
+appConfig.payUSalt = payUMode.salt,
+appConfig.payUVerifyURL = payUMode.verifyURL
+
+//console.log(appConfig.payUKey, appConfig.payUSalt, appConfig.payUVerifyURL);
 
 module.exports = appConfig;

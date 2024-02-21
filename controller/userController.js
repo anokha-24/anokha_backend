@@ -6,7 +6,7 @@ const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
 const appConfig = require('../config/appConfig');
 const [tokenValidator, validateEventRequest] = require('../middleware/auth/login/tokenValidator');
-const { generateHash } = require("../middleware/payU/util");
+const { generateHash, generateVerifyHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
 //const redisClient = require('../connection/redis');
@@ -1925,17 +1925,6 @@ module.exports = {
 
 
     
-    /*
-    {
-        "eventId": "integer",
-        "totalMembers": "integer",
-        "isMarketPlacePaymentMode": "<0/1>",
-        "teamMembers": [], // list of email strings. Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-        "memberRoles": [], // list of role strings (CAN BE ANYTHING). Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-        "teamName": "", // Send only team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-
-    }
-    */
     buyPassport: [
         tokenValidator,
         async (req, res) => {
@@ -2034,7 +2023,7 @@ module.exports = {
                 // DONE. Move to Transaction from frontend.
                 
                 return res.status(200).send({
-                    "MESSAGE": "Proceed to pay. Seats Locked for 5 mins.",
+                    "MESSAGE": "Proceed to pay.",
                     "txnid": txnId,
                     "amount": amount,
                     "productinfo": productinfo,
@@ -2067,12 +2056,14 @@ module.exports = {
         },
     ],
 
+
+
     verifyTransactionPayU: async (req,res) => {
         const db_connection = await anokha_db.promise().getConnection();
         const transaction_db_connection = await anokha_transactions_db.promise().getConnection(); 
         try{
             
-            if(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.subtring(0,2)==='Txn'){
+            if(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && (req.body.transactionId).substring(0,2)==='TXN'){
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction ID!"
                 });
@@ -2132,12 +2123,12 @@ module.exports = {
 
 
                 const hash = generateVerifyHash({ command: "verify_payment", var1: transactionData[0].txnId });
-                const response = await fetch(appConfig.payU_test.verifyURL, {
+                const response = await fetch(appConfig.payUVerifyURL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `key=${appConfig.payU_test.key}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
+                    body: `key=${appConfig.payUKey}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
                 });
 
                 const responseText = await response.json();
@@ -2177,18 +2168,63 @@ module.exports = {
                 }
             } else if (productInfo[0] === 'E') {
 
-                return res.status(400).send({
-                    "MESSAGE": "Yet to be implemented!"
+                // Event Registration
+                const hash = generateVerifyHash({ command: "verify_payment", var1: transactionData[0].txnId });
+                
+                const response = await fetch(appConfig.payUVerifyURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `key=${appConfig.payUKey}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
                 });
-                   
-            } else {
+
+                const responseText = await response.json();
+                const transactionDetails = responseText.transaction_details;
+
+                console.log(transactionDetails[transactionData[0].txnId]);
+
+                if (transactionDetails[transactionData[0].txnId].status === "success") {
+                    
+                    await db_connection.beginTransaction();
+                    await transaction_db_connection.beginTransaction();
+
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
+                    await db_connection.query("UPDATE eventRegistrationData SET registrationStatus = '2' WHERE txnId = ?", [txnId]);
+                    //await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
+                    
+                    await transaction_db_connection.commit();
+                    await db_connection.commit();
+
+                    return res.status(200).send({   
+                        "MESSAGE": "Transaction Verified!"
+                    });
+
+                }
+
+                else if (transactionDetails[transactionData[0].txnId].status === "failure") {
+
+                    await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+
+                    await transaction_db_connection.query("UNLOCK TABLES");
+
+                    return res.status(202).send({
+                        "MESSAGE": "Transaction Failed!"
+                    });
+
+                }
+
+            } 
+            
+            else {
+                
                 return res.status(400).send({
                     "MESSAGE": "Unauthorized!"
                 });
             }
-            
-
-
 
         }
         catch(err){
@@ -2211,7 +2247,18 @@ module.exports = {
         }
     },
 
+    
+    /*
+    {
+        "eventId": "integer",
+        "totalMembers": "integer",
+        "isMarketPlacePaymentMode": "<0/1>",
+        "teamMembers": [], // list of email strings. Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
+        "memberRoles": [], // list of role strings (CAN BE ANYTHING). Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
+        "teamName": "", // Send only team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
 
+    }
+    */
     registerForEventStepOne: [
         tokenValidator,
         async (req, res) => {
@@ -2339,7 +2386,7 @@ module.exports = {
                     
                     // payU
 
-                    const txnId = `TXN-${req.body.studentId.toString()}-${req.body.eventId.toString()}-${new Date().getTime()}`;
+                    const txnId = `TXN-E-${req.body.studentId.toString()}-${req.body.eventId.toString()}-${new Date().getTime()}`;
                     let amount = 0;
                     let productinfo = "";
                     let firstname = studentData[0].studentFullName;

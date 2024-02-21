@@ -1,8 +1,8 @@
 const crypto = require("crypto");
 const appConfig = require("../../config/appConfig");
 
-const key = appConfig.payU_test.key;
-const salt = appConfig.payU_test.salt;
+const key = appConfig.payUKey;
+const salt = appConfig.payUSalt;
 
 function generateHash(params) {
     // sha512(key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT)
