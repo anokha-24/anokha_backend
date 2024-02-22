@@ -2057,13 +2057,16 @@ module.exports = {
     ],
 
 
-
+    /*{
+        "transactionId":""
+    }*/
     verifyTransactionPayU: async (req,res) => {
         const db_connection = await anokha_db.promise().getConnection();
         const transaction_db_connection = await anokha_transactions_db.promise().getConnection(); 
         try{
             
-            if(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && (req.body.transactionId).substring(0,2)==='TXN'){
+            if(!(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.substring(0,3)==='TXN')){
+                //console.log("check",req.body.transactionId.substring(0,2));
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction ID!"
                 });
@@ -2076,6 +2079,7 @@ module.exports = {
             await transaction_db_connection.query("UNLOCK TABLES");
             
             if(transactionData.length === 0){
+                //console.log("test");
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction ID!"
                 });

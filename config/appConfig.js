@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '.env.local' })
 
 const CONCURRENCY_LIMIT = 8;
+const BASE_URL = process.env.BASE_URL
 
 const appConfig = {
     CONCURRENCY_LIMIT: CONCURRENCY_LIMIT,
@@ -79,8 +80,8 @@ const appConfig = {
         salt: process.env.PAYU_PROD_SALT,
         verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
-    surlPrefix: "http://127.0.0.1:3002/events/registration/verify",
-    furlPrefix: "http://127.0.0.1:3002/events/registration/verify"
+    surlPrefix: BASE_URL+"/trasactions/verify",
+    furlPrefix: BASE_URL+"/trasactions/verify"
 }
 
 const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test; 
