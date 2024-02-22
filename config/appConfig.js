@@ -80,8 +80,8 @@ const appConfig = {
         salt: process.env.PAYU_PROD_SALT,
         verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
-    surlPrefix: BASE_URL+"/trasactions/verify",
-    furlPrefix: BASE_URL+"/trasactions/verify"
+    surlPrefix: BASE_URL+"/transactions/verify",
+    furlPrefix: BASE_URL+"/transactions/verify"
 }
 
 const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test; 
