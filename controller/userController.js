@@ -2255,7 +2255,7 @@ module.exports = {
     getAllTransactions: [
         tokenValidator,
         async (req, res) => {
-            
+
             const db_connection = await anokha_transactions_db.promise().getConnection();
 
             try {
