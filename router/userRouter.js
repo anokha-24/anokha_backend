@@ -15,5 +15,6 @@ userRouter.post('/registeredEventData', userController.registeredEventData);
 userRouter.get('/getEventData/:eventId(\\d+)', userController.getEventData);
 userRouter.post('/registerForEventStepOne', userController.registerForEventStepOne);
 userRouter.post('/verifyTransaction', userController.verifyTransactionPayU);
+userRouter.get('/getAllTransactions', userController.getAllTransactions);
 
 module.exports = userRouter;

@@ -2251,6 +2251,44 @@ module.exports = {
         }
     },
 
+
+    getAllTransactions: [
+        tokenValidator,
+        async (req, res) => {
+            
+            const db_connection = await anokha_transactions_db.promise().getConnection();
+
+            try {
+                await db_connection.query("LOCK TABLES transactionData READ, marketPlaceTransactionData READ");
+
+                const [transactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM transactionData WHERE userId = ?", [req.body.studentId]);
+                const [marketPlaceTransactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM marketPlaceTransactionData WHERE userId = ?", [req.body.studentId]);
+
+                await db_connection.query("UNLOCK TABLES");
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Transactions.",
+                    "PAY_U_TRANSACTIONS": transactions,
+                    "MARKET_PLACE_TRANSACTIONS": marketPlaceTransactions
+                });
+            }
+            catch (err) {
+                console.log(err);
+
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllTransactions - ${err}\n`);
+
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    ],
+
     
     /*
     {
