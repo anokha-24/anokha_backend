@@ -11,8 +11,14 @@ const verifyTransactions = async () => {
         // Get all the transactions that are not verified
         await transaction_db_connection.query(`LOCK TABLES transactionData READ`)
         const [transactionD] = await transaction_db_connection.query(`SELECT * FROM transactionData WHERE transactionStatus = "0"`);
-        const txnids = transactionD.map((transaction) => transaction.txnid).join("|");
+
+        const txnids = transactionD.map((transaction) => transaction.txnId).join("|");
+
+        //console.log(txnids);
+
         await transaction_db_connection.query(`UNLOCK TABLES`);
+
+
 
         // if there are no transactions to verify, return
         if (transactionD.length === 0) {
@@ -31,7 +37,11 @@ const verifyTransactions = async () => {
 
         const data = await response.json();
 
+        //console.log("data",data);
+
         const transactionDetails = data.transaction_details;
+
+        //console.log("transactionDetails",transactionDetails);
 
         // collect all the transactions that are success and failure
         const successTransactions = [''];
@@ -40,32 +50,68 @@ const verifyTransactions = async () => {
         for (const txnid in transactionDetails) {
             // console.log(transactionDetails[txnid]);
             if (transactionDetails[txnid].status === "success") {
-                successTransactions.push(txnid);
+                successTransactions.push(transactionDetails[txnid]);
             } else if (transactionDetails[txnid].status === "failure") {
-                failureTransactions.push(txnid);
+                failureTransactions.push(transactionDetails[txnid]);
             }
         }
 
-        console.log(successTransactions);
-        console.log(failureTransactions);
-        console.log(transactionDetails);
+        //console.log('txnids');
+        //console.log('success - ',successTransactions);
+        //console.log('failure - ',failureTransactions);
+        //console.log(transactionDetails);
 
-        let updatedTransactions = [];
+        //let updatedTransactions = [];
 
         await transaction_db_connection.beginTransaction();
         await db_connection.beginTransaction();
 
-        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactions]);
-        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactions]);
-        await transaction_db_connection.query(`UPDATE marketPlaceTransactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactions]);
-        await transaction_db_connection.query(`UPDATE marketPlaceTransactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactions]);
+        const successTransactionIds = successTransactions.map(obj => obj.txnid ? obj.txnid : '');
+        const failureTransactionIds = failureTransactions.map(obj => obj.txnid ? obj.txnid : '');
+
+        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactionIds]);
+        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactionIds]);
+
+        //success passports
+
+        //const test = [{txnid:'TXN-P-23-234'},{txnid:'TXN-P-233-234'}]
+
+        const successPassports = successTransactions.filter( (txn) => typeof txn.txnid === 'string' && txn.txnid.charAt(4) === 'P').map((txn) => parseInt(txn.txnid.split('-')[2]));
+
+        await db_connection.query('UPDATE studentData SET studentAccountStatus = "2" WHERE studentId IN (?)',[successPassports]);
+
+        //success eventRegistrations
+
+        await db_connection.query('UPDATE eventRegistrationData SET registrationStatus = "2" WHERE txnId IN (?)',[successTransactionIds]);
+
+        //await db_connection.query('UPDATE eventRegistrationData SET registrationStatus = "2" WHERE userId IN (?)',[successEventRegistrations]);
+
+
+        //console.log('k',successPassports);
+
+        // successTransactions.forEach(async (txn) => {
+        //     if(txn.txnid[4]==='P'){
+        //         await db_connection.query(`UPDATE studentData SET studentAccountStatus = '1' WHERE studntId = ?`, [parseInt(txn.txnid.split('-')[2])]);
+        //     }
+        // });
+
+
+        // await transaction_db_connection.query(`UPDATE marketPlaceTransactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactions]);
+        // await transaction_db_connection.query(`UPDATE marketPlaceTransactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactions]);
+
+        
 
         //sample working query
         //UPDATE anokha.studentData SET studentAccountStatus = '2' WHERE studentId IN (SELECT userId FROM transactionData WHERE txnId IN ('simpletransactionid') AND productinfo LIKE 'T%');
 
-        await db_connection.query(`UPDATE studentData SET studentAccountStatus = '2' WHERE userId IN (SELECT stuentId FROM transactionData WHERE txnId IN (?) AND productinfo LIKE 'P%')`, [successTransactions]);
+        // await db_connection.query(`UPDATE studentData SET studentAccountStatus = '2' WHERE userId IN (SELECT stuentId FROM transactionData WHERE txnId IN (?) AND productinfo LIKE 'P%')`, [successTransactions]);
 
-        await db_connection.query(`UPDATE eventRegistrationData SET registrationStatus = '2' WHERE userId IN (SELECT stuentId FROM transactionData WHERE txnId IN (?) AND productinfo LIKE 'E%')`, [successTransactions]);
+        //await db_connection.query(`UPDATE eventRegistrationData SET registrationStatus = '2' WHERE userId IN (SELECT stuentId FROM transactionData WHERE txnId IN (?) AND productinfo LIKE 'E%')`, [successTransactions]);
+
+        // for(let i = 0; i < failureTransactions.length ; i++){
+
+        //     await db_connection.query(`UPDATE eventRegistrationData SET registrationStatus = '2' WHERE userId = ? AND eventId = ?`, [successTransactions]);
+        // }
 
 
 
@@ -241,4 +287,6 @@ const verifyTransactions = async () => {
     }
 }
 
-module.exports = verifyTransactions;
+verifyTransactions();
+
+//module.exports = verifyTransactions;
