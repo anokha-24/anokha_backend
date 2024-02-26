@@ -46,6 +46,8 @@ module.exports = {
             else{
                 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try {
 
@@ -185,9 +187,11 @@ module.exports = {
                     }
                     await db_connection.query('UNLOCK TABLES');
                  
-                    let refiater;
+                    //let refiater;
                     
                     await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
 
                     if (platformType === '1'){
                         
@@ -221,7 +225,9 @@ module.exports = {
                 
                 catch(err){
                     
-                    await db_connection.rollback();
+                    if(rollbackFlag === "1"){                    
+                        await db_connection.rollback();
+                    }
 
                     console.log(err);
                     
@@ -258,6 +264,8 @@ module.exports = {
             else{
 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try{
 
@@ -396,6 +404,8 @@ module.exports = {
 
                     await db_connection.beginTransaction();
 
+                    rollbackFlag = "1";
+
                     await db_connection.query('UPDATE intelTeamData SET teamName = ?, totalMembers = ? WHERE teamId = ?', [req.body.teamName, req.body.teamMembers.length+1, checkTeam[0].teamId]);
                     
                     await db_connection.query('DELETE FROM intelTeamGroupData WHERE teamId = ? AND studentId != ?', [checkTeam[0].teamId, req.body.studentId]);
@@ -414,7 +424,10 @@ module.exports = {
                 }
                 catch(err){
 
-                    await db_connection.rollback();
+                    if(rollbackFlag === "1"){
+                        await db_connection.rollback();
+                    }
+                    
                     console.log(err);
                     
                     const time = new Date();

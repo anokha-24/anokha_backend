@@ -2063,6 +2063,7 @@ module.exports = {
     verifyTransactionPayU: async (req,res) => {
         const db_connection = await anokha_db.promise().getConnection();
         const transaction_db_connection = await anokha_transactions_db.promise().getConnection(); 
+        let rollbackFlag = "0";
         try{
             
             if(!(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.substring(0,3)==='TXN')){
@@ -2145,6 +2146,7 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
+                    let rollbackFlag = "0";
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
@@ -2193,6 +2195,8 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
+                    let rollbackFlag = "0";
+
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE eventRegistrationData SET registrationStatus = '2' WHERE txnId = ?", [txnId]);
@@ -2234,8 +2238,10 @@ module.exports = {
         catch(err){
             console.log(err);
 
-            await transaction_db_connection.rollback();
-            await db_connection.rollback();
+            if(rollbackFlag === "1"){
+                await transaction_db_connection.rollback();
+                await db_connection.rollback();
+            }    
 
             const time = new Date();
             fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - verifyTransactionPayU - ${err}\n`);
@@ -2315,6 +2321,8 @@ module.exports = {
             
             const db_connection = await anokha_db.promise().getConnection();
             const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
+
+            let rollbackFlag = "0";
 
             try {
 
@@ -2465,6 +2473,8 @@ module.exports = {
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
 
+                        rollbackFlag = "1";
+
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         
@@ -2593,6 +2603,8 @@ module.exports = {
 
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
+
+                        rollbackFlag = "1";
                         
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
@@ -2828,6 +2840,8 @@ module.exports = {
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
 
+                        rollbackFlag = "1"; 
+
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         if (insertTransactionData.affectedRows !== 1) {
@@ -2965,10 +2979,12 @@ module.exports = {
 
 
             } catch (err) {
-                
-                await db_connection.rollback();
-                await transaction_db_connection.rollback();
 
+                if (rollbackFlag === "1") {
+                    await db_connection.rollback();
+                    await transaction_db_connection.rollback();
+                }
+                
                 console.log(err);
                 
                 const time = new Date();

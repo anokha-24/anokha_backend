@@ -464,6 +464,8 @@ module.exports = {
                 
                 const db_connection = await anokha_db.promise().getConnection();
                 
+                let rollbackFlag = "0";
+
                 try{
                     
                     await db_connection.query("LOCK TABLES managerData READ");
@@ -518,6 +520,8 @@ module.exports = {
 
 
                     await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
                     
                     const query =
                     `
@@ -580,8 +584,10 @@ module.exports = {
                 
                 }
                 catch(err){
-                    
-                    await db_connection.rollback();
+
+                    if (rollbackFlag=== "1") {
+                        await db_connection.rollback();
+                    }
 
                     console.log(err);
                     
@@ -627,6 +633,8 @@ module.exports = {
             else{
                 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try{
                     
@@ -701,6 +709,8 @@ module.exports = {
 
                     await db_connection.beginTransaction();
                     
+                    rollbackFlag = "1";
+
                     const query =
                     `
                     UPDATE eventData
@@ -763,8 +773,10 @@ module.exports = {
                 }
                 catch(err){
 
-                    await db_connection.rollback();
-                    
+                    if (rollbackFlag === "1") {
+                        await db_connection.rollback();
+                    }
+
                     console.log(err);
                     
                     const time = new Date();
@@ -1259,6 +1271,8 @@ module.exports = {
             else{
                 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try{
                     
@@ -1320,6 +1334,8 @@ module.exports = {
                         else{
 
                             await db_connection.beginTransaction();
+
+                            rollbackFlag = "1"; 
                             
                             await db_connection.query("INSERT INTO blockedStudentStatus (studentId, lastStatus, blockedBy) VALUES (?, ?, ?)", [req.body.studentId, check[0].studentAccountStatus, req.body.managerId]);
                             
@@ -1374,6 +1390,8 @@ module.exports = {
                             else{
 
                                 await db_connection.beginTransaction();
+
+                                rollbackFlag = "1";
                                 
                                 await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [lastStatus[0].lastStatus, req.body.studentId]);
                                 
@@ -1392,8 +1410,10 @@ module.exports = {
                 
                 catch(err){
 
-                    await db_connection.rollback();
-                    
+                    if (rollbackFlag === "1") {
+                        await db_connection.rollback();
+                    }
+
                     console.log(err);
                     
                     const time = new Date();
@@ -1923,6 +1943,8 @@ module.exports = {
           req.params.studentId = parseInt(req.params.studentId);
           
           const db_connection = await anokha_db.promise().getConnection();
+
+          let rollbackFlag = "0";
           
           try {
 
@@ -1969,6 +1991,8 @@ module.exports = {
 
               await db_connection.beginTransaction();
 
+              rollbackFlag = "1";
+
               await db_connection.query("INSERT INTO visitLogs (studentId, entryTime) VALUES (?, NOW())", [req.params.studentId]);
               
               await db_connection.query("UPDATE studentData SET isInCampus = 1 WHERE studentId = ?", [req.params.studentId]);
@@ -1984,8 +2008,10 @@ module.exports = {
           
           catch (err) {
 
-            await db_connection.rollback();
-            
+            if(rollbackFlag == "1"){
+                await db_connection.rollback();
+            }
+
             console.log(err);
             
             const time = new Date();
@@ -2007,7 +2033,7 @@ module.exports = {
     ],
 
     getDepartments: async (req, res) => {
-            console.log("getDepartments");
+            //console.log("getDepartments");
             db_connection = await anokha_db.promise().getConnection();
             try {
                 await db_connection.query("LOCK TABLES departmentData READ");
@@ -2053,6 +2079,8 @@ module.exports = {
             req.params.studentId = parseInt(req.params.studentId);
             
             const db_connection = await anokha_db.promise().getConnection();
+
+            let rollbackFlag = "0";
             
             try {
 
@@ -2122,6 +2150,8 @@ module.exports = {
 
                     await db_connection.beginTransaction();
 
+                    rollbackFlag = "1";
+
                     await db_connection.query("UPDATE visitLogs SET studentId = ?, exitTime = NOW() WHERE exitTime is NULL", [req.params.studentId]);
                     
                     await db_connection.query("UPDATE studentData SET isInCampus = 0 WHERE studentId = ?", [req.params.studentId]);
@@ -2137,7 +2167,9 @@ module.exports = {
             
             catch (err) {
 
-              await db_connection.rollback();
+              if(rollbackFlag == "1"){
+                await db_connection.rollback();
+              }
               
               console.log(err);
               

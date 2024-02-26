@@ -130,6 +130,25 @@ const verifyTransactions = async () => {
 
         await db_connection.query(queryString);
 
+        //release expired seats
+
+        const [expiredTxns] = await db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
+
+        await db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
+
+        const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[expiredTxns]);
+
+        await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
+        await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
+
+        queryString = '';
+
+        expiredSeats.forEach((e) => {
+            queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
+        });
+            
+        await db_connection.query(queryString);
+
         await transaction_db_connection.commit();
         await db_connection.commit();
 
