@@ -13,6 +13,7 @@ adminRouter.post('/addTag',adminController.addTag);
 adminRouter.post('/toggleTagStatus',adminController.toggleTagStatus);
 adminRouter.get('/getAllTags',adminController.getAllTags);
 adminRouter.get('/getActiveTags',adminController.getActiveTags);
+adminRouter.get('/getDepartments',adminController.getDepartments);
 adminRouter.post('/addTagToEvent',adminController.addTagToEvent);
 adminRouter.post('/removeTagFromEvent',adminController.removeTagFromEvent);
 adminRouter.get('/getAllOfficials',adminController.getAllOfficials);

@@ -2006,6 +2006,32 @@ module.exports = {
       }
     ],
 
+    getDepartments: async (req, res) => {
+            console.log("getDepartments");
+            db_connection = await anokha_db.promise().getConnection();
+            try {
+                await db_connection.query("LOCK TABLES departmentData READ");
+                const [departments] = await db_connection.query("SELECT departmentId, departmentName, departmentAbbreviation FROM departmentData");
+                await db_connection.query("UNLOCK TABLES");
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Departments.",
+                    "departments": departments
+                });
+            }    
+            catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getDepartments - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        },
+
     
     /*
     params studentId
