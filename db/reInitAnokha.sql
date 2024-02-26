@@ -454,7 +454,8 @@ CREATE TABLE IF NOT EXISTS eventData (
     CHECK (isPerHeadPrice IN ("0", "1")),
     CHECK (isRefundable IN ("0", "1")),
     CHECK (eventStatus IN ("0", "1", "2")),
-    CHECK (needGroupData IN ("0", "1"))
+    CHECK (needGroupData IN ("0", "1")),
+    CHECK (seatsFilled <= maxSeats AND seatsFilled >= 0)
 );
 -- eventStatus: 0 = CANCELLED FROM ANOKHA, 1 = ACTIVE, 2 = CLOSED FOR REGISTRATIONS
 INSERT INTO eventData (
@@ -514,7 +515,7 @@ Welcome to the Code Clash Championship, an electrifying event that brings togeth
 
 Gear up for an adrenaline-pumping coding experience where lines of code become your weapons, and logic serves as your armor. Join us at the Code Clash Championship and prove that you have what it takes to be crowned the coding champion!
 ",
-        "2021-03-01",
+        "2024-04-04",
         "10:00:00",
         "Anugraha Hall",
         "https://i.imgur.com/iQy8GLM.jpg",
@@ -582,7 +583,7 @@ IoT is revolutionizing industries, connecting devices, and creating smarter, mor
 3. **Protocols and Communication**
    - Overview of MQTT, CoAP, and HTTP protocols.
    - Hands-on communication between devices.",
-        "2021-03-03",
+        "2024-04-06",
         "11:00:00",
         "Anugraha Hall",
         "https://i.imgur.com/iQy8GLM.jpg",

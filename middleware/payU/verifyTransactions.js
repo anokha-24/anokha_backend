@@ -138,7 +138,7 @@ const verifyTransactions = async () => {
         await transaction_db_connection.rollback();
         await db_connection.rollback();
         console.log(err);
-        fs.appendFileSync('./logs/transactionErrorLogs', `[${new Date().toISOString()}]: ${err}\n\n`);
+        fs.appendFileSync('./logs/transactionErrorLogs.log', `[${new Date().toISOString()}]: ${err}\n\n`);
         return;
     
     } finally {
