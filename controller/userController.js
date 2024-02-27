@@ -365,7 +365,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered
                         FROM
@@ -417,7 +418,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered
                         FROM
@@ -611,8 +613,10 @@ module.exports = {
                     INNER JOIN eventRegistrationData
                     ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
+                    AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
+
                     ;`
 
                     
@@ -654,6 +658,7 @@ module.exports = {
                     INNER JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
+                    AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
@@ -771,7 +776,7 @@ module.exports = {
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
                     
-                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    const [studentData] = await db_connection.query(`SELECT studentAccountStatus FROM studentData WHERE studentId=? AND registrationStatus = "2"`, [req.body.studentId]);
                     
                     await db_connection.query("UNLOCK TABLES");
                     
@@ -786,7 +791,7 @@ module.exports = {
 
                     await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
 
-                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?", [req.body.registrationId]);
+                    const [event] = await db_connection.query(`SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ? AND registrationStatus = "2"`, [req.body.registrationId]);
                     
                     if (event.length == 0) {
                         
@@ -809,7 +814,7 @@ module.exports = {
                     
                     if (event[0].isGroup == "0" || event[0].needGroupData == "0") {
                         
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ", [req.body.registrationId, req.body.studentId]);
+                        const [registration] = await db_connection.query(`SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? AND registrationStatus = "2"`, [req.body.registrationId, req.body.studentId]);
                         
                         if (registration.length == 0) {
                             
@@ -868,7 +873,8 @@ module.exports = {
                         SELECT * FROM eventRegistrationGroupData
                         LEFT JOIN eventRegistrationData ON
                         eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId 
-                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `, [req.body.registrationId, req.body.studentId]);
+                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? 
+                        AND eventRegistrationData.registrationStatus = "2"`, [req.body.registrationId, req.body.studentId]);
                         
                         if (registration.length == 0) {
                             
@@ -892,7 +898,8 @@ module.exports = {
                             FROM eventRegistrationGroupData
                             LEFT JOIN studentData
                             ON eventRegistrationGroupData.studentId = studentData.studentId
-                            WHERE eventRegistrationGroupData.registrationId=?`
+                            WHERE eventRegistrationGroupData.registrationId=?
+                            AND eventRegistrationData.registrationStatus = "2"`
                             , [req.body.registrationId]);
 
                             await db_connection.query("UNLOCK TABLES");
@@ -1465,7 +1472,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered,
                             CASE
@@ -1519,7 +1527,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId}
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered,
                             CASE
@@ -1854,7 +1863,7 @@ module.exports = {
                         
                         if (event.isGroup == "0" || event.needGroupData == "0") {
                             
-                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                            [registration] = await db_connection.query(`SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=? AND registrationStatus = "2"`, [req.body.studentId, req.params.eventId]);
                         }
                         
                         else if (event.isGroup == "1" && event.needGroupData == "1") {
@@ -2075,7 +2084,15 @@ module.exports = {
 
             await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
-            const [transactionData] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [req.body.transactionId]);
+            const [transactionData] = await transaction_db_connection.query(`
+            SELECT *,
+            CASE
+              WHEN expiryTime < CURRENT_TIMESTAMP THEN '1'
+              ELSE '0'
+            END 
+            AS isExpired
+            FROM transactionData
+            WHERE txnId = ?;`, [req.body.transactionId]);
 
             await transaction_db_connection.query("UNLOCK TABLES");
             
@@ -2101,6 +2118,17 @@ module.exports = {
             if(transactionData[0].transactionStatus != "0"){
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction Status!"
+                });
+            }
+
+
+
+            if(transactionData[0].transactionStatus === "0" && transactionData[0].isExpired === "1"){
+                // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                // await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId = ?', [transactionData[0].txnId]);
+                // await transaction_db_connection.query("UNLOCK TABLES");
+                return res.status(400)({
+                    "MESSAGE": "Transaction Expired! Wait for 10 minutes and try again!"
                 });
             }
 
@@ -2137,6 +2165,9 @@ module.exports = {
                 });
 
                 const responseText = await response.json();
+
+
+
                 const transactionDetails = responseText.transaction_details;
 
                 console.log(transactionDetails[transactionData[0].txnId]);
@@ -2984,7 +3015,7 @@ module.exports = {
                     await db_connection.rollback();
                     await transaction_db_connection.rollback();
                 }
-                
+
                 console.log(err);
                 
                 const time = new Date();
