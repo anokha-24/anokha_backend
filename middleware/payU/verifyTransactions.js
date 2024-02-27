@@ -110,13 +110,16 @@ const verifyTransactions = async () => {
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[failureTransactionIds]);
             await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
 
-            let queryString = '';
+            if (releaseSeats.length > 0) {
+                let queryString = '';
 
-            releaseSeats.forEach((e) => {
-                queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
-            });
+                releaseSeats.forEach((e) => {
+                    queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
+                });
 
-            await db_connection.query(queryString);
+                await db_connection.query(queryString);
+            }
+            
             await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = "1" WHERE txnId IN (?)',[failureTransactionIds]);
 
         }
@@ -139,15 +142,18 @@ const verifyTransactions = async () => {
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
             await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
             
+            if (expiredSeats.length > 0) {
+                queryString = '';
 
-            queryString = '';
-
-            expiredSeats.forEach((e) => {
-                queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
-            });
-                
-            await db_connection.query(queryString);
+                expiredSeats.forEach((e) => {
+                    queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
+                });
+                    
+                await db_connection.query(queryString);
+            }
+            
             await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = "1" WHERE txnId IN (?)',[expiredTxns]);
+        
         }
 
         await transaction_db_connection.commit();
