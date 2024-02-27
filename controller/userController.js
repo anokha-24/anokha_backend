@@ -776,7 +776,7 @@ module.exports = {
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
                     
-                    const [studentData] = await db_connection.query(`SELECT studentAccountStatus FROM studentData WHERE studentId=? AND registrationStatus = "2"`, [req.body.studentId]);
+                    const [studentData] = await db_connection.query(`SELECT studentAccountStatus FROM studentData WHERE studentId=?`, [req.body.studentId]);
                     
                     await db_connection.query("UNLOCK TABLES");
                     
@@ -898,6 +898,8 @@ module.exports = {
                             FROM eventRegistrationGroupData
                             LEFT JOIN studentData
                             ON eventRegistrationGroupData.studentId = studentData.studentId
+                            LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                             WHERE eventRegistrationGroupData.registrationId=?
                             AND eventRegistrationData.registrationStatus = "2"`
                             , [req.body.registrationId]);
