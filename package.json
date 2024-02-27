@@ -7,7 +7,8 @@
     "start": "node index.js",
     "deploy": "pm2 start index.js -i max --name anokha_backend_2024 && pm2 save --force",
     "kill": "pm2 delete all && pm2 save --force",
-    "backup": "node backups/mySQLBackup.js"
+    "backup": "node backups/mySQLBackup.js",
+    "verify": "node middleware/payU/cronJob.js"
   },
   "author": "Ashwin Narayanan S, Abhinav Ramakrishnan",
   "license": "ISC",

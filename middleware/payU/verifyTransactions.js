@@ -5,6 +5,7 @@ const fs = require('fs');
 
 
 const verifyTransactions = async () => {
+    console.log(`[MESSAGE]: Verifying Transactions at ${new Date().toLocaleString()}`);
     const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
     const db_connection = await anokha_db.promise().getConnection();
     try {
@@ -152,6 +153,7 @@ const verifyTransactions = async () => {
         await transaction_db_connection.commit();
         await db_connection.commit();
 
+
     } catch (err) {
         
         await transaction_db_connection.rollback();
@@ -166,10 +168,12 @@ const verifyTransactions = async () => {
         await db_connection.query(`UNLOCK TABLES`);
         transaction_db_connection.release();
         db_connection.release();
+
+        console.log(`[MESSAGE]: Transactions verified at ${new Date().toLocaleString()}`);
     
     }
 }
 
-verifyTransactions();
+//verifyTransactions();
 
-//module.exports = verifyTransactions;
+module.exports = verifyTransactions;

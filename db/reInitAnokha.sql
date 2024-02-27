@@ -425,7 +425,7 @@ CREATE TABLE IF NOT EXISTS eventData (
     eventName VARCHAR(255) NOT NULL,
     eventDescription VARCHAR(255) NOT NULL,
     eventMarkdownDescription VARCHAR(5000) NOT NULL,
-    eventDate DATE NOT NULL,
+    eventDate VARCHAR(100) NOT NULL,
     eventTime TIME NOT NULL,
     eventVenue VARCHAR(255) NOT NULL,
     eventImageURL VARCHAR(255) NOT NULL,
