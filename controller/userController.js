@@ -2130,7 +2130,7 @@ module.exports = {
                 // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
                 // await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId = ?', [transactionData[0].txnId]);
                 // await transaction_db_connection.query("UNLOCK TABLES");
-                return res.status(400)({
+                return res.status(400).send({
                     "MESSAGE": "Transaction Expired! Wait for 10 minutes and try again!"
                 });
             }
