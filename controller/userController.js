@@ -657,7 +657,7 @@ module.exports = {
                     ON eventTagData.tagId = tagData.tagId
                     INNER JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
-                    LEFT JOIM eventRegistrationData
+                    LEFT JOIN eventRegistrationData
                     ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
                     AND eventRegistrationData.registrationStatus = "2"
