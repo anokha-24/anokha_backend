@@ -104,8 +104,11 @@ const verifyTransactions = async () => {
             
             const [releaseSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData WHERE txnId IN (?) GROUP BY eventId',[failureTransactionIds]);
 
-            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
+            
+            //order important foreign key constraints
+            
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[failureTransactionIds]);
+            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
 
             let queryString = '';
 
@@ -129,8 +132,12 @@ const verifyTransactions = async () => {
 
             const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData WHERE txnId IN (?) GROUP BY eventId',[expiredTxns]);
 
-            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
+            
+            //order important foreign key constraints
+            
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
+            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
+            
 
             queryString = '';
 
