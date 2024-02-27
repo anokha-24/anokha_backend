@@ -123,7 +123,7 @@ const verifyTransactions = async () => {
         const [expiredTxns] = await db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
 
         if(expiredTxns.length > 0){
-            await db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
+            await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
 
             const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[expiredTxns]);
 
