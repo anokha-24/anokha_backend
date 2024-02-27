@@ -117,6 +117,7 @@ const verifyTransactions = async () => {
             });
 
             await db_connection.query(queryString);
+            await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = "1" WHERE txnId IN (?)',[failureTransactionIds]);
 
         }
        
@@ -146,6 +147,7 @@ const verifyTransactions = async () => {
             });
                 
             await db_connection.query(queryString);
+            await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = "1" WHERE txnId IN (?)',[expiredTxns]);
         }
 
         await transaction_db_connection.commit();
