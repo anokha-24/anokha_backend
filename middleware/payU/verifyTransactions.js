@@ -120,7 +120,7 @@ const verifyTransactions = async () => {
        
         //release expired seats
 
-        const [expiredTxns] = await db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
+        const [expiredTxns] = await transaction_db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
 
         if(expiredTxns.length > 0){
             await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
