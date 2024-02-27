@@ -1528,7 +1528,8 @@ module.exports = {
                             tagData.tagAbbreviation,
                             CASE
                                 WHEN eventRegistrationGroupData.studentId = ${req.body.studentId}
-                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
+                                AND eventRegistrationData.registrationStatus = "2"
+                                THEN "1"
                                 ELSE "0"
                             END AS isRegistered,
                             CASE
@@ -1544,11 +1545,13 @@ module.exports = {
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
                         LEFT JOIN
-                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.registrationId
-                            AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                            eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
                         LEFT JOIN
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
+                        LEFT JOIN
+                            eventRegistrationGroupData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                            AND eventRegistrationGroupData.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
