@@ -102,7 +102,7 @@ const verifyTransactions = async () => {
         //failure eventRegistrations
         if(failureTransactionIds.length > 0){
             
-            const [releaseSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[failureTransactionIds]);
+            const [releaseSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData WHERE txnId IN (?) GROUP BY eventId',[failureTransactionIds]);
 
             await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[failureTransactionIds]);
@@ -127,7 +127,7 @@ const verifyTransactions = async () => {
         if(expiredTxns.length > 0){
             await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
 
-            const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[expiredTxns]);
+            const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData WHERE txnId IN (?) GROUP BY eventId',[expiredTxns]);
 
             await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
             await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
