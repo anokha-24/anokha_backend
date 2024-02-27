@@ -5,12 +5,12 @@ const fs = require('fs');
 const verifyTransactionsCronJob = () => {
     console.log("[MESSAGE]: PayU CRON reporting.")
     cron.schedule('*/1 * * * *', async () => {
-        fs.appendFileSync('./logs/cronJobLogs', `[${new Date().toLocaleString()}]: Cron Job Started\n`);
+        fs.appendFileSync('./logs/cronJobLogs.log', `[${new Date().toLocaleString()}]: Cron Job Started\n`);
         try {
             await verifyTransactions();
         } catch (err) {
             console.log(err);
-            fs.appendFileSync('./logs/cronJobErrorLogs', `[${new Date().toISOString()}]: ${err}\n\n`);
+            fs.appendFileSync('./logs/cronJobErrorLogs.log', `[${new Date().toISOString()}]: ${err}\n\n`);
             return;
         }
     });

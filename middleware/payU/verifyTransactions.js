@@ -8,6 +8,8 @@ const verifyTransactions = async () => {
     console.log(`[MESSAGE]: Verifying Transactions at ${new Date().toLocaleString()}`);
     const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
     const db_connection = await anokha_db.promise().getConnection();
+
+    let rollbackFlag = "0";
     try {
         
         // Get all the transactions that are not verified
@@ -46,8 +48,8 @@ const verifyTransactions = async () => {
 
 
         // collect all the transactions that are success and failure
-        const successTransactions = [''];
-        const failureTransactions = [''];
+        const successTransactions = [];
+        const failureTransactions = [];
 
         for (const txnid in transactionDetails) {
             
@@ -65,90 +67,77 @@ const verifyTransactions = async () => {
         await transaction_db_connection.beginTransaction();
         await db_connection.beginTransaction();
 
+        rollbackFlag = "1";
+
         const successTransactionIds = successTransactions.map(obj => obj.txnid ? obj.txnid : '');
         const failureTransactionIds = failureTransactions.map(obj => obj.txnid ? obj.txnid : '');
 
 
         //set transaction statuses
-        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactionIds]);
-        await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactionIds]);
-
+        if(successTransactionIds.length > 0){
+            await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "1" WHERE txnId IN (?)`, [successTransactionIds]);
+        }
+        
+        if(failureTransactionIds.length > 0){
+            await transaction_db_connection.query(`UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)`, [failureTransactionIds]);
+        }
         
         
         //success passports
         const successPassports = successTransactions.filter( (txn) => typeof txn.txnid === 'string' && txn.txnid.charAt(4) === 'P').map((txn) => parseInt(txn.txnid.split('-')[2]));
 
-        await db_connection.query('UPDATE studentData SET studentAccountStatus = "2" WHERE studentId IN (?)',[successPassports]);
+        if (successPassports.length > 0) {
 
+            await db_connection.query('UPDATE studentData SET studentAccountStatus = "2" WHERE studentId IN (?)',[successPassports]);
+        
+        }
 
         
         //success eventRegistrations
+        if(successTransactionIds.length > 0){
+            await db_connection.query('UPDATE eventRegistrationData SET registrationStatus = "2" WHERE txnId IN (?)',[successTransactionIds]);
+        }
 
-        await db_connection.query('UPDATE eventRegistrationData SET registrationStatus = "2" WHERE txnId IN (?)',[successTransactionIds]);
-
-
-        //failure eventRegistrations
-
-        // failureTransactions.forEach(async (txn) => {
-            
-        //     if(txn.txnid.charAt(4) === 'E') {
-                
-        //         if(txn.productinfo.substring(0,3)==='EIP') {
-                    
-        //             await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txn.txnid]);
-        //             await db_connection.query('UPDATE eventData SET eventRegistrations = eventRegistrations - 1 WHERE eventId = ?',[parseInt(txn.txnid.split('-')[3])]);
-        //             await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = ? WHERE txnId = ?',["1",txn.txnid]);
-
-        //         }
-
-        //         else if(txn.productinfo.substring(0,4)==='EGPI') {
-        //             await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txn.txnid]);
-        //             await db_connection.query('UPDATE eventData SET eventRegistrations = eventRegistrations - 1 WHERE eventId = ?',[parseInt(txn.txnid.split('-')[3])]);
-        //             await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = ? WHERE txnId = ?',["1",txn.txnid]);
-
-        //         }
-            
-        //     }
-
-        // });
 
         //failure eventRegistrations
+        if(failureTransactionIds.length > 0){
+            
+            const [releaseSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[failureTransactionIds]);
 
-        const [releaseSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[failureTransactionIds]);
+            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
+            await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[failureTransactionIds]);
 
-        await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[failureTransactionIds]);
-        await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[failureTransactionIds]);
+            let queryString = '';
 
-        // releaseSeats.forEach(async (event) => {
-        //     await db_connection.query('UPDATE eventData SET eventRegistrations = eventRegistrations - ? WHERE eventId = ?',[event['SUM(totalMembers)'],event.eventId]);
-        // });
+            releaseSeats.forEach((e) => {
+                queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
+            });
 
-        let queryString = '';
+            await db_connection.query(queryString);
 
-        releaseSeats.forEach((e) => {
-            queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
-        });
-
-        await db_connection.query(queryString);
-
+        }
+       
+       
         //release expired seats
 
         const [expiredTxns] = await db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
 
-        await db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
+        if(expiredTxns.length > 0){
+            await db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId IN (?)',[expiredTxns]);
 
-        const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[expiredTxns]);
+            const [expiredSeats] = await db_connection.query('SELECT eventId, SUM(totalMembers) FROM eventRegistrationData GROUP BY eventId WHERE txnId IN (?)',[expiredTxns]);
 
-        await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
-        await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
+            await db_connection.query('DELETE from eventRegistrationData WHERE txnId IN (?)',[expiredTxns]);
+            await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId IN (?)',[expiredTxns]);
 
-        queryString = '';
+            queryString = '';
 
-        expiredSeats.forEach((e) => {
-            queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
-        });
-            
-        await db_connection.query(queryString);
+            expiredSeats.forEach((e) => {
+                queryString += `UPDATE eventData SET seatsFilled = seatsFilled - ${e['SUM(totalMembers)']} WHERE eventId = ${e.eventId};`;
+            });
+                
+            await db_connection.query(queryString);
+        }
 
         await transaction_db_connection.commit();
         await db_connection.commit();
@@ -156,8 +145,11 @@ const verifyTransactions = async () => {
 
     } catch (err) {
         
-        await transaction_db_connection.rollback();
-        await db_connection.rollback();
+        if(rollbackFlag === "1"){
+            await transaction_db_connection.rollback();
+            await db_connection.rollback();
+        }
+        
         console.log(err);
         fs.appendFileSync('./logs/transactionErrorLogs.log', `[${new Date().toISOString()}]: ${err}\n\n`);
         return;
