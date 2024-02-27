@@ -142,7 +142,7 @@ module.exports = {
                     }
                     
                     
-                    if( studentData[0].isAmrita == "1")
+                    if( studentData[0].needPassport == "0")
                     {
                         const query = `UPDATE studentData SET studentFullName=?, studentPhone=?  WHERE studentId=?`;
 
