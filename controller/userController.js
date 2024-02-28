@@ -2187,7 +2187,7 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
-                    let rollbackFlag = "0";
+                    rollbackFlag = "";
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
@@ -2242,12 +2242,11 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
-                    let rollbackFlag = "0";
+                    rollbackFlag = "1";
 
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE eventRegistrationData SET registrationStatus = '2' WHERE txnId = ?", [txnId]);
-                    //await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
                     
                     await transaction_db_connection.commit();
                     await db_connection.commit();
@@ -2260,11 +2259,23 @@ module.exports = {
 
                 else if (transactionDetails[transactionData[0].txnId].status === "failure") {
 
-                    await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                    // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+
+                    // await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+
+                    // await transaction_db_connection.query("UNLOCK TABLES");
+
+                    await transaction_db_connection.beginTransaction();
+                    await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+                    await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId = ?',[txnId]);
+                    await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txnId]);
 
-                    await transaction_db_connection.query("UNLOCK TABLES");
+                    await transaction_db_connection.commit();
+                    await db_connection.commit();
 
                     return res.status(202).send({
                         "MESSAGE": "Transaction Failed!"
