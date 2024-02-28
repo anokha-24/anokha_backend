@@ -1881,11 +1881,11 @@ module.exports = {
                             [registration] = await db_connection.query(
                             `SELECT * FROM
                             eventRegistrationGroupData
-                            WHERE eventRegistrationGroupData.studentId=? 
-                            AND eventRegistrationGroupData.eventId=?
                             LEFT JOIN eventRegistrationData ON 
                             eventRegistrationGroupData.registrationId = eventRegistrationData.registrationId
-                            WHERE eventRegistrationData.registrationStatus = "2"`, 
+                            WHERE eventRegistrationGroupData.studentId=? 
+                            AND eventRegistrationGroupData.eventId=?
+                            AND eventRegistrationData.registrationStatus = "2"`, 
                             [req.body.studentId, req.params.eventId]);
                         }
                         
