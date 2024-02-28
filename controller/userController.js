@@ -2282,6 +2282,9 @@ module.exports = {
                     await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId = ?',[txnId]);
                     await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txnId]);
 
+                    const [event] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE txnId = ?',[txnId]);
+                    await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event.totalMembers,event.eventId]);
+
                     await transaction_db_connection.commit();
                     await db_connection.commit();
 
