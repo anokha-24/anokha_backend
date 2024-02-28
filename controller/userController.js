@@ -2278,13 +2278,17 @@ module.exports = {
 
                     rollbackFlag = "1";
 
-                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' AND seatsReleased = '1'  WHERE txnId = ?", [txnId]);
+
+                    const [event] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE txnId = ?',[txnId]);
+
                     await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId = ?',[txnId]);
                     await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txnId]);
 
-                    const [event] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE txnId = ?',[txnId]);
-                    await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event.totalMembers,event.eventId]);
-
+                    if(event.length > 0){
+                        await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event.totalMembers,event.eventId]);
+                    }
+                    
                     await transaction_db_connection.commit();
                     await db_connection.commit();
 
