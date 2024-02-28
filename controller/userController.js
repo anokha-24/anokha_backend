@@ -1878,7 +1878,15 @@ module.exports = {
                         
                         else if (event.isGroup == "1" && event.needGroupData == "1") {
                             
-                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                            [registration] = await db_connection.query(
+                            `SELECT * FROM
+                            eventRegistrationGroupData
+                            WHERE eventRegistrationGroupData.studentId=? 
+                            AND eventRegistrationGroupData.eventId=?
+                            LEFT JOIN eventRegistrationData ON 
+                            eventRegistrationGroupData.registrationId = eventRegistrationData.registrationId
+                            WHERE eventRegistrationData.registrationStatus = "2"`, 
+                            [req.body.studentId, req.params.eventId]);
                         }
                         
                         
@@ -1915,8 +1923,8 @@ module.exports = {
                             "departmentAbbreviation": event.departmentAbbreviation,
                             "tags": tags,
                             "isStarred": starred.length > 0 ? "1" : "0",
-                            "isRegistered": registration.length > 0 ? "1" : "0",
-                            "registrationId": registration.length > 0 ? registration[0].registrationId : null,
+                            "isRegistered": registration.length && registration[0].registrationStatus == "2" > 0 ? "1" : "0",
+                            "registrationId": registration.length > 0 && registration[0].registrationStatus == "2" ? registration[0].registrationId : null,
                         });
                     }
                 }
