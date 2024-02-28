@@ -889,9 +889,11 @@ module.exports = {
                         
                         else {
                             const [team] = await db_connection.query(`
-                            SELECT eventRegistrationGroupData.studentId,
+                            SELECT 
+                            eventRegistrationGroupData.studentId,
                             eventRegistrationGroupData.roleDescription,
                             eventRegistrationGroupData.isOwnRegistration,
+                            eventRegistrationData.teamName,
                             studentData.studentFullName,
                             studentData.studentEmail,
                             studentData.studentPhone,
@@ -938,6 +940,7 @@ module.exports = {
                                 "transactionStatus": trasactionDetails[0].transactionStatus,
                                 "transactionAmount": trasactionDetails[0].amount,
                                 "transactionTime": trasactionDetails[0].createdAt,
+                                "teamName":team[0].teamName,
                                 "team": team
                             });
 
@@ -2209,6 +2212,12 @@ module.exports = {
                         "MESSAGE": "Transaction Failed!"
                     });
 
+                }
+
+                else if (transactionDetails[transactionData[0].txnId].status === "pending"){
+                    return res.status(201).send({
+                        "MESSAGE": "Transaction Pending!"
+                    });
                 }
             } else if (productInfo[0] === 'E') {
 
