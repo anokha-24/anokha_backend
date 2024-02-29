@@ -19,7 +19,9 @@ CREATE DATABASE anokha_transactions;
 npm i
 ```
 
-5. Run the server.
+5. Configure ENV variables .env.local
+
+6. Run the server.
 
 ```
 npm start
