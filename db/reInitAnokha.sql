@@ -645,7 +645,8 @@ CREATE TABLE IF NOT EXISTS eventOrganizersData (
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
 
-INSERT INTO eventOrganizersData (eventId, managerId) VALUES (1, 4);
+INSERT INTO eventOrganizersData (eventId, managerId) VALUES (2, 4);
+
 
 CREATE TABLE IF NOT EXISTS eventRegistrationData (
     registrationId INTEGER PRIMARY KEY AUTO_INCREMENT,
