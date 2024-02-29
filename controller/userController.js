@@ -1923,7 +1923,7 @@ module.exports = {
                             "departmentAbbreviation": event.departmentAbbreviation,
                             "tags": tags,
                             "isStarred": starred.length > 0 ? "1" : "0",
-                            "isRegistered": registration.length && registration[0].registrationStatus == "2" > 0 ? "1" : "0",
+                            "isRegistered": registration.length > 0 && registration[0].registrationStatus == "2" ? "1" : "0",
                             "registrationId": registration.length > 0 && registration[0].registrationStatus == "2" ? registration[0].registrationId : null,
                         });
                     }
