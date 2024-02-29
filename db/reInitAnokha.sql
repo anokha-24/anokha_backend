@@ -190,6 +190,23 @@ VALUES (
         4,
         6
     );
+
+INSERT INTO managerData (
+        managerFullName,
+        managerEmail,
+        managerPhone,
+        managerPassword,
+        managerRoleId,
+        managerDepartmentId
+    )
+VALUES (
+        "Dharma Pravardhana V",
+        "dharmapravardhana7@gmail.com",
+        "8248847540",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        7,
+        6
+    );
 -- CREATE TABLE IF NOT EXISTS tagFaculty (
 --     id INTEGER PRIMARY KEY AUTO_INCREMENT,
 --     tagId INTEGER NOT NULL,
@@ -627,6 +644,9 @@ CREATE TABLE IF NOT EXISTS eventOrganizersData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
+
+INSERT INTO eventOrganizersData (eventId, managerId) VALUES (1, 4);
+
 CREATE TABLE IF NOT EXISTS eventRegistrationData (
     registrationId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,

@@ -1853,7 +1853,7 @@ module.exports = {
                         // }
 
                         await db_connection.query("LOCK TABLES eventData READ");
-                        await db_connection.query("SELECT eventId, eventName, eventImageURL FROM eventData", [req.body.managerId]);
+                        const [events] = await db_connection.query("SELECT eventId, eventName, eventImageURL FROM eventData", [req.body.managerId]);
                         await db_connection.query("UNLOCK TABLES");
 
                         return res.status(200).send({
@@ -1903,9 +1903,9 @@ module.exports = {
                         //     });
                         // }
 
-                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ");
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
                         
-                        await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData FULL OUTER JOIN eventOrganizersData WHERE eventOrganizersData.eventDepartmentId = ?", [managerData[0].managerDepartmentId]);
+                        const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN managerData ON managerData.managerId = managerData.managerId WHERE managerData.managerDepartmentId = ? AND managerData.managerId = ?", [managerData[0].managerDepartmentId,req.body.managerId]);
 
                         await db_connection.query("UNLOCK TABLES");
 
@@ -1919,7 +1919,7 @@ module.exports = {
                             
                             await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ");
                             
-                            await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData FULL OUTER JOIN eventOrganizersData WHERE eventOrganizersData.managerId = ?", [req.body.managerId]);
+                            const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId WHERE eventOrganizersData.managerId = ?", [req.body.managerId]);
     
                             await db_connection.query("UNLOCK TABLES");
     
