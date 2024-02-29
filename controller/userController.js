@@ -2298,6 +2298,13 @@ module.exports = {
 
                 }
 
+                else if (transactionDetails[transactionData[0].txnId].status === "pending"){
+                    
+                    return res.status(201).send({
+                        "MESSAGE": "Transaction Pending!"
+                    });
+                }
+
             } 
             
             else {
