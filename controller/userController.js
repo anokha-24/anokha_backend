@@ -2347,8 +2347,8 @@ module.exports = {
             try {
                 await db_connection.query("LOCK TABLES transactionData READ, marketPlaceTransactionData READ");
 
-                const [transactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM transactionData WHERE userId = ?", [req.body.studentId]);
-                const [marketPlaceTransactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM marketPlaceTransactionData WHERE userId = ?", [req.body.studentId]);
+                const [transactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM transactionData WHERE userId = ? ORDER BY createdAt DESC", [req.body.studentId]);
+                const [marketPlaceTransactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM marketPlaceTransactionData WHERE userId = ? ORDER BY createdAt DESC", [req.body.studentId]);
 
                 await db_connection.query("UNLOCK TABLES");
 
