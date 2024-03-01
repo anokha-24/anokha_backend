@@ -1606,6 +1606,8 @@ module.exports = {
                         Right JOIN eventRegistrationGroupData
                             ON eventRegistrationGroupData.eventId = eventData.eventId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
                         LEFT JOIN departmentData 
                             ON eventData.eventDepartmentId = departmentData.departmentId
                         LEFT JOIN eventTagData
