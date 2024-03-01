@@ -1623,7 +1623,7 @@ module.exports = {
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;    
                         
-                        const query2 = 
+                        const query3 = 
                         `
                         SELECT
                             eventData.eventId,
