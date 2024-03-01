@@ -1675,7 +1675,7 @@ module.exports = {
                             ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
-                            ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;
@@ -1690,8 +1690,8 @@ module.exports = {
                         //const [rows2] = await db_connection.query(query2);
                         const [rows3] = await db_connection.query(query3);
 
-                        //const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
-                        const concat_rows = [...new Set([...rows, ...rows3])];
+                        const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
+                        //const concat_rows = [...new Set([...rows, ...rows3])];
 
 
                         await db_connection.query("UNLOCK TABLES");
