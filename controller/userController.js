@@ -2286,7 +2286,7 @@ module.exports = {
                     await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txnId]);
 
                     if(event.length > 0){
-                        await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event.totalMembers,event.eventId]);
+                        await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event[0].totalMembers,event[0].eventId]);
                     }
                     
                     await transaction_db_connection.commit();
