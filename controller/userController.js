@@ -606,16 +606,16 @@ module.exports = {
                     FROM eventData
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
-                    INNER JOIN eventRegistrationData
-                    ON eventRegistrationData.eventId = eventData.eventId
                     INNER JOIN eventTagData
                     ON eventTagData.eventId = eventData.eventId
                     LEFT JOIN tagData
                     ON eventTagData.tagId = tagData.tagId
+                    INNER JOIN eventRegistrationData
+                    ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
                     AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
-                    AND (tagData.isActive != "0")
+                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
 
                     ;`
 
@@ -651,18 +651,18 @@ module.exports = {
                     FROM eventData
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
-                    INNER JOIN eventRegistrationGroupData
-                    ON eventRegistrationGroupData.eventId = eventData.eventId
-                    LEFT JOIN eventRegistrationData
-                    ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                     INNER JOIN eventTagData
                     ON eventTagData.eventId = eventData.eventId
                     LEFT JOIN tagData
                     ON eventTagData.tagId = tagData.tagId
+                    INNER JOIN eventRegistrationGroupData
+                    ON eventRegistrationGroupData.eventId = eventData.eventId
+                    LEFT JOIN eventRegistrationData
+                    ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
                     AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
-                    AND (tagData.isActive != "0")
+                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
 
                     
@@ -1552,12 +1552,12 @@ module.exports = {
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
                         LEFT JOIN
-                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.eventId
+                            eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
                         LEFT JOIN
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         LEFT JOIN
-                            eventRegistrationData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                            eventRegistrationGroupData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
