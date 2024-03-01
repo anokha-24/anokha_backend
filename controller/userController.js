@@ -1605,11 +1605,11 @@ module.exports = {
                         FROM eventData
                         LEFT JOIN departmentData
                         ON eventData.eventDepartmentId = departmentData.departmentId
-                        INNER JOIN eventTagData
+                        LEFT JOIN eventTagData
                         ON eventTagData.eventId = eventData.eventId
                         LEFT JOIN tagData
                         ON eventTagData.tagId = tagData.tagId
-                        INNER JOIN eventRegistrationGroupData
+                        LEFT JOIN eventRegistrationGroupData
                         ON eventRegistrationGroupData.eventId = eventData.eventId
                         LEFT JOIN eventRegistrationData
                         ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
