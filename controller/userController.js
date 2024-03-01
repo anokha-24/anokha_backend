@@ -1687,10 +1687,12 @@ module.exports = {
 
 
                         const [rows] = await db_connection.query(query);
-                        const [rows2] = await db_connection.query(query2);
+                        //const [rows2] = await db_connection.query(query2);
                         const [rows3] = await db_connection.query(query3);
 
-                        const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
+                        //const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
+                        const concat_rows = [...new Set([...rows, ...rows3])];
+
 
                         await db_connection.query("UNLOCK TABLES");
 
