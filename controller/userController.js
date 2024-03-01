@@ -1603,7 +1603,7 @@ module.exports = {
                             END AS isStarred
                         FROM
                             eventData 
-                        FULL OUTER JOIN eventRegistrationGroupData
+                        LEFT JOIN eventRegistrationGroupData
                             ON eventRegistrationGroupData.eventId = eventData.eventId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
                         LEFT JOIN eventRegistrationData
@@ -1621,7 +1621,64 @@ module.exports = {
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         AND
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
-                        ;`;                 
+                        ;`;    
+                        
+                        const query2 = 
+                        `
+                        SELECT
+                            eventData.eventId,
+                            eventData.eventName,
+                            eventData.eventDescription,
+                            eventData.eventDate,
+                            eventData.eventTime,
+                            eventData.eventVenue,
+                            eventData.eventImageURL,
+                            eventData.eventPrice,
+                            eventData.maxSeats,
+                            eventData.seatsFilled,
+                            eventData.minTeamSize,
+                            eventData.maxTeamSize,
+                            eventData.isWorkshop,
+                            eventData.isTechnical,
+                            eventData.isGroup,
+                            eventData.needGroupData,
+                            eventData.isPerHeadPrice,
+                            eventData.isRefundable,
+                            eventData.eventStatus,
+                            departmentData.departmentName,
+                            departmentData.departmentAbbreviation,
+                            tagData.tagName,
+                            tagData.tagAbbreviation,
+                            CASE
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
+                                ELSE "0"
+                            END AS isRegistered,
+                            CASE
+                                WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isStarred
+                        FROM
+                            eventData 
+                        RIGHT JOIN eventRegistrationGroupData
+                            ON eventRegistrationGroupData.eventId = eventData.eventId
+                            AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
+                        LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                        LEFT JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                        LEFT JOIN starredEvents 
+                            ON eventData.eventId = starredEvents.eventId
+                            AND starredEvents.studentId = ${req.body.studentId}
+                        WHERE
+                            ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                        AND
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
+                        ;`;
                         
                         
                         
@@ -1631,8 +1688,9 @@ module.exports = {
 
                         const [rows] = await db_connection.query(query);
                         const [rows2] = await db_connection.query(query2);
+                        const [rows3] = await db_connection.query(query3);
 
-                        const concat_rows = [...new Set([...rows, ...rows2])];
+                        const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
 
                         await db_connection.query("UNLOCK TABLES");
 
