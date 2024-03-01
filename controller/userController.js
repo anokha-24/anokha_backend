@@ -6,7 +6,7 @@ const generateOTP = require("../middleware/auth/otp/otpGenerator");
 const mailer = require('../middleware/mailer/mailer');
 const appConfig = require('../config/appConfig');
 const [tokenValidator, validateEventRequest] = require('../middleware/auth/login/tokenValidator');
-const { generateHash } = require("../middleware/payU/util");
+const { generateHash, generateVerifyHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
 //const redisClient = require('../connection/redis');
@@ -142,7 +142,7 @@ module.exports = {
                     }
                     
                     
-                    if( studentData[0].isAmrita == "1")
+                    if( studentData[0].needPassport == "0")
                     {
                         const query = `UPDATE studentData SET studentFullName=?, studentPhone=?  WHERE studentId=?`;
 
@@ -365,7 +365,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered
                         FROM
@@ -417,7 +418,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered
                         FROM
@@ -611,8 +613,10 @@ module.exports = {
                     INNER JOIN eventRegistrationData
                     ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
+                    AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
+
                     ;`
 
                     
@@ -653,7 +657,10 @@ module.exports = {
                     ON eventTagData.tagId = tagData.tagId
                     INNER JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
+                    LEFT JOIN eventRegistrationData
+                    ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
+                    AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                     AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
                     ;`
@@ -771,7 +778,7 @@ module.exports = {
                     //check if the student exists and is active
                     await db_connection.query("LOCK TABLES studentData READ");
                     
-                    const [studentData] = await db_connection.query("SELECT studentAccountStatus FROM studentData WHERE studentId=?", [req.body.studentId]);
+                    const [studentData] = await db_connection.query(`SELECT studentAccountStatus FROM studentData WHERE studentId=?`, [req.body.studentId]);
                     
                     await db_connection.query("UNLOCK TABLES");
                     
@@ -786,7 +793,7 @@ module.exports = {
 
                     await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ, eventData READ, studentData READ");
 
-                    const [event] = await db_connection.query("SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ?", [req.body.registrationId]);
+                    const [event] = await db_connection.query(`SELECT * FROM eventRegistrationData LEFT JOIN eventData ON eventRegistrationData.eventId = eventData.eventId WHERE registrationId = ? AND registrationStatus = "2"`, [req.body.registrationId]);
                     
                     if (event.length == 0) {
                         
@@ -809,7 +816,7 @@ module.exports = {
                     
                     if (event[0].isGroup == "0" || event[0].needGroupData == "0") {
                         
-                        const [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? ", [req.body.registrationId, req.body.studentId]);
+                        const [registration] = await db_connection.query(`SELECT * FROM eventRegistrationData WHERE registrationId=? and studentId =? AND registrationStatus = "2"`, [req.body.registrationId, req.body.studentId]);
                         
                         if (registration.length == 0) {
                             
@@ -822,18 +829,18 @@ module.exports = {
                         
                         else {
                             
-                            [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
+                            const [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
 
                             await db_connection.query("UNLOCK TABLES");
                             
     
-                            let trasactionDetails;
+                            let transactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
                                 
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -843,7 +850,7 @@ module.exports = {
                                 
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -851,11 +858,11 @@ module.exports = {
                             
                             return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
-                                "txnId": trasactionDetails[0].txnId,
+                                "txnId": transactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
-                                "transactionStatus": trasactionDetails[0].transactionStatus,
-                                "transactionAmount": trasactionDetails[0].amount,
-                                "transactionTime": trasactionDetails[0].createdAt,
+                                "transactionStatus": transactionDetails[0].transactionStatus,
+                                "transactionAmount": transactionDetails[0].amount,
+                                "transactionTime": transactionDetails[0].createdAt,
                                 "team": student
                             });
                         }
@@ -868,7 +875,8 @@ module.exports = {
                         SELECT * FROM eventRegistrationGroupData
                         LEFT JOIN eventRegistrationData ON
                         eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId 
-                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? `, [req.body.registrationId, req.body.studentId]);
+                        WHERE eventRegistrationGroupData.registrationId=? AND eventRegistrationGroupData.studentId =? 
+                        AND eventRegistrationData.registrationStatus = "2"`, [req.body.registrationId, req.body.studentId]);
                         
                         if (registration.length == 0) {
                             
@@ -881,9 +889,11 @@ module.exports = {
                         
                         else {
                             const [team] = await db_connection.query(`
-                            SELECT eventRegistrationGroupData.studentId,
+                            SELECT 
+                            eventRegistrationGroupData.studentId,
                             eventRegistrationGroupData.roleDescription,
                             eventRegistrationGroupData.isOwnRegistration,
+                            eventRegistrationData.teamName,
                             studentData.studentFullName,
                             studentData.studentEmail,
                             studentData.studentPhone,
@@ -892,18 +902,21 @@ module.exports = {
                             FROM eventRegistrationGroupData
                             LEFT JOIN studentData
                             ON eventRegistrationGroupData.studentId = studentData.studentId
-                            WHERE eventRegistrationGroupData.registrationId=?`
+                            LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                            WHERE eventRegistrationGroupData.registrationId=?
+                            AND eventRegistrationData.registrationStatus = "2"`
                             , [req.body.registrationId]);
 
                             await db_connection.query("UNLOCK TABLES");
                             
-                            let trasactionDetails;
+                            let transactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
                                 
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -913,7 +926,7 @@ module.exports = {
                                 
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -922,11 +935,12 @@ module.exports = {
                             
                             return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
-                                "txnId": trasactionDetails[0].txnId,
+                                "txnId": transactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
-                                "transactionStatus": trasactionDetails[0].transactionStatus,
-                                "transactionAmount": trasactionDetails[0].amount,
-                                "transactionTime": trasactionDetails[0].createdAt,
+                                "transactionStatus": transactionDetails[0].transactionStatus,
+                                "transactionAmount": transactionDetails[0].amount,
+                                "transactionTime": transactionDetails[0].createdAt,
+                                "teamName":team[0].teamName,
                                 "team": team
                             });
 
@@ -1465,7 +1479,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered,
                             CASE
@@ -1493,7 +1508,123 @@ module.exports = {
                         ;`;
 
                         
-                        const query2 = `
+                        // const query2 = `
+                        // SELECT
+                        //     eventData.eventId,
+                        //     eventData.eventName,
+                        //     eventData.eventDescription,
+                        //     eventData.eventDate,
+                        //     eventData.eventTime,
+                        //     eventData.eventVenue,
+                        //     eventData.eventImageURL,
+                        //     eventData.eventPrice,
+                        //     eventData.maxSeats,
+                        //     eventData.seatsFilled,
+                        //     eventData.minTeamSize,
+                        //     eventData.maxTeamSize,
+                        //     eventData.isWorkshop,
+                        //     eventData.isTechnical,
+                        //     eventData.isGroup,
+                        //     eventData.needGroupData,
+                        //     eventData.isPerHeadPrice,
+                        //     eventData.isRefundable,
+                        //     eventData.eventStatus,
+                        //     departmentData.departmentName,
+                        //     departmentData.departmentAbbreviation,
+                        //     tagData.tagName,
+                        //     tagData.tagAbbreviation,
+                        //     CASE
+                        //         WHEN eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        //         AND eventRegistrationData.registrationStatus = "2"
+                        //         THEN "1"
+                        //         ELSE "0"
+                        //     END AS isRegistered,
+                        //     CASE
+                        //         WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                        //         ELSE "0"
+                        //     END AS isStarred
+                        // FROM
+                        //     eventData
+                        //     LEFT JOIN departmentData 
+                        //     ON eventData.eventDepartmentId = departmentData.departmentId
+                        //     LEFT JOIN eventTagData
+                        //     ON eventTagData.eventId = eventData.eventId
+                        //     LEFT JOIN tagData 
+                        //     ON eventTagData.tagId = tagData.tagId
+                        // LEFT JOIN
+                        //     eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
+                        // LEFT JOIN
+                        //     starredEvents ON eventData.eventId = starredEvents.eventId
+                        //     AND starredEvents.studentId = ${req.body.studentId}
+                        // LEFT JOIN
+                        //     eventRegistrationGroupData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                        //     AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        // WHERE
+                        //     ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
+                        // AND
+                        //     ( tagData.isActive != "0" OR tagData.isActive IS NULL)
+                        // ;`;
+
+
+                        // const query2 = 
+                        // `
+                        // SELECT
+                        //     eventData.eventId,
+                        //     eventData.eventName,
+                        //     eventData.eventDescription,
+                        //     eventData.eventDate,
+                        //     eventData.eventTime,
+                        //     eventData.eventVenue,
+                        //     eventData.eventImageURL,
+                        //     eventData.eventPrice,
+                        //     eventData.maxSeats,
+                        //     eventData.seatsFilled,
+                        //     eventData.minTeamSize,
+                        //     eventData.maxTeamSize,
+                        //     eventData.isWorkshop,
+                        //     eventData.isTechnical,
+                        //     eventData.isGroup,
+                        //     eventData.needGroupData,
+                        //     eventData.isPerHeadPrice,
+                        //     eventData.isRefundable,
+                        //     eventData.eventStatus,
+                        //     departmentData.departmentName,
+                        //     departmentData.departmentAbbreviation,
+                        //     tagData.tagName,
+                        //     tagData.tagAbbreviation,
+                        //     CASE
+                        //         WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                        //         AND eventRegistrationData.registrationStatus = "2" THEN "1"
+                        //         ELSE "0"
+                        //     END AS isRegistered,
+                        //     CASE
+                        //         WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                        //         ELSE "0"
+                        //     END AS isStarred
+                        // FROM
+                        //     eventData 
+                        // LEFT JOIN eventRegistrationGroupData
+                        //     ON eventRegistrationGroupData.eventId = eventData.eventId
+                        //     AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        // LEFT JOIN eventRegistrationData
+                        //     ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
+                        // LEFT JOIN departmentData 
+                        //     ON eventData.eventDepartmentId = departmentData.departmentId
+                        // LEFT JOIN eventTagData
+                        //     ON eventTagData.eventId = eventData.eventId
+                        // LEFT JOIN tagData 
+                        //     ON eventTagData.tagId = tagData.tagId
+                        // LEFT JOIN starredEvents 
+                        //     ON eventData.eventId = starredEvents.eventId
+                        //     AND starredEvents.studentId = ${req.body.studentId}
+                        // WHERE
+                        //     ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
+                        // AND
+                        //     ( tagData.isActive != "0" OR tagData.isActive IS NULL )
+                        // ;`;    
+                        
+                        const query3 = 
+                        `
                         SELECT
                             eventData.eventId,
                             eventData.eventName,
@@ -1519,7 +1650,8 @@ module.exports = {
                             tagData.tagName,
                             tagData.tagAbbreviation,
                             CASE
-                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} THEN "1"
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
                             END AS isRegistered,
                             CASE
@@ -1527,33 +1659,40 @@ module.exports = {
                                 ELSE "0"
                             END AS isStarred
                         FROM
-                            eventData
-                            LEFT JOIN departmentData 
-                            ON eventData.eventDepartmentId = departmentData.departmentId
-                            LEFT JOIN eventTagData
-                            ON eventTagData.eventId = eventData.eventId
-                            LEFT JOIN tagData 
-                            ON eventTagData.tagId = tagData.tagId
-                        LEFT JOIN
-                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.registrationId
+                            eventData 
+                        RIGHT JOIN eventRegistrationGroupData
+                            ON eventRegistrationGroupData.eventId = eventData.eventId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
-                        LEFT JOIN
-                            starredEvents ON eventData.eventId = starredEvents.eventId
+                        LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
+                        LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                        LEFT JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                        LEFT JOIN starredEvents 
+                            ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
-                            ( tagData.isActive != "0" OR tagData.isActive IS NULL)
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;
-
                         
+                        
+                        
+
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
 
 
                         const [rows] = await db_connection.query(query);
-                        const [rows2] = await db_connection.query(query2);
+                        //const [rows2] = await db_connection.query(query2);
+                        const [rows3] = await db_connection.query(query3);
 
-                        const concat_rows = [...new Set([...rows, ...rows2])];
+                        //const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
+                        const concat_rows = [...new Set([...rows, ...rows3])];
+
 
                         await db_connection.query("UNLOCK TABLES");
 
@@ -1854,12 +1993,20 @@ module.exports = {
                         
                         if (event.isGroup == "0" || event.needGroupData == "0") {
                             
-                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                            [registration] = await db_connection.query(`SELECT * FROM eventRegistrationData WHERE studentId=? AND eventId=? AND registrationStatus = "2"`, [req.body.studentId, req.params.eventId]);
                         }
                         
                         else if (event.isGroup == "1" && event.needGroupData == "1") {
                             
-                            [registration] = await db_connection.query("SELECT * FROM eventRegistrationGroupData WHERE studentId=? AND eventId=?", [req.body.studentId, req.params.eventId]);
+                            [registration] = await db_connection.query(
+                            `SELECT * FROM
+                            eventRegistrationGroupData
+                            LEFT JOIN eventRegistrationData ON 
+                            eventRegistrationGroupData.registrationId = eventRegistrationData.registrationId
+                            WHERE eventRegistrationGroupData.studentId=? 
+                            AND eventRegistrationGroupData.eventId=?
+                            AND eventRegistrationData.registrationStatus = "2"`, 
+                            [req.body.studentId, req.params.eventId]);
                         }
                         
                         
@@ -1896,8 +2043,8 @@ module.exports = {
                             "departmentAbbreviation": event.departmentAbbreviation,
                             "tags": tags,
                             "isStarred": starred.length > 0 ? "1" : "0",
-                            "isRegistered": registration.length > 0 ? "1" : "0",
-                            "registrationId": registration.length > 0 ? registration[0].registrationId : null,
+                            "isRegistered": registration.length > 0 && registration[0].registrationStatus == "2" ? "1" : "0",
+                            "registrationId": registration.length > 0 && registration[0].registrationStatus == "2" ? registration[0].registrationId : null,
                         });
                     }
                 }
@@ -1925,17 +2072,6 @@ module.exports = {
 
 
     
-    /*
-    {
-        "eventId": "integer",
-        "totalMembers": "integer",
-        "isMarketPlacePaymentMode": "<0/1>",
-        "teamMembers": [], // list of email strings. Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-        "memberRoles": [], // list of role strings (CAN BE ANYTHING). Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-        "teamName": "", // Send only team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
-
-    }
-    */
     buyPassport: [
         tokenValidator,
         async (req, res) => {
@@ -2034,7 +2170,7 @@ module.exports = {
                 // DONE. Move to Transaction from frontend.
                 
                 return res.status(200).send({
-                    "MESSAGE": "Proceed to pay. Seats Locked for 5 mins.",
+                    "MESSAGE": "Proceed to pay.",
                     "txnid": txnId,
                     "amount": amount,
                     "productinfo": productinfo,
@@ -2067,12 +2203,18 @@ module.exports = {
         },
     ],
 
+
+    /*{
+        "transactionId":""
+    }*/
     verifyTransactionPayU: async (req,res) => {
         const db_connection = await anokha_db.promise().getConnection();
         const transaction_db_connection = await anokha_transactions_db.promise().getConnection(); 
+        let rollbackFlag = "0";
         try{
             
-            if(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.subtring(0,2)==='Txn'){
+            if(!(typeof(req.body.transactionId)==='string' && req.body.transactionId.length>0 && req.body.transactionId.substring(0,3)==='TXN')){
+                //console.log("check",req.body.transactionId.substring(0,2));
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction ID!"
                 });
@@ -2080,11 +2222,20 @@ module.exports = {
 
             await transaction_db_connection.query("LOCK TABLES transactionData READ");
 
-            const [transactionData] = await transaction_db_connection.query("SELECT * FROM transactionData WHERE txnId = ?", [req.body.transactionId]);
+            const [transactionData] = await transaction_db_connection.query(`
+            SELECT *,
+            CASE
+              WHEN expiryTime < CURRENT_TIMESTAMP THEN '1'
+              ELSE '0'
+            END 
+            AS isExpired
+            FROM transactionData
+            WHERE txnId = ?;`, [req.body.transactionId]);
 
             await transaction_db_connection.query("UNLOCK TABLES");
             
             if(transactionData.length === 0){
+                //console.log("test");
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction ID!"
                 });
@@ -2105,6 +2256,17 @@ module.exports = {
             if(transactionData[0].transactionStatus != "0"){
                 return res.status(400).send({
                     "MESSAGE": "Invalid Transaction Status!"
+                });
+            }
+
+
+
+            if(transactionData[0].transactionStatus === "0" && transactionData[0].isExpired === "1"){
+                // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+                // await transaction_db_connection.query('UPDATE transactionData SET transactionStatus = "2" WHERE txnId = ?', [transactionData[0].txnId]);
+                // await transaction_db_connection.query("UNLOCK TABLES");
+                return res.status(400).send({
+                    "MESSAGE": "Transaction Expired! Wait for 10 minutes and try again!"
                 });
             }
 
@@ -2132,15 +2294,18 @@ module.exports = {
 
 
                 const hash = generateVerifyHash({ command: "verify_payment", var1: transactionData[0].txnId });
-                const response = await fetch(appConfig.payU_test.verifyURL, {
+                const response = await fetch(appConfig.payUVerifyURL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `key=${appConfig.payU_test.key}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
+                    body: `key=${appConfig.payUKey}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
                 });
 
                 const responseText = await response.json();
+
+
+
                 const transactionDetails = responseText.transaction_details;
 
                 console.log(transactionDetails[transactionData[0].txnId]);
@@ -2150,6 +2315,7 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
+                    rollbackFlag = "";
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
@@ -2175,27 +2341,107 @@ module.exports = {
                     });
 
                 }
+
+                else if (transactionDetails[transactionData[0].txnId].status === "pending"){
+                    return res.status(201).send({
+                        "MESSAGE": "Transaction Pending!"
+                    });
+                }
             } else if (productInfo[0] === 'E') {
 
-                return res.status(400).send({
-                    "MESSAGE": "Yet to be implemented!"
+                // Event Registration
+                const hash = generateVerifyHash({ command: "verify_payment", var1: transactionData[0].txnId });
+                
+                const response = await fetch(appConfig.payUVerifyURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `key=${appConfig.payUKey}&command=verify_payment&hash=${hash}&var1=${transactionData[0].txnId}`
                 });
-                   
-            } else {
+
+                const responseText = await response.json();
+                const transactionDetails = responseText.transaction_details;
+
+                console.log(transactionDetails[transactionData[0].txnId]);
+
+                if (transactionDetails[transactionData[0].txnId].status === "success") {
+                    
+                    await db_connection.beginTransaction();
+                    await transaction_db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
+
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
+                    await db_connection.query("UPDATE eventRegistrationData SET registrationStatus = '2' WHERE txnId = ?", [txnId]);
+                    
+                    await transaction_db_connection.commit();
+                    await db_connection.commit();
+
+                    return res.status(200).send({   
+                        "MESSAGE": "Transaction Verified!"
+                    });
+
+                }
+
+                else if (transactionDetails[transactionData[0].txnId].status === "failure") {
+
+                    // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
+
+                    // await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' WHERE txnId = ?", [txnId]);
+
+                    // await transaction_db_connection.query("UNLOCK TABLES");
+
+                    await transaction_db_connection.beginTransaction();
+                    await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
+
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' AND seatsReleased = '1'  WHERE txnId = ?", [txnId]);
+
+                    const [event] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE txnId = ?',[txnId]);
+
+                    await db_connection.query('DELETE from eventRegistrationGroupData WHERE txnId = ?',[txnId]);
+                    await db_connection.query('DELETE from eventRegistrationData WHERE txnId = ?',[txnId]);
+
+                    if(event.length > 0){
+                        await db_connection.query('UPDATE eventData SET seatsFilled = seatsFilled - ? WHERE eventId = ?',[event[0].totalMembers,event[0].eventId]);
+                    }
+                    
+                    await transaction_db_connection.commit();
+                    await db_connection.commit();
+
+                    return res.status(202).send({
+                        "MESSAGE": "Transaction Failed!"
+                    });
+
+                }
+
+                else if (transactionDetails[transactionData[0].txnId].status === "pending"){
+                    
+                    return res.status(201).send({
+                        "MESSAGE": "Transaction Pending!"
+                    });
+                }
+
+            } 
+            
+            else {
+                
                 return res.status(400).send({
                     "MESSAGE": "Unauthorized!"
                 });
             }
-            
-
-
 
         }
         catch(err){
             console.log(err);
 
-            await transaction_db_connection.rollback();
-            await db_connection.rollback();
+            if(rollbackFlag === "1"){
+                await transaction_db_connection.rollback();
+                await db_connection.rollback();
+            }    
 
             const time = new Date();
             fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - verifyTransactionPayU - ${err}\n`);
@@ -2212,6 +2458,55 @@ module.exports = {
     },
 
 
+    getAllTransactions: [
+        tokenValidator,
+        async (req, res) => {
+
+            const db_connection = await anokha_transactions_db.promise().getConnection();
+
+            try {
+                await db_connection.query("LOCK TABLES transactionData READ, marketPlaceTransactionData READ");
+
+                const [transactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM transactionData WHERE userId = ? ORDER BY createdAt DESC", [req.body.studentId]);
+                const [marketPlaceTransactions] = await db_connection.query("SELECT txnId, amount, transactionStatus, createdAt AS timeOfTransaction FROM marketPlaceTransactionData WHERE userId = ? ORDER BY createdAt DESC", [req.body.studentId]);
+
+                await db_connection.query("UNLOCK TABLES");
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Transactions.",
+                    "PAY_U_TRANSACTIONS": transactions,
+                    "MARKET_PLACE_TRANSACTIONS": marketPlaceTransactions
+                });
+            }
+            catch (err) {
+                console.log(err);
+
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getAllTransactions - ${err}\n`);
+
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    ],
+
+    
+    /*
+    {
+        "eventId": "integer",
+        "totalMembers": "integer",
+        "isMarketPlacePaymentMode": "<0/1>",
+        "teamMembers": [], // list of email strings. Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
+        "memberRoles": [], // list of role strings (CAN BE ANYTHING). Send only when team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
+        "teamName": "", // Send only team data is necessary, (ONLY FOR isGroup = '1' and needGroupData = '1')
+
+    }
+    */
     registerForEventStepOne: [
         tokenValidator,
         async (req, res) => {
@@ -2226,6 +2521,8 @@ module.exports = {
             
             const db_connection = await anokha_db.promise().getConnection();
             const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
+
+            let rollbackFlag = "0";
 
             try {
 
@@ -2339,7 +2636,7 @@ module.exports = {
                     
                     // payU
 
-                    const txnId = `TXN-${req.body.studentId.toString()}-${req.body.eventId.toString()}-${new Date().getTime()}`;
+                    const txnId = `TXN-E-${req.body.studentId.toString()}-${req.body.eventId.toString()}-${new Date().getTime()}`;
                     let amount = 0;
                     let productinfo = "";
                     let firstname = studentData[0].studentFullName;
@@ -2375,6 +2672,8 @@ module.exports = {
 
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
+
+                        rollbackFlag = "1";
 
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
@@ -2504,6 +2803,8 @@ module.exports = {
 
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
+
+                        rollbackFlag = "1";
                         
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
@@ -2739,6 +3040,8 @@ module.exports = {
                         await transaction_db_connection.beginTransaction();
                         await db_connection.beginTransaction();
 
+                        rollbackFlag = "1"; 
+
                         const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, req.body.studentId, amount, productinfo, firstname, email, phone, "0"]);
 
                         if (insertTransactionData.affectedRows !== 1) {
@@ -2876,9 +3179,11 @@ module.exports = {
 
 
             } catch (err) {
-                
-                await db_connection.rollback();
-                await transaction_db_connection.rollback();
+
+                if (rollbackFlag === "1") {
+                    await db_connection.rollback();
+                    await transaction_db_connection.rollback();
+                }
 
                 console.log(err);
                 

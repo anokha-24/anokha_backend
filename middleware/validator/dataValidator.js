@@ -320,7 +320,7 @@ module.exports = {
             typeof (event.eventDate) != 'string' ||
             event.eventDate === undefined || event.eventDate === null || isNaN(Date.parse(event.eventDate)) || event.eventDate.length === 0 ||
             typeof (event.eventTime) != 'string' ||
-            event.eventTime === undefined || event.eventTime === null || validator.isTime(event.eventTime) || event.eventTime.length === 0 ||
+            event.eventTime === undefined || event.eventTime === null || !validator.isTime(event.eventTime) || event.eventTime.length === 0 ||
             typeof (event.eventVenue) != 'string' ||
             event.eventVenue === undefined || event.eventVenue === null || event.eventVenue.length > 255 || event.eventVenue.length === 0 ||
             typeof (event.eventImageURL) != 'string' ||

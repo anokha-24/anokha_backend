@@ -49,6 +49,8 @@ module.exports = {
         else {
             
             const db_connection = await anokha_db.promise().getConnection();
+
+            let rollbackFlag = "0";
             
             try {
                 
@@ -112,6 +114,8 @@ module.exports = {
                     
                     await db_connection.beginTransaction();
 
+                    rollbackFlag = "1";
+
                     await db_connection.query("DELETE FROM studentRegister WHERE studentEmail = ?", [req.body.studentEmail]);
                     
                     //sha256 hash the otp
@@ -135,7 +139,9 @@ module.exports = {
                 
                 console.log(err);
                 
-                await db_connection.rollback();
+                if(rollbackFlag === "1"){
+                    await db_connection.rollback();
+                }
 
                 const time = new Date();
                 fs.appendFileSync('./logs/authController/errorLogs.log', `${time.toISOString()} - registerUser - ${err}\n`);
@@ -690,6 +696,8 @@ module.exports = {
         else {
             
             const db_connection = await anokha_db.promise().getConnection();
+
+            let rollbackFlag = "0";
             
             try {
                 
@@ -717,6 +725,8 @@ module.exports = {
                 else {
                     
                     await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
                     
                     await db_connection.query(`DELETE from forgotPasswordStudent where studentId = ?`, [student[0].studentId]);
                     
@@ -745,8 +755,10 @@ module.exports = {
                 }
             }
             catch (err) {
-                
-                await db_connection.rollback();
+
+                if(rollbackFlag === "1"){
+                    await db_connection.rollback();
+                }
 
                 console.log(err);
                 
@@ -782,6 +794,8 @@ module.exports = {
         else {
             
             const db_connection = await anokha_db.promise().getConnection();
+
+            let rollbackFlag = "0";
             
             try {
                 
@@ -808,6 +822,8 @@ module.exports = {
                 else {
 
                     await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
                     
                     await db_connection.query(`DELETE from forgotPasswordManager where managerId = ?`, [manager[0].managerId]);
                     
@@ -837,8 +853,10 @@ module.exports = {
             }
             catch (err) {
 
-                await db_connection.rollback();
-                
+                if(rollbackFlag === "1"){
+                    await db_connection.rollback();
+                }
+
                 console.log(err);
                 
                 const time = new Date();

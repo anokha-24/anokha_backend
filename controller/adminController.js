@@ -464,6 +464,8 @@ module.exports = {
                 
                 const db_connection = await anokha_db.promise().getConnection();
                 
+                let rollbackFlag = "0";
+
                 try{
                     
                     await db_connection.query("LOCK TABLES managerData READ");
@@ -518,6 +520,8 @@ module.exports = {
 
 
                     await db_connection.beginTransaction();
+
+                    rollbackFlag = "1";
                     
                     const query =
                     `
@@ -580,8 +584,10 @@ module.exports = {
                 
                 }
                 catch(err){
-                    
-                    await db_connection.rollback();
+
+                    if (rollbackFlag=== "1") {
+                        await db_connection.rollback();
+                    }
 
                     console.log(err);
                     
@@ -627,6 +633,8 @@ module.exports = {
             else{
                 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try{
                     
@@ -701,6 +709,8 @@ module.exports = {
 
                     await db_connection.beginTransaction();
                     
+                    rollbackFlag = "1";
+
                     const query =
                     `
                     UPDATE eventData
@@ -763,8 +773,10 @@ module.exports = {
                 }
                 catch(err){
 
-                    await db_connection.rollback();
-                    
+                    if (rollbackFlag === "1") {
+                        await db_connection.rollback();
+                    }
+
                     console.log(err);
                     
                     const time = new Date();
@@ -1259,6 +1271,8 @@ module.exports = {
             else{
                 
                 const db_connection = await anokha_db.promise().getConnection();
+
+                let rollbackFlag = "0";
                 
                 try{
                     
@@ -1320,6 +1334,8 @@ module.exports = {
                         else{
 
                             await db_connection.beginTransaction();
+
+                            rollbackFlag = "1"; 
                             
                             await db_connection.query("INSERT INTO blockedStudentStatus (studentId, lastStatus, blockedBy) VALUES (?, ?, ?)", [req.body.studentId, check[0].studentAccountStatus, req.body.managerId]);
                             
@@ -1374,6 +1390,8 @@ module.exports = {
                             else{
 
                                 await db_connection.beginTransaction();
+
+                                rollbackFlag = "1";
                                 
                                 await db_connection.query("UPDATE studentData SET studentAccountStatus = ? WHERE studentId = ?", [lastStatus[0].lastStatus, req.body.studentId]);
                                 
@@ -1392,8 +1410,10 @@ module.exports = {
                 
                 catch(err){
 
-                    await db_connection.rollback();
-                    
+                    if (rollbackFlag === "1") {
+                        await db_connection.rollback();
+                    }
+
                     console.log(err);
                     
                     const time = new Date();
@@ -1783,6 +1803,88 @@ module.exports = {
         }
     ],
 
+    getOfficialEvents: [
+        adminTokenValidator,
+        async (req,res) => {
+                
+                const db_connection = await anokha_db.promise().getConnection();
+                
+                try{
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    
+                    await db_connection.query("UNLOCK TABLES");
+                    
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
+                    
+                    if(req.body.authorizationTier==1 || req.body.authorizationTier==2 || req.body.authorizationTier==6){
+
+                        await db_connection.query("LOCK TABLES eventData READ");
+                        const [events] = await db_connection.query("SELECT eventId, eventName, eventImageURL FROM eventData", [req.body.managerId]);
+                        await db_connection.query("UNLOCK TABLES");
+
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Fetched Official Events.",
+                            "events": events
+                        });
+
+                    }
+                    
+                    else if(req.body.authorizationTier==4){
+
+                        await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
+                        
+                        const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN managerData ON managerData.managerId = managerData.managerId WHERE managerData.managerDepartmentId = ? AND managerData.managerId = ?", [managerData[0].managerDepartmentId,req.body.managerId]);
+
+                        await db_connection.query("UNLOCK TABLES");
+
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Fetched Official Events.",
+                            "events": events
+                        });
+                    
+                    }
+                    else if(req.body.authorizationTier==7){
+                            
+                            await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ");
+                            
+                            const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId WHERE eventOrganizersData.managerId = ?", [req.body.managerId]);
+    
+                            await db_connection.query("UNLOCK TABLES");
+    
+                            return res.status(200).send({
+                                "MESSAGE": "Successfully Fetched Official Events.",
+                                "events": events
+                            });
+                    }
+                }
+                catch(err){
+                    
+                    console.log(err);
+                    
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - assignEventToOfficial - ${err}\n`);
+                    
+                    return res.status(500).send({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                
+                }
+            }
+    ],
+
     removeOfficialFromEvent: [
         adminTokenValidatorSpecial,
         async (req,res) => {
@@ -1923,6 +2025,8 @@ module.exports = {
           req.params.studentId = parseInt(req.params.studentId);
           
           const db_connection = await anokha_db.promise().getConnection();
+
+          let rollbackFlag = "0";
           
           try {
 
@@ -1969,6 +2073,8 @@ module.exports = {
 
               await db_connection.beginTransaction();
 
+              rollbackFlag = "1";
+
               await db_connection.query("INSERT INTO visitLogs (studentId, entryTime) VALUES (?, NOW())", [req.params.studentId]);
               
               await db_connection.query("UPDATE studentData SET isInCampus = 1 WHERE studentId = ?", [req.params.studentId]);
@@ -1984,8 +2090,10 @@ module.exports = {
           
           catch (err) {
 
-            await db_connection.rollback();
-            
+            if(rollbackFlag == "1"){
+                await db_connection.rollback();
+            }
+
             console.log(err);
             
             const time = new Date();
@@ -2005,6 +2113,32 @@ module.exports = {
         }
       }
     ],
+
+    getDepartments: async (req, res) => {
+            //console.log("getDepartments");
+            db_connection = await anokha_db.promise().getConnection();
+            try {
+                await db_connection.query("LOCK TABLES departmentData READ");
+                const [departments] = await db_connection.query("SELECT departmentId, departmentName, departmentAbbreviation FROM departmentData");
+                await db_connection.query("UNLOCK TABLES");
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Departments.",
+                    "departments": departments
+                });
+            }    
+            catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getDepartments - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            }
+            finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        },
 
     
     /*
@@ -2027,6 +2161,8 @@ module.exports = {
             req.params.studentId = parseInt(req.params.studentId);
             
             const db_connection = await anokha_db.promise().getConnection();
+
+            let rollbackFlag = "0";
             
             try {
 
@@ -2096,6 +2232,8 @@ module.exports = {
 
                     await db_connection.beginTransaction();
 
+                    rollbackFlag = "1";
+
                     await db_connection.query("UPDATE visitLogs SET studentId = ?, exitTime = NOW() WHERE exitTime is NULL", [req.params.studentId]);
                     
                     await db_connection.query("UPDATE studentData SET isInCampus = 0 WHERE studentId = ?", [req.params.studentId]);
@@ -2111,7 +2249,9 @@ module.exports = {
             
             catch (err) {
 
-              await db_connection.rollback();
+              if(rollbackFlag == "1"){
+                await db_connection.rollback();
+              }
               
               console.log(err);
               
@@ -2675,5 +2815,125 @@ module.exports = {
           }
         }
     }
+    ],
+
+    getEventAttendance: [
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 4 || req.body.authorizationTier == 6 || req.body.authorizationTier == 7)){
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+            else{
+                db_connection = await anokha_db.promise().getConnection();
+                
+                try{
+                    req.params.eventId = parseInt(req.params.eventId);
+
+                    await db_connection.query("LOCK TABLES managerData READ");
+                    const [managerData] = await db_connection.query("SELECT * FROM managerData WHERE managerId=?", [req.body.managerId]);
+                    await db_connection.query("UNLOCK TABLES");
+
+                    if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
+
+                    if(req.params.eventId === undefined || isNaN(req.params.eventId) || req.params.eventIf === null || req.params.eventId < 1){
+                        return res.status(400).send({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                    }
+
+                    if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6){
+
+                        await db_connection.query("LOCK TABLES eventData READ");
+                        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ?", [req.params.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+
+                        if (eventData.length === 0) {
+                            return res.status(400).send({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                        }
+
+
+                        await db_connection.query("LOCK TABLES eventAttendanceData READ");
+
+                        const [attendance] = await db_connection.query("SELECT attendanceId, eventId, studentId, entryTime, exitTime  FROM eventAttendanceData WHERE eventId = ?", [req.params.eventId]);
+                        
+                        await db_connection.query("UNLOCK TABLES");
+                        
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Fetched Event Attendance.",
+                            "attendance": attendance
+                        });
+                    }
+
+                    else if(req.body.authorizationTier == 4){
+                        await db_connection.query("LOCK TABLES eventData READ");
+                        const [eventData] = await db_connection.query("SELECT * FROM eventData WHERE eventId = ? AND eventDepartmentId = ?", [req.params.eventId, managerData[0].managerDepartmentId]);
+                        await db_connection.query("UNLOCK TABLES");
+
+                        if (eventData.length === 0) {
+                            return res.status(400).send({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                        }
+
+
+                        await db_connection.query("LOCK TABLES eventAttendanceData READ");
+
+                        const [attendance] = await db_connection.query("SELECT attendanceId, eventId, studentId, entryTime, exitTime  FROM eventAttendanceData WHERE eventId = ?", [req.params.eventId]);
+                        
+                        await db_connection.query("UNLOCK TABLES");
+                        
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Fetched Event Attendance.",
+                            "attendance": attendance
+                        });
+                    }
+
+                    else if (req.body.authorizationTier == 7){
+                        await db_connection.query("LOCK TABLES eventData READ, eventOrganizersData READ");
+                        const [eventData] = await db_connection.query("SELECT * FROM eventData RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId WHERE eventData.eventId = ? ", [req.params.eventId]);
+                        await db_connection.query("UNLOCK TABLES");
+
+                        if (eventData.length === 0) {
+                            return res.status(400).send({
+                                "MESSAGE": "Invalid Request!"
+                            });
+                        }
+
+
+                        await db_connection.query("LOCK TABLES eventAttendanceData READ");
+
+                        const [attendance] = await db_connection.query("SELECT attendanceId, eventId, studentId, entryTime, exitTime  FROM eventAttendanceData WHERE eventId = ?", [req.params.eventId]);
+                        
+                        await db_connection.query("UNLOCK TABLES");
+                        
+                        return res.status(200).send({
+                            "MESSAGE": "Successfully Fetched Event Attendance.",
+                            "attendance": attendance
+                        });
+                    }
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getEventAttendance - ${err}\n`);
+                    return res.status(500).send({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
     ],
 }

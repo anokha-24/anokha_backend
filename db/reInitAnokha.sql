@@ -190,6 +190,23 @@ VALUES (
         4,
         6
     );
+
+INSERT INTO managerData (
+        managerFullName,
+        managerEmail,
+        managerPhone,
+        managerPassword,
+        managerRoleId,
+        managerDepartmentId
+    )
+VALUES (
+        "Dharma Pravardhana V",
+        "dharmapravardhana7@gmail.com",
+        "8248847540",
+        "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        7,
+        6
+    );
 -- CREATE TABLE IF NOT EXISTS tagFaculty (
 --     id INTEGER PRIMARY KEY AUTO_INCREMENT,
 --     tagId INTEGER NOT NULL,
@@ -350,7 +367,7 @@ VALUES (
         "Amrita Vishwa Vidyapeetham",
         "Coimbatore",
         "0",
-        "2"
+        "1"
     );
 -- password = 123
 INSERT INTO studentData (
@@ -425,7 +442,7 @@ CREATE TABLE IF NOT EXISTS eventData (
     eventName VARCHAR(255) NOT NULL,
     eventDescription VARCHAR(255) NOT NULL,
     eventMarkdownDescription VARCHAR(5000) NOT NULL,
-    eventDate DATE NOT NULL,
+    eventDate VARCHAR(100) NOT NULL,
     eventTime TIME NOT NULL,
     eventVenue VARCHAR(255) NOT NULL,
     eventImageURL VARCHAR(255) NOT NULL,
@@ -454,7 +471,8 @@ CREATE TABLE IF NOT EXISTS eventData (
     CHECK (isPerHeadPrice IN ("0", "1")),
     CHECK (isRefundable IN ("0", "1")),
     CHECK (eventStatus IN ("0", "1", "2")),
-    CHECK (needGroupData IN ("0", "1"))
+    CHECK (needGroupData IN ("0", "1")),
+    CHECK (seatsFilled <= maxSeats AND seatsFilled >= 0)
 );
 -- eventStatus: 0 = CANCELLED FROM ANOKHA, 1 = ACTIVE, 2 = CLOSED FOR REGISTRATIONS
 INSERT INTO eventData (
@@ -514,7 +532,7 @@ Welcome to the Code Clash Championship, an electrifying event that brings togeth
 
 Gear up for an adrenaline-pumping coding experience where lines of code become your weapons, and logic serves as your armor. Join us at the Code Clash Championship and prove that you have what it takes to be crowned the coding champion!
 ",
-        "2021-03-01",
+        "2024-04-04",
         "10:00:00",
         "Anugraha Hall",
         "https://i.imgur.com/iQy8GLM.jpg",
@@ -582,7 +600,7 @@ IoT is revolutionizing industries, connecting devices, and creating smarter, mor
 3. **Protocols and Communication**
    - Overview of MQTT, CoAP, and HTTP protocols.
    - Hands-on communication between devices.",
-        "2021-03-03",
+        "2024-04-06",
         "11:00:00",
         "Anugraha Hall",
         "https://i.imgur.com/iQy8GLM.jpg",
@@ -626,6 +644,10 @@ CREATE TABLE IF NOT EXISTS eventOrganizersData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
+
+INSERT INTO eventOrganizersData (eventId, managerId) VALUES (2, 4);
+
+
 CREATE TABLE IF NOT EXISTS eventRegistrationData (
     registrationId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,

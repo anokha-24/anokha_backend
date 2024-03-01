@@ -12,10 +12,11 @@ CREATE TABLE IF NOT EXISTS transactionData (
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(10) NOT NULL,
     transactionStatus VARCHAR(1) NOT NULL,
+    seatsReleased CHAR(1) DEFAULT "0" NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expiryTime TIMESTAMP NOT NULL DEFAULT ( createdAt + INTERVAL 5 MINUTE ),
     lastUpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (txnid),
+    PRIMARY KEY (txnId),
     CHECK (transactionStatus IN ('0', '1', '2'))
     -- 0: Pending, 1: Success, 2: Failed
 );
@@ -52,7 +53,7 @@ CREATE TABLE IF NOT EXISTS marketPlaceTransactionData (
     transactionStatus VARCHAR(1) NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (txnid),
+    PRIMARY KEY (txnId),
     CHECK (transactionStatus IN ('0', '1', '2'))
     -- 0: Pending, 1: Success, 2: Failed
 );
