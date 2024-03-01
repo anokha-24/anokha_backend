@@ -606,16 +606,16 @@ module.exports = {
                     FROM eventData
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
+                    INNER JOIN eventRegistrationData
+                    ON eventRegistrationData.eventId = eventData.eventId
                     INNER JOIN eventTagData
                     ON eventTagData.eventId = eventData.eventId
                     LEFT JOIN tagData
                     ON eventTagData.tagId = tagData.tagId
-                    INNER JOIN eventRegistrationData
-                    ON eventRegistrationData.eventId = eventData.eventId
                     WHERE eventRegistrationData.studentId = ${req.body.studentId}
                     AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
-                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
+                    AND (tagData.isActive != "0")
 
                     ;`
 
@@ -651,18 +651,18 @@ module.exports = {
                     FROM eventData
                     LEFT JOIN departmentData
                     ON eventData.eventDepartmentId = departmentData.departmentId
-                    INNER JOIN eventTagData
-                    ON eventTagData.eventId = eventData.eventId
-                    LEFT JOIN tagData
-                    ON eventTagData.tagId = tagData.tagId
                     INNER JOIN eventRegistrationGroupData
                     ON eventRegistrationGroupData.eventId = eventData.eventId
                     LEFT JOIN eventRegistrationData
                     ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                    INNER JOIN eventTagData
+                    ON eventTagData.eventId = eventData.eventId
+                    LEFT JOIN tagData
+                    ON eventTagData.tagId = tagData.tagId
                     WHERE eventRegistrationGroupData.studentId = ${req.body.studentId}
                     AND eventRegistrationData.registrationStatus = "2"
                     AND ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
-                    AND (tagData.isActive != "0" OR tagData.isActive IS NULL)
+                    AND (tagData.isActive != "0")
                     ;`
 
                     
