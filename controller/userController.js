@@ -1603,7 +1603,7 @@ module.exports = {
                             END AS isStarred
                         FROM
                             eventData 
-                        Right JOIN eventRegistrationGroupData
+                        FULL OUTER JOIN eventRegistrationGroupData
                             ON eventRegistrationGroupData.eventId = eventData.eventId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
                         LEFT JOIN eventRegistrationData
@@ -1621,7 +1621,9 @@ module.exports = {
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         AND
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
-                        ;`;                       
+                        ;`;                 
+                        
+                        
                         
 
                         await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
