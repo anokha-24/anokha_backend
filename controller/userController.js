@@ -1552,12 +1552,12 @@ module.exports = {
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
                         LEFT JOIN
-                            eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
+                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.eventId
                         LEFT JOIN
                             starredEvents ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         LEFT JOIN
-                            eventRegistrationGroupData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
+                            eventRegistrationData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
