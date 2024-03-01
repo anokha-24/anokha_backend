@@ -829,18 +829,18 @@ module.exports = {
                         
                         else {
                             
-                            [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
+                            const [student] = await db_connection.query("SELECT studentId, studentFullName, studentEmail, studentPhone, studentCollegeName, studentCollegeCity FROM studentData WHERE studentId=?", [req.body.studentId]);
 
                             await db_connection.query("UNLOCK TABLES");
                             
     
-                            let trasactionDetails;
+                            let transactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
                                 
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -850,7 +850,7 @@ module.exports = {
                                 
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -858,11 +858,11 @@ module.exports = {
                             
                             return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
-                                "txnId": trasactionDetails[0].txnId,
+                                "txnId": transactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
-                                "transactionStatus": trasactionDetails[0].transactionStatus,
-                                "transactionAmount": trasactionDetails[0].amount,
-                                "transactionTime": trasactionDetails[0].createdAt,
+                                "transactionStatus": transactionDetails[0].transactionStatus,
+                                "transactionAmount": transactionDetails[0].amount,
+                                "transactionTime": transactionDetails[0].createdAt,
                                 "team": student
                             });
                         }
@@ -910,13 +910,13 @@ module.exports = {
 
                             await db_connection.query("UNLOCK TABLES");
                             
-                            let trasactionDetails;
+                            let transactionDetails;
 
                             if (registration[0].isMarketPlacePaymentMode == "1") {
                                 
                                 await transaction_db_connection.query("LOCK TABLES marketPlaceTransactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM marketPlaceTransactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -926,7 +926,7 @@ module.exports = {
                                 
                                 await transaction_db_connection.query("LOCK TABLES transactionData READ");
                                 
-                                [trasactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
+                                [transactionDetails] = await transaction_db_connection.query('SELECT * FROM transactionData WHERE txnId=?', [registration[0].txnId]);
                                 
                                 await transaction_db_connection.query('UNLOCK TABLES');
                             }
@@ -935,11 +935,11 @@ module.exports = {
                             
                             return res.status(200).send({
                                 "MESSAGE": "Successfully Fetched Registered Event Data.",
-                                "txnId": trasactionDetails[0].txnId,
+                                "txnId": transactionDetails[0].txnId,
                                 "isMarketPlacePaymentMode": registration[0].isMarketPlacePaymentMode,
-                                "transactionStatus": trasactionDetails[0].transactionStatus,
-                                "transactionAmount": trasactionDetails[0].amount,
-                                "transactionTime": trasactionDetails[0].createdAt,
+                                "transactionStatus": transactionDetails[0].transactionStatus,
+                                "transactionAmount": transactionDetails[0].amount,
+                                "transactionTime": transactionDetails[0].createdAt,
                                 "teamName":team[0].teamName,
                                 "team": team
                             });
