@@ -1165,7 +1165,7 @@ module.exports = {
                     
                     for(i = 0; i < req.body.teams.length; i++){
                         
-                        [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
+                        const [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
                         
                         if(team.length === 0){
                             
@@ -1278,7 +1278,7 @@ module.exports = {
                     
                     for(i = 0; i < req.body.teams.length; i++){
                         
-                        [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
+                        const [team] = await db_connection.query('SELECT * FROM intelTeamData WHERE teamId = ?', [req.body.teams[i]]);
                         
                         if(team.length === 0){
                            

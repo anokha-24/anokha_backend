@@ -2116,7 +2116,7 @@ module.exports = {
 
     getDepartments: async (req, res) => {
             //console.log("getDepartments");
-            db_connection = await anokha_db.promise().getConnection();
+            const db_connection = await anokha_db.promise().getConnection();
             try {
                 await db_connection.query("LOCK TABLES departmentData READ");
                 const [departments] = await db_connection.query("SELECT departmentId, departmentName, departmentAbbreviation FROM departmentData");
@@ -2826,7 +2826,7 @@ module.exports = {
                 });
             }
             else{
-                db_connection = await anokha_db.promise().getConnection();
+                const db_connection = await anokha_db.promise().getConnection();
                 
                 try{
                     req.params.eventId = parseInt(req.params.eventId);

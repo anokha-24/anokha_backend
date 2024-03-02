@@ -2146,11 +2146,11 @@ module.exports = {
                 let email = studentData[0].studentEmail;
                 let phone = studentData[0].studentPhone;
                 
-                transaction_db_connection.query('LOCK TABLES transactionData WRITE');
+                await transaction_db_connection.query('LOCK TABLES transactionData WRITE');
 
                 const [insertTransactionData] = await transaction_db_connection.query("INSERT INTO transactionData (txnId, userId, amount, productinfo, firstname, email, phone, transactionStatus)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [txnId, studentData[0].studentId, amount, productinfo, firstname, email, phone, "0"]);
                 
-                transaction_db_connection.query('UNLOCK TABLES');
+                await transaction_db_connection.query('UNLOCK TABLES');
 
                 if (insertTransactionData.affectedRows !== 1) {
                     return res.status(500).send({
@@ -2315,7 +2315,7 @@ module.exports = {
                     await db_connection.beginTransaction();
                     await transaction_db_connection.beginTransaction();
 
-                    rollbackFlag = "";
+                    rollbackFlag = "1";
 
                     await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '1' WHERE txnId = ?", [txnId]);
                     await db_connection.query("UPDATE studentData SET studentAccountStatus = '2' WHERE studentId = ?", [req.body.studentId]);
