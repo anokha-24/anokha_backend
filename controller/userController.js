@@ -1690,7 +1690,7 @@ module.exports = {
                         const [rows2] = await db_connection.query(query2);
                         const [rows3] = await db_connection.query(query3);
 
-                        const concat_rows = [...new Set([...rows, ...rows2, ...rows3])];
+                        const concat_rows = [...new Set([...rows, ...rows3, ...rows2])];
                         //const concat_rows = [...new Set([...rows, ...rows3])];
 
 
@@ -1708,10 +1708,19 @@ module.exports = {
                                 // If yes, push the current event data to the existing array
                                 const existingData = aggregatedDataMap.get(event.eventId);
                                 
-                                existingData.tags.push({
-                                    tagName: event.tagName,
-                                    tagAbbreviation: event.tagAbbreviation,
-                                });
+                                // existingData.tags.push({
+                                //     tagName: event.tagName,
+                                //     tagAbbreviation: event.tagAbbreviation,
+                                // });
+                                const isDuplicateTag = existingData.tags.some(tag => tag.tagName === event.tagName);
+
+                                if (!isDuplicateTag) {
+                                    existingData.tags.push({
+                                        tagName: event.tagName,
+                                        tagAbbreviation: event.tagAbbreviation,
+                                    });
+                                }
+                                
                             } else {
                                 
                                 // If no, create a new array with the current event data
