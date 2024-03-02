@@ -34,16 +34,16 @@ if (cluster.isPrimary) {
     console.log(`[MESSAGE]: Master ${pid} running.`);
     const [anokha_db, anokha_transactions_db] = establishConnection();
 
-    reinitDb(anokha_db, "anokha");
-    reinitDb(anokha_transactions_db, "anokha_transactions");
+    //reinitDb(anokha_db, "anokha");
+    //reinitDb(anokha_transactions_db, "anokha_transactions");
 
     if (fs.existsSync('./middleware/RSA/private_key.pem') && fs.existsSync('./middleware/RSA/public_key.pem')) {
         // Delete Key
-        fs.unlinkSync('./middleware/RSA/private_key.pem');
-        fs.unlinkSync('./middleware/RSA/public_key.pem');
+        //fs.unlinkSync('./middleware/RSA/private_key.pem');
+        //fs.unlinkSync('./middleware/RSA/public_key.pem');
 
         // Generate Key
-        generateRSAKey();
+        //generateRSAKey();
     } else {
         // Generate Key
         generateRSAKey();
