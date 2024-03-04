@@ -368,12 +368,16 @@ module.exports = {
                                 WHEN eventRegistrationData.studentId = ${req.body.studentId} 
                                 AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
-                            END AS isRegistered
+                            END AS isRegistered,
+                            CASE
+                                WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isStarred
                         FROM
                             eventData
                             LEFT JOIN departmentData 
                             ON eventData.eventDepartmentId = departmentData.departmentId
-                            INNER JOIN eventTagData
+                            LEFT JOIN eventTagData
                             ON eventTagData.eventId = eventData.eventId
                             LEFT JOIN tagData 
                             ON eventTagData.tagId = tagData.tagId
@@ -386,13 +390,14 @@ module.exports = {
                         WHERE
                             ( eventData.isGroup = "0" OR eventData.needGroupData = "0" )
                         AND
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
+                        AND 
                             starredEvents.studentId = ${req.body.studentId}
-                        AND
-                            (tagData.isActive != "0" OR tagData.isActive IS NULL)
                         ;`;
 
-                    
-                    const query2 = `
+
+                        const query2 = 
+                        `
                         SELECT
                             eventData.eventId,
                             eventData.eventName,
@@ -421,37 +426,100 @@ module.exports = {
                                 WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
                                 AND eventRegistrationData.registrationStatus = "2" THEN "1"
                                 ELSE "0"
-                            END AS isRegistered
+                            END AS isRegistered,
+                            CASE
+                                WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isStarred
                         FROM
-                            eventData
-                            LEFT JOIN departmentData 
-                            ON eventData.eventDepartmentId = departmentData.departmentId
-                            INNER JOIN eventTagData
-                            ON eventTagData.eventId = eventData.eventId
-                            LEFT JOIN tagData 
-                            ON eventTagData.tagId = tagData.tagId
-                        LEFT JOIN
-                            eventRegistrationGroupData ON eventData.eventId = eventRegistrationGroupData.registrationId
+                            eventData 
+                        LEFT JOIN eventRegistrationGroupData
+                            ON eventRegistrationGroupData.eventId = eventData.eventId
                             AND eventRegistrationGroupData.studentId = ${req.body.studentId}
-                        LEFT JOIN
-                            starredEvents ON eventData.eventId = starredEvents.eventId
+                        LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
+                        LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                        LEFT JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                        LEFT JOIN starredEvents 
+                            ON eventData.eventId = starredEvents.eventId
                             AND starredEvents.studentId = ${req.body.studentId}
                         WHERE
                             ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
+                        AND 
                             starredEvents.studentId = ${req.body.studentId}
+                        ;`;
+                        
+                        
+                        const query3 = 
+                        `
+                        SELECT
+                            eventData.eventId,
+                            eventData.eventName,
+                            eventData.eventDescription,
+                            eventData.eventDate,
+                            eventData.eventTime,
+                            eventData.eventVenue,
+                            eventData.eventImageURL,
+                            eventData.eventPrice,
+                            eventData.maxSeats,
+                            eventData.seatsFilled,
+                            eventData.minTeamSize,
+                            eventData.maxTeamSize,
+                            eventData.isWorkshop,
+                            eventData.isTechnical,
+                            eventData.isGroup,
+                            eventData.needGroupData,
+                            eventData.isPerHeadPrice,
+                            eventData.isRefundable,
+                            eventData.eventStatus,
+                            departmentData.departmentName,
+                            departmentData.departmentAbbreviation,
+                            tagData.tagName,
+                            tagData.tagAbbreviation,
+                            CASE
+                                WHEN eventRegistrationGroupData.studentId = ${req.body.studentId} 
+                                AND eventRegistrationData.registrationStatus = "2" THEN "1"
+                                ELSE "0"
+                            END AS isRegistered,
+                            CASE
+                                WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
+                                ELSE "0"
+                            END AS isStarred
+                        FROM
+                            eventData 
+                        RIGHT JOIN eventRegistrationGroupData
+                            ON eventRegistrationGroupData.eventId = eventData.eventId
+                            AND eventRegistrationGroupData.studentId = ${req.body.studentId}
+                        LEFT JOIN eventRegistrationData
+                            ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId    
+                        LEFT JOIN departmentData 
+                            ON eventData.eventDepartmentId = departmentData.departmentId
+                        LEFT JOIN eventTagData
+                            ON eventTagData.eventId = eventData.eventId
+                        LEFT JOIN tagData 
+                            ON eventTagData.tagId = tagData.tagId
+                        LEFT JOIN starredEvents 
+                            ON eventData.eventId = starredEvents.eventId
+                            AND starredEvents.studentId = ${req.body.studentId}
+                        WHERE
+                            ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
                         AND
-                            (tagData.isActive != "0" OR tagData.isActive IS NULL)`;
-
-                    
-                    
-                    await db_connection.query('LOCK TABLES eventData READ, eventRegistrationData READ, starredEvents READ, eventRegistrationGroupData READ, departmentData READ, tagData READ, eventTagData READ');
-
+                            ( tagData.isActive != "0" OR tagData.isActive IS NULL )
+                        AND 
+                            starredEvents.studentId = ${req.body.studentId}
+                        ;`;
+                        
                     const [rows] = await db_connection.query(query);
-                    
                     const [rows2] = await db_connection.query(query2);
+                    const [rows3] = await db_connection.query(query3);
 
-                    const concat_rows = [...new Set([...rows, ...rows2])];
+                    const concat_rows = [...new Set([...rows, ...rows3, ...rows2])];
 
                     await db_connection.query("UNLOCK TABLES");
 
@@ -1507,63 +1575,6 @@ module.exports = {
                             ( tagData.isActive != "0" OR tagData.isActive IS NULL )
                         ;`;
 
-                        
-                        // const query2 = `
-                        // SELECT
-                        //     eventData.eventId,
-                        //     eventData.eventName,
-                        //     eventData.eventDescription,
-                        //     eventData.eventDate,
-                        //     eventData.eventTime,
-                        //     eventData.eventVenue,
-                        //     eventData.eventImageURL,
-                        //     eventData.eventPrice,
-                        //     eventData.maxSeats,
-                        //     eventData.seatsFilled,
-                        //     eventData.minTeamSize,
-                        //     eventData.maxTeamSize,
-                        //     eventData.isWorkshop,
-                        //     eventData.isTechnical,
-                        //     eventData.isGroup,
-                        //     eventData.needGroupData,
-                        //     eventData.isPerHeadPrice,
-                        //     eventData.isRefundable,
-                        //     eventData.eventStatus,
-                        //     departmentData.departmentName,
-                        //     departmentData.departmentAbbreviation,
-                        //     tagData.tagName,
-                        //     tagData.tagAbbreviation,
-                        //     CASE
-                        //         WHEN eventRegistrationGroupData.studentId = ${req.body.studentId}
-                        //         AND eventRegistrationData.registrationStatus = "2"
-                        //         THEN "1"
-                        //         ELSE "0"
-                        //     END AS isRegistered,
-                        //     CASE
-                        //         WHEN starredEvents.studentId = ${req.body.studentId} THEN "1"
-                        //         ELSE "0"
-                        //     END AS isStarred
-                        // FROM
-                        //     eventData
-                        //     LEFT JOIN departmentData 
-                        //     ON eventData.eventDepartmentId = departmentData.departmentId
-                        //     LEFT JOIN eventTagData
-                        //     ON eventTagData.eventId = eventData.eventId
-                        //     LEFT JOIN tagData 
-                        //     ON eventTagData.tagId = tagData.tagId
-                        // LEFT JOIN
-                        //     eventRegistrationData ON eventData.eventId = eventRegistrationData.eventId
-                        // LEFT JOIN
-                        //     starredEvents ON eventData.eventId = starredEvents.eventId
-                        //     AND starredEvents.studentId = ${req.body.studentId}
-                        // LEFT JOIN
-                        //     eventRegistrationGroupData ON eventRegistrationData.registrationId = eventRegistrationGroupData.registrationId
-                        //     AND eventRegistrationGroupData.studentId = ${req.body.studentId}
-                        // WHERE
-                        //     ( eventData.isGroup = "1" AND eventData.needGroupData = "1" )
-                        // AND
-                        //     ( tagData.isActive != "0" OR tagData.isActive IS NULL)
-                        // ;`;
 
                         const query2 = 
                         `
