@@ -745,12 +745,15 @@ CREATE TABLE IF NOT EXISTS starredEvents (
 );
 INSERT INTO starredEvents (studentId, eventId)
 VALUES (1, 1);
+
 CREATE TABLE IF NOT EXISTS crewDetails (
     crewId INTEGER PRIMARY KEY AUTO_INCREMENT,
     crewName VARCHAR(255) NOT NULL
 );
+
 CREATE TABLE IF NOT EXISTS crewMembers (
-    memberEmail VARCHAR(255) PRIMARY KEY,
+    memberId INTEGER PRIMARY KEY AUTO_INCREMENT,
+    memberEmail VARCHAR(255) UNIQUE,
     managerName VARCHAR(255) NOT NULL,
     crewId INTEGER NOT NULL,
     memberImageURL VARCHAR(255) NOT NULL,
@@ -759,12 +762,62 @@ CREATE TABLE IF NOT EXISTS crewMembers (
     FOREIGN KEY (departmentId) REFERENCES departmentData(departmentId),
     FOREIGN KEY (crewId) REFERENCES crewDetails(crewId)
 );
+
+INSERT INTO crewDetails (crewName) VALUES ("WMD");
+INSERT INTO crewDetails (crewName) VALUES ("COMMUNICATIONS");
+
+INSERT INTO crewMembers 
+(memberEmail,
+managerName,
+crewId,
+memberImageURL,
+departmentId,
+roleDescription) 
+VALUES 
+("abhinavramki2@gmail.com", 
+"Abhinav R",
+1, 
+"https://i.imgur.com/iQy8GLM.jpg",
+6,
+"Team Lead");
+
+INSERT INTO crewMembers 
+(memberEmail,
+managerName,
+crewId,
+memberImageURL,
+departmentId,
+roleDescription) 
+VALUES 
+("ashrockzzz2003@gmail.com", 
+"Ashwin S",
+1, 
+"https://i.imgur.com/iQy8GLM.jpg",
+6,
+"Team Lead");
+
+INSERT INTO crewMembers 
+(memberEmail,
+managerName,
+crewId,
+memberImageURL,
+departmentId,
+roleDescription) 
+VALUES 
+("ananyaramamurthy03@gmail.com", 
+"Ananya R",
+2, 
+"https://i.imgur.com/iQy8GLM.jpg",
+6,
+"Head");
+
 CREATE TABLE IF NOT EXISTS studentLoginLogs(
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
     loginTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
+
 CREATE TABLE IF NOT EXISTS managerLoginLogs(
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerId INTEGER NOT NULL,

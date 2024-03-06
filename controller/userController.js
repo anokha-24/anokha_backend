@@ -3209,7 +3209,7 @@ module.exports = {
                 console.log(err);
                 
                 const time = new Date();
-                fs.appendFileSync('./logs/validator.log', `${time.toISOString()} - isValidEventRegistration - ${err}\n`);
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - isValidEventRegistration - ${err}\n`);
                 
                 //await db_connection.query("UNLOCK TABLES");
                 //await transaction_db_connection.query("UNLOCK TABLES");
@@ -3231,4 +3231,75 @@ module.exports = {
 
         }
     ],
+
+    // CREATE TABLE IF NOT EXISTS crewDetails (
+    //     crewId INTEGER PRIMARY KEY AUTO_INCREMENT,
+    //     crewName VARCHAR(255) NOT NULL
+    // );
+    
+    // CREATE TABLE IF NOT EXISTS crewMembers (
+    //     memberId INTEGER PRIMARY KEY AUTO_INCREMENT,
+    //     memberEmail VARCHAR(180) UNIQUE,
+    //     managerName VARCHAR(255) NOT NULL,
+    //     crewId INTEGER NOT NULL,
+    //     memberImageURL VARCHAR(255) NOT NULL,
+    //     departmentId INTEGER NOT NULL,
+    //     roleDescription VARCHAR(255) NOT NULL,
+    //     FOREIGN KEY (departmentId) REFERENCES departmentData(departmentId),
+    //     FOREIGN KEY (crewId) REFERENCES crewDetails(crewId)
+    // );
+
+    getCrew: async (req,res) => {
+        const db_connection = await anokha_db.promise().getConnection();
+        
+        try{
+            const [crew] = await db_connection
+            .query(`
+            SELECT crewMembers.memberId,
+            crewMembers.memberEmail,
+            crewMembers.managerName,
+            crewDetails.crewName,
+            crewMembers.memberImageURL,
+            departmentData.departmentName,
+            crewMembers.roleDescription
+            FROM crewMembers
+            LEFT JOIN 
+            crewDetails ON crewMembers.crewId = crewDetails.crewId
+            LEFT JOIN 
+            departmentData ON crewMembers.departmentId = departmentData.departmentId
+            ORDER BY crewMembers.crewId
+            `);
+
+            const crewData = {};
+            
+            crew.forEach(member => {
+                if(crewData[member.crewName] === undefined){
+                    crewData[member.crewName] = [member];
+                }
+                else{
+                    crewData[member.crewName].push(member);
+                }
+            });
+
+            return res.status(200).send({
+                "MESSAGE": "Successfully Fetched Crew Data",
+                "CREW_DATA": crewData
+            });
+
+        }
+        catch(err){
+            console.log(err);
+
+            const time = new Date();
+            fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - getCrew - ${err}\n`);
+
+            return res.status(500).send({
+                "MESSAGE": "Internal Server Error. Contact Web Team"
+            });
+        }
+        finally{
+            await db_connection.query("UNLOCK TABLES");
+            db_connection.release();
+        }
+    },
 }
