@@ -790,7 +790,7 @@ departmentId,
 roleDescription) 
 VALUES 
 ("ashrockzzz2003@gmail.com", 
-"Ashwin S",
+"Ashwin Narayanan S",
 1, 
 "https://i.imgur.com/iQy8GLM.jpg",
 6,
