@@ -3034,5 +3034,54 @@ module.exports = {
                 }
             }
         }
-    ]
+    ],
+
+    deleteCrewMember: [
+        adminTokenValidator,
+        async (req,res) =>{
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                try{
+                    if (!( typeof(req.body.memberId) == "number" || req.body.memberId >= 1 )) {
+                        return res.status(400).send({
+                            "MESSAGE": "Invalid Request!"
+                        });
+                    }
+                    await db_connection.query("LOCK TABLES crewMembers WRITE");
+
+                    const [Delete] = await db_connection.query("DELETE FROM crewMembers WHERE memberId = ?", [req.body.memberId]);
+
+                    await db_connection.query("UNLOCK TABLES");
+
+                    if(Delete.affectedRows === 0){
+                        return res.status(400).send({
+                            "MESSAGE": "Member not present!"
+                        });
+                    }
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Deleted Crew Member."
+                    });
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - deleteCrewMember - ${err}\n`);
+                    return res.status(500).send({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ],
 }

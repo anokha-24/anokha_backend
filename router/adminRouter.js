@@ -28,5 +28,6 @@ adminRouter.post('/markEventAttendanceEntry/:studentId(\\d+)-:eventId(\\d+)',adm
 adminRouter.post('/markEventAttendanceExit/:studentId(\\d+)-:eventId(\\d+)',adminController.markEventAttendanceExit);
 adminRouter.post('/getEventAttendance/:eventId(\\d+)',adminController.getEventAttendance);
 adminRouter.post('/addCrewMember',adminController.addCrewMember);
+adminRouter.post('/deleteCrewMember',adminController.deleteCrewMember);
 
 module.exports = adminRouter;
