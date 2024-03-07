@@ -778,7 +778,7 @@ VALUES
 ("ashrockzzz2003@gmail.com", 
 "Ashwin Narayanan S",
 1, 
-"https://i.imgur.com/iQy8GLM.jpg",
+"https://avatars0.githubusercontent.com/u/90165751?s=460&v=4",
 6,
 "Team Lead");
 
@@ -793,7 +793,7 @@ VALUES
 ("ananyaramamurthy03@gmail.com", 
 "Ananya R",
 2, 
-"https://i.imgur.com/iQy8GLM.jpg",
+"https://res.cloudinary.com/startup-grind/image/upload/c_fill,w_250,h_250,g_center/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-dsc/avatars/ananya_ramamurthy.jpg",
 6,
 "Head");
 
