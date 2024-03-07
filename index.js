@@ -53,21 +53,18 @@ if (cluster.isPrimary) {
         cluster.fork();
     }
 
-} else {
-    switch (cluster.worker.id) {
-        case 1:
-            // CRON job
-            break;
-        default:
-            server.listen(appConfig.PORT, (err) => {
-                if (err) {
-                    console.log(`[ERROR]: ${err}`);
-                    fs.appendFileSync('./logs/index.log', `${new Date().toLocaleString} | [ERROR]: ${err}\n`)
-                } else {
-                    console.log(`[MESSAGE]: ${pid} running.`);
-                }
-            });
-            break;
-    }
+} 
+
+else 
+{
+    server.listen(appConfig.PORT, (err) => {
+        if (err) {
+            console.log(`[ERROR]: ${err}`);
+            fs.appendFileSync('./logs/index.log', `${new Date().toLocaleString} | [ERROR]: ${err}\n`)
+        } else {
+            console.log(`[MESSAGE]: ${pid} running.`);
+        }
+    });
+    
 }
 
