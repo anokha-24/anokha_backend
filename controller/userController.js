@@ -3270,14 +3270,17 @@ module.exports = {
             ORDER BY crewMembers.crewId
             `);
 
-            const crewData = {};
+            const crewData = [];
             
             crew.forEach(member => {
-                if(crewData[member.crewName] === undefined){
-                    crewData[member.crewName] = [member];
+                if(crewData.some(obj => obj.name === member.crewName)){
+                    crewData.find(obj => obj.name === member.crewName).teamMembers.push(member);
                 }
                 else{
-                    crewData[member.crewName].push(member);
+                    crewData.push({
+                        "name": member.crewName,
+                        "teamMembers": [member]
+                    });
                 }
             });
 
