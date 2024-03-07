@@ -27,5 +27,6 @@ adminRouter.post('/markGateExit/:studentId(\\d+)',adminController.markGateExit);
 adminRouter.post('/markEventAttendanceEntry/:studentId(\\d+)-:eventId(\\d+)',adminController.markEventAttendanceEntry);
 adminRouter.post('/markEventAttendanceExit/:studentId(\\d+)-:eventId(\\d+)',adminController.markEventAttendanceExit);
 adminRouter.post('/getEventAttendance/:eventId(\\d+)',adminController.getEventAttendance);
+adminRouter.post('/addCrewMember',adminController.addCrewMember);
 
 module.exports = adminRouter;

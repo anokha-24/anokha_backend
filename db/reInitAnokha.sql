@@ -766,20 +766,6 @@ CREATE TABLE IF NOT EXISTS crewMembers (
 INSERT INTO crewDetails (crewName) VALUES ("WMD");
 INSERT INTO crewDetails (crewName) VALUES ("COMMUNICATIONS");
 
-INSERT INTO crewMembers 
-(memberEmail,
-managerName,
-crewId,
-memberImageURL,
-departmentId,
-roleDescription) 
-VALUES 
-("abhinavramki2@gmail.com", 
-"Abhinav R",
-1, 
-"https://i.imgur.com/iQy8GLM.jpg",
-6,
-"Team Lead");
 
 INSERT INTO crewMembers 
 (memberEmail,

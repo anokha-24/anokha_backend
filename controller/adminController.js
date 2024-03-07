@@ -2936,4 +2936,103 @@ module.exports = {
             }
         }
     ],
+
+    
+    addCrewMember: [
+        adminTokenValidator,
+        async (req,res) =>{
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+            if(!(dataValidator.isValidCrewMember(req.body)))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Request!"
+                });
+            
+            }
+            else{
+                const db_connection = await anokha_db.promise().getConnection();
+                
+                try{
+                    
+                    await db_connection.query("LOCK TABLES crewMembers READ");
+                    
+                    const [check] = await db_connection.query("SELECT * from crewMembers where memberEmail = ?", [req.body.memberEmail]);
+                    
+                    await db_connection.query("UNLOCK TABLES");
+
+                    if(check.length > 0){
+                        return res.status(400).send({
+                            "MESSAGE": "Member Already Exists!"
+                        });
+                    }
+
+                    await db_connection.query("LOCK TABLES departmentData READ");
+
+                    const [department] = await db_connection.query("SELECT * FROM departmentData WHERE departmentId = ?", [req.body.departmentId]);
+
+                    await db_connection.query("UNLOCK TABLES");
+
+                    if(department.length === 0){
+                        return res.status(400).send({
+                            "MESSAGE": "Department doesn't exist!"
+                        });
+                    }
+                  
+                    
+                    await db_connection.query("LOCK TABLES crewDetails READ");
+
+                    const [crew] = await db_connection.query("SELECT * FROM crewDetails WHERE crewId = ?", [req.body.crewId]);
+
+                    await db_connection.query("UNLOCK TABLES");
+
+                    if(crew.length === 0){
+                        return res.status(400).send({
+                            "MESSAGE": "Crew doesn't exist!"
+                        });
+                    }
+
+
+
+                    await db_connection.query("LOCK TABLES crewMembers WRITE");
+
+                    await db_connection
+                    .query(`
+                    INSERT INTO crewMembers 
+                    (managerName,
+                    memberEmail,
+                    crewId, 
+                    memberImageURL,
+                    departmentId,
+                    roleDescription)
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                    [req.body.managerName, req.body.memberEmail, req.body.crewId, req.body.memberImageURL, req.body.departmentId, req.body.roleDescription]
+                    );
+
+                    await db_connection.query("UNLOCK TABLES");
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Added Crew Member."
+                    }); 
+
+                }
+                catch(err){
+                    console.log(err);
+                    const time = new Date();
+                    fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - addCrewMember - ${err}\n`);
+                    return res.status(500).send({
+                        "MESSAGE": "Internal Server Error. Contact Web Team."
+                    });
+                }
+                finally{
+                    await db_connection.query("UNLOCK TABLES");
+                    db_connection.release();
+                }
+            }
+        }
+    ]
 }
