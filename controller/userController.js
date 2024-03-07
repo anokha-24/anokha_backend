@@ -2161,7 +2161,7 @@ module.exports = {
                 }
 
                 const txnId = `TXN-P-${req.body.studentId.toString()}-${new Date().getTime()}`;
-                let amount = 500;
+                let amount = 300;
                 let productinfo = `P-${req.body.studentId.toString()}`;
                 let firstname = studentData[0].studentFullName;
                 let email = studentData[0].studentEmail;
