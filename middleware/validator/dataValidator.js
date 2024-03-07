@@ -324,19 +324,16 @@ module.exports = {
         if (typeof (req.devfolioId) === "string" && req.devfolioId.length > 0 && req.devfolioId.length <= 255 && validator.isEmail(req.devfolioId)) 
         {
             devfolioId="1";
-            //console.log("devfolioId is not null");
         }
         let unstopId="0";
         if (typeof (req.unstopId) === "string" && req.unstopId.length > 0 && req.unstopId.length <= 255 && validator.isEmail(req.unstopId)) 
         {
             unstopId="1";
-            //console.log("unstopId is not null");
         }
         let devpostId="0";
         if (typeof (req.devpostId) === "string" && req.devpostId.length > 0 && req.devpostId.length <= 255 && validator.isEmail(req.devpostId)) 
         {
             devpostId="1";
-            //console.log("devpostId is not null");
         }
         if((devfolioId === "1" && unstopId != "1" && devpostId != "1")
         ||(devfolioId != "1" && unstopId === "1" && devpostId != "1")
