@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS managerData;
 DROP TABLE IF EXISTS tagData;
 DROP TABLE IF EXISTS departmentData;
 DROP TABLE IF EXISTS managerRole;
+
 CREATE TABLE IF NOT EXISTS managerRole (
     roleId INTEGER PRIMARY KEY AUTO_INCREMENT,
     roleName VARCHAR(255) NOT NULL UNIQUE,
@@ -207,15 +208,7 @@ VALUES (
         7,
         6
     );
--- CREATE TABLE IF NOT EXISTS tagFaculty (
---     id INTEGER PRIMARY KEY AUTO_INCREMENT,
---     tagId INTEGER NOT NULL,
---     managerId INTEGER NOT NULL,
---     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     FOREIGN KEY (tagId) REFERENCES tagData(tagId),
---     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
--- );
+
 CREATE TABLE IF NOT EXISTS studentData (
     studentId INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentFullName VARCHAR(255) NOT NULL,
@@ -234,6 +227,7 @@ CREATE TABLE IF NOT EXISTS studentData (
     CHECK (isInCampus IN ("0", "1"))
 );
 -- studentAccountStatus: 0 = BLOCKED, 1 = REGISTERED, PENDING PASSPORT , 2 = PASSPORT DONE
+
 CREATE TABLE IF NOT EXISTS blockedStudentStatus (
     studentId INTEGER PRIMARY KEY,
     lastStatus CHAR(1) NOT NULL,
@@ -323,6 +317,7 @@ VALUES (
         "1",
         "2"
     );
+
 -- password = password
 INSERT INTO studentData (
         studentFullName,
@@ -346,6 +341,7 @@ VALUES (
         "1",
         "2"
     );
+
 -- password = asdfghjkl
 INSERT INTO studentData (
         studentFullName,
@@ -369,6 +365,7 @@ VALUES (
         "0",
         "1"
     );
+
 -- password = 123
 INSERT INTO studentData (
         studentFullName,
@@ -392,6 +389,7 @@ VALUES (
         "0",
         "1"
     );
+
 INSERT INTO studentData (
         studentFullName,
         studentEmail,
@@ -414,6 +412,7 @@ VALUES (
         "0",
         "1"
     );
+
 CREATE TABLE IF NOT EXISTS studentRegister (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentEmail VARCHAR(255) NOT NULL UNIQUE,
@@ -421,6 +420,7 @@ CREATE TABLE IF NOT EXISTS studentRegister (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 CREATE TABLE IF NOT EXISTS forgotPasswordStudent (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
@@ -429,6 +429,7 @@ CREATE TABLE IF NOT EXISTS forgotPasswordStudent (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
+
 CREATE TABLE IF NOT EXISTS forgotPasswordManager (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     managerId INTEGER NOT NULL,
@@ -437,6 +438,7 @@ CREATE TABLE IF NOT EXISTS forgotPasswordManager (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (managerId) REFERENCES managerData(managerId)
 );
+
 CREATE TABLE IF NOT EXISTS eventData (
     eventId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventName VARCHAR(255) NOT NULL,
@@ -618,6 +620,7 @@ IoT is revolutionizing industries, connecting devices, and creating smarter, mor
         "0",
         1
     );
+
 CREATE TABLE IF NOT EXISTS eventTagData (
     eventId INTEGER NOT NULL,
     tagId INTEGER NOT NULL,
@@ -635,6 +638,7 @@ INSERT INTO eventTagData (eventId, tagId)
 VALUES (2, 2);
 INSERT INTO eventTagData (eventId, tagId)
 VALUES (2, 3);
+
 CREATE TABLE IF NOT EXISTS eventOrganizersData (
     eventId INTEGER NOT NULL,
     managerId INTEGER NOT NULL,
@@ -678,6 +682,8 @@ CREATE TABLE IF NOT EXISTS eventRegistrationData (
 -- 7 -> EVENT WAS CANCELLED, refund also rejected.
 -- added eventId field to minimize joins during getAllEvents for logged in Student
 -- added isOwnRegistration field to minimize joins during getAllEvents for logged in Student
+
+
 CREATE TABLE IF NOT EXISTS eventRegistrationGroupData (
     registrationId INTEGER NOT NULL,
     txnId VARCHAR(255) DEFAULT NULL,
@@ -715,6 +721,7 @@ VALUES (
         "teamark",
         "2"
     );
+
 CREATE TABLE IF NOT EXISTS eventAttendanceData (
     attendanceId INTEGER PRIMARY KEY AUTO_INCREMENT,
     eventId INTEGER NOT NULL,
@@ -726,6 +733,7 @@ CREATE TABLE IF NOT EXISTS eventAttendanceData (
     FOREIGN KEY (eventId) REFERENCES eventData(eventId),
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
+
 CREATE TABLE IF NOT EXISTS visitLogs (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     studentId INTEGER NOT NULL,
@@ -735,6 +743,7 @@ CREATE TABLE IF NOT EXISTS visitLogs (
     lastUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (studentId) REFERENCES studentData(studentId)
 );
+
 CREATE TABLE IF NOT EXISTS starredEvents (
     studentId INTEGER NOT NULL,
     eventId INTEGER NOT NULL,
@@ -743,6 +752,7 @@ CREATE TABLE IF NOT EXISTS starredEvents (
     FOREIGN KEY (studentId) REFERENCES studentData(studentId),
     FOREIGN KEY (eventId) REFERENCES eventData(eventId)
 );
+
 INSERT INTO starredEvents (studentId, eventId)
 VALUES (1, 1);
 
