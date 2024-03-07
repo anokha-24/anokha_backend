@@ -745,5 +745,20 @@ module.exports = {
             return true;
         }
         return false;
-    }
+    },
+    
+    isValidCrewMember: (req) => {
+        if (
+            typeof(req.memberEmail) === "string" && req.memberEmail.length > 0 && req.memberEmail.length <= 255 && validator.isEmail(req.memberEmail) &&
+            typeof(req.managerName) === "string" && req.managerName.length > 0 && req.managerName.length <= 255 &&
+            typeof(req.crewId) === "number" && req.crewId >= 1 &&
+            typeof(req.memberImageURL) === "string" && req.memberImageURL.length > 0 && req.memberImageURL.length <= 255 && validator.isURL(req.memberImageURL) &&
+            typeof(req.departmentId) === "number" && req.departmentId >= 1 &&
+            typeof(req.roleDescription) === "string" && req.roleDescription.length > 0 && req.roleDescription.length <= 255
+        )
+        {
+            return true;
+        }
+        return false;
+    } 
 }

@@ -3261,7 +3261,8 @@ module.exports = {
             crewDetails.crewName,
             crewMembers.memberImageURL,
             departmentData.departmentName,
-            crewMembers.roleDescription
+            crewMembers.roleDescription,
+            crewMembers.crewId
             FROM crewMembers
             LEFT JOIN 
             crewDetails ON crewMembers.crewId = crewDetails.crewId
@@ -3273,12 +3274,13 @@ module.exports = {
             const crewData = [];
             
             crew.forEach(member => {
-                if(crewData.some(obj => obj.name === member.crewName)){
-                    crewData.find(obj => obj.name === member.crewName).teamMembers.push(member);
+                if(crewData.some(obj => obj.crewName === member.crewName)){
+                    crewData.find(obj => obj.crewName === member.crewName).teamMembers.push(member);
                 }
                 else{
                     crewData.push({
-                        "name": member.crewName,
+                        "crewName": member.crewName,
+                        "crewId": member.crewId,
                         "teamMembers": [member]
                     });
                 }
