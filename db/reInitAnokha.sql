@@ -366,6 +366,30 @@ VALUES (
         "1"
     );
 
+-- password = asdfghjkl
+INSERT INTO studentData (
+        studentFullName,
+        studentEmail,
+        studentPhone,
+        studentPassword,
+        needPassport,
+        studentCollegeName,
+        studentCollegeCity,
+        isInCampus,
+        studentAccountStatus
+    )
+VALUES (
+        "Shreyas Visweshwaran",
+        "cb.en.u4cse21455@cb.students.amrita.edu",
+        "9941614061",
+        "5c80565db6f29da0b01aa12522c37b32f121cbe47a861ef7f006cb22922dffa1",
+        "0",
+        "Amrita Vishwa Vidyapeetham",
+        "Coimbatore",
+        "1",
+        "2"
+    );
+
 -- password = 123
 INSERT INTO studentData (
         studentFullName,
