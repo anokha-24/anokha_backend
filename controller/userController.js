@@ -2427,7 +2427,7 @@ module.exports = {
 
                     rollbackFlag = "1";
 
-                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2' AND seatsReleased = '1'  WHERE txnId = ?", [txnId]);
+                    await transaction_db_connection.query("UPDATE transactionData SET transactionStatus = '2', seatsReleased = '1'  WHERE txnId = ?", [txnId]); // bug fixed. AND replaced with comma
 
                     const [event] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE txnId = ?',[txnId]);
 
