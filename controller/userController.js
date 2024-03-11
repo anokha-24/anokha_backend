@@ -21,6 +21,14 @@ module.exports = {
         });
     },
 
+    getPassportContent: async(req, res) => {
+        return res.status(200).send({
+            "amount": 300,
+            "title": "Anokha Passport",
+            "description": "The Anokha passport serves as the exclusive entry ticket, granting access to the Anokha tech fest. All students, excluding those from Amrita Vishwa Vidyapeetham Coimbatore campus, must acquire a passport prior to event and workshop registration. Coimbatore campus students, however, need not purchase a passport but must register using their Amrita email-id. The passport, priced at ₹300 (including GST), ensures entry to the tech fest, while separate registration fees apply to events and workshops. Instead of physical copies, a QR code provided upon passport purchase must be presented for entry throughout the three days of the tech fest.",
+        });
+    },
+
 
     getStudentProfile: [
         tokenValidator,
