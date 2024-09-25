@@ -2602,17 +2602,14 @@ module.exports = {
                         "MESSAGE": "Event not found!"
                     });
                 }
-
                 
-                
-                // DATE EXECEEDED LOGIC PENDING
+                // TODO: DATE EXECEEDED LOGIC PENDING
 
                 if (!(eventData[0].eventStatus === "1")) {
                     return res.status(400).send({
                         "MESSAGE": "Registrations closed for this event!"
                     });
                 }
-
                 
                 
                 if (!(req.body.totalMembers >= eventData[0].minTeamSize && req.body.totalMembers <= eventData[0].maxTeamSize)) {
@@ -2621,7 +2618,6 @@ module.exports = {
                     });
                 }
 
-                
                 
                 if (!(eventData[0].maxSeats - eventData[0].seatsFilled >= req.body.totalMembers)) {
                     return res.status(400).send({
@@ -2802,7 +2798,7 @@ module.exports = {
                     else if (eventData[0].isGroup === "1" && eventData[0].needGroupData === "0") {
 
                         if (eventData[0].isPerHeadPrice === "1") {
-                            amount = (eventData[0].eventPrice * eventData[0].totalMembers) + Math.ceil((eventData[0].eventPrice * eventData[0].totalMembers) * 0.18);
+                            amount = (eventData[0].eventPrice * req.body.totalMembers) + Math.ceil((eventData[0].eventPrice * req.body.totalMembers) * 0.18);
                         } 
                         
                         else if (eventData[0].isPerHeadPrice === "0") {
@@ -2930,7 +2926,7 @@ module.exports = {
                         // teamMembers, memberRoles, teamName
 
                         if (eventData[0].isPerHeadPrice === "1") {
-                            amount = (eventData[0].eventPrice * eventData[0].totalMembers) + Math.ceil((eventData[0].eventPrice * eventData[0].totalMembers) * 0.18);
+                            amount = (eventData[0].eventPrice * req.body.totalMembers) + Math.ceil((eventData[0].eventPrice * req.body.totalMembers) * 0.18);
                         } 
                         
                         else if (eventData[0].isPerHeadPrice === "0") {
