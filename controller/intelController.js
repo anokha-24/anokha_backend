@@ -1677,4 +1677,88 @@ module.exports = {
         }
     ]
 
+        // Extracting data for Intel Hackathon 2024.
+        // getData: async (req, res) => {
+        //     const db_connection = await anokha_db.promise().getConnection();
+
+
+        //     const [data] = await db_connection.query("select intelTeamData.teamId, intelTeamData.teamName, intelTeamData.totalMembers, studentData.studentFullName AS teamLeadName, studentData.studentEmail AS teamLeadEmail, studentData.studentPhone AS teamLeadContact, studentData.studentCollegeName AS teamLeadCollegeName, studentData.studentCollegeCity AS teamLeadCollegeCity, intelSubmissions.projectTitle, intelSubmissions.intelResourcesUsed, intelSubmissions.problemStatement, intelSubmissions.theme, intelSubmissions.githubLink, intelSubmissions.youtubeVideoLink, intelSubmissions.devmeshLink, intelSubmissions.pptFileLink from intelTeamData JOIN studentData ON studentData.studentId = intelTeamData.createdBy JOIN intelSubmissions ON intelSubmissions.teamId = intelTeamData.teamId where intelSubmissions.round=2;");
+
+
+
+        //     return res.status(200).send(data);
+        // },
+
+
+        // getDataForCertificate: async (req, res) => {
+        //     const db_connection = await anokha_db.promise().getConnection();
+
+        //     const [data_1] = await db_connection.query("select it.teamId, it.teamName, it.teamStatus, s.studentFullName, s.studentEmail, s.studentCollegeName, s.studentCollegeCity, s.studentPhone from intelTeamGroupData AS ig JOIN intelTeamData as it ON it.teamId = ig.teamId JOIN studentData as s ON ig.studentId = s.studentId WHERE it.teamStatus='1' AND it.teamId IN (SELECT teamId from intelSubmissions where round=1) ORDER BY it.teamId;");
+
+        //     const [data_2] = await db_connection.query("select it.teamId, it.teamName, it.teamStatus, s.studentFullName, s.studentEmail, s.studentCollegeName, s.studentCollegeCity, s.studentPhone from intelTeamGroupData AS ig JOIN intelTeamData as it ON it.teamId = ig.teamId JOIN studentData as s ON ig.studentId = s.studentId WHERE it.teamStatus='2' OR it.teamStatus='3' AND it.teamId IN (SELECT teamId from intelSubmissions where round=2 or round=1) ORDER BY it.teamId;");
+            
+        //     const [joined_data] = await db_connection.query("select * from (select it.teamId, it.teamName, it.teamStatus, s.studentFullName, s.studentEmail, s.studentCollegeName, s.studentCollegeCity, s.studentPhone from intelTeamGroupData AS ig JOIN intelTeamData as it ON it.teamId = ig.teamId JOIN studentData as s ON ig.studentId = s.studentId WHERE it.teamStatus='2' OR it.teamStatus='3' AND it.teamId IN (SELECT teamId from intelSubmissions where round=2 or round=1)) AS x UNION (select it.teamId, it.teamName, it.teamStatus, s.studentFullName, s.studentEmail, s.studentCollegeName, s.studentCollegeCity, s.studentPhone from intelTeamGroupData AS ig JOIN intelTeamData as it ON it.teamId = ig.teamId JOIN studentData as s ON ig.studentId = s.studentId WHERE it.teamStatus='1' AND it.teamId IN (SELECT teamId from intelSubmissions where round=1) ORDER BY it.teamId) ORDER by teamId;");
+
+        //     return res.status(200).send({
+        //         "round1": data_1,
+        //         "round2": data_2,
+        //         "joined": joined_data
+        //     });
+        // },
+
+
+        // getTop11: async (req, res) => {
+        //     const db_connection = await anokha_db.promise().getConnection();
+
+        //     const [data_1] = await db_connection.query("select it.teamId, it.teamName, ig.isLeader, s.studentFullName, s.studentEmail, s.studentCollegeName, s.studentCollegeCity, s.studentPhone from intelTeamGroupData AS ig JOIN intelTeamData as it ON it.teamId = ig.teamId JOIN studentData as s ON ig.studentId = s.studentId WHERE it.teamId IN (11, 14, 73, 83, 99, 101, 113, 121, 176, 208, 341) ORDER BY it.teamId;");
+
+
+        //     const [data_2] = await db_connection.query("select teamId, githubLink from intelSubmissions where round=2 AND teamId IN (11, 14, 73, 83, 99, 101, 113, 121, 176, 208, 341);");
+
+        //     dict = {}
+        //     for (let i = 0; i < data_2.length; i++) {
+        //         dict[data_2[i].teamId] = data_2[i].githubLink;
+        //     }
+
+        //     for (let i = 0; i < data_1.length; i++) {
+        //         data_1[i].githubLink = dict[data_1[i].teamId];
+        //     }
+
+        //     // aggregate data by teamId
+
+        //     final_data = {}
+
+        //     for (let i = 0; i < data_1.length; i++) {
+        //         if (final_data[data_1[i].teamId] == undefined) {
+        //             final_data[data_1[i].teamId] = {
+        //                 "teamName": data_1[i].teamName,
+        //                 "students": [{
+        //                     "studentFullName": data_1[i].studentFullName,
+        //                     "studentCollegeName": data_1[i].studentCollegeName,
+        //                     "studentCollegeCity": data_1[i].studentCollegeCity,
+        //                     "isLeader": data_1[i].isLeader == "1" ? "Team Lead" : "Member",
+        //                 }],
+        //                 "githubLink": data_1[i].githubLink
+        //             }
+        //         }
+        //         else {
+        //             final_data[data_1[i].teamId].students.push({
+        //                 "studentFullName": data_1[i].studentFullName,
+        //                 "studentCollegeName": data_1[i].studentCollegeName,
+        //                 "studentCollegeCity": data_1[i].studentCollegeCity,
+        //                 "isLeader": data_1[i].isLeader == "1" ? "Team Lead" : "Member",
+        //             });
+        //         }
+        //     }
+
+        //     final_data_list = []
+
+        //     for (const [key, value] of Object.entries(final_data)) {
+        //         final_data_list.push(value);
+        //     }
+
+        //     return res.status(200).send({
+        //         "top11": final_data_list
+        //     });
+        // }
 }

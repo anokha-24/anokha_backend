@@ -17,5 +17,9 @@ intelRouter.get('/admin/getAllSubmissions/:round([1-3])', intelController.getAll
 // intelRouter.post('/admin/markSeen/:teamId(\\d+)-:round([1-3])', intelController.markSeen);
 // intelRouter.post('/admin/markUnseen/:teamId(\\d+)-:round([1-3])', intelController.markUnseen);
 intelRouter.get('/admin/getTeamContact/:teamId(\\d+)', intelController.getTeamContact);
+// For extracting Intel hackathon data.
+// intelRouter.get("/getData", authController.getData);
+// intelRouter.get("/getDataForCertificate", authController.getDataForCertificate);
+// intelRouter.get("/getTop11", authController.getTop11);
 
 module.exports = intelRouter;
