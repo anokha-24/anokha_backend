@@ -281,6 +281,8 @@ CREATE TABLE IF NOT EXISTS intelSubmissions (
     seenStatus CHAR(1) NOT NULL DEFAULT "0",
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    projectTitle VARCHAR(500),
+    intelResourcesUsed VARCHAR(1000),
     PRIMARY KEY (teamId, round),
     FOREIGN KEY (teamId) REFERENCES intelTeamData(teamId),
     FOREIGN KEY (submittedBy) REFERENCES studentData(studentId),

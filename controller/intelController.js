@@ -744,6 +744,8 @@ module.exports = {
             githubLink: "Github Link",
             youtubeVideoLink: "Youtube Link",
             devmeshLink: "Devmesh Link",
+	    projectTitle: "Project Title",
+	    intelResourcesUsed: "Intel Resources Used"
         }
     */ 
 
@@ -751,10 +753,15 @@ module.exports = {
         tokenValidator,
         async (req, res) => {
             
+		return res.status(400).send({
+			"MESSAGE": "Sorry! Submissions closed now. Deadline crossed!"
+		});
+
+
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
                 
                 return res.status(400).send({
-                    "MESSAGE": "Invalid Request"
+                    "MESSAGE": "Invalid Submission. Please check your submission again."
                 });
             }
             
@@ -842,9 +849,11 @@ module.exports = {
                     githubLink,
                     devmeshLink,
                     submittedBy,
+		    projectTitle,
+		    intelResourcesUsed,
                     round
                     )
-                    VALUES (?,?,?,?,?,?,?,?,?)`,
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
                     [team[0].teamId,
                     submissions1[0].theme,
                     submissions1[0].problemStatement,
@@ -852,7 +861,10 @@ module.exports = {
                     req.body.youtubeVideoLink,
                     req.body.githubLink,
                     req.body.devmeshLink,
-                    req.body.studentId, 2]);
+                    req.body.studentId,
+		    req.body.projectTitle,
+		    req.body.intelResourcesUsed,		    
+			    2]);
 
                     
                     await db_connection.query('UNLOCK TABLES');
@@ -891,17 +903,25 @@ module.exports = {
             githubLink: "Github Link",
             youtubeVideoLink: "Youtube Link",
             devmeshLink: "Devmesh Link",
+	    projectTitle: "Project Title",
+	    intelResourcesUsed: "Intel Resources Used"
         }
     */ 
 
     editSecondRoundSubmission: [
         tokenValidator,
         async (req, res) => {
-            
+           
+		return res.status(400).send({
+			"MESSAGE": "Sorry! Submissions closed now! Deadline passed."
+		});
+
+
+
             if(!dataValidator.isValidSubmitSecondRoundRequest(req.body)){
                 
                 return res.status(400).send({
-                    "MESSAGE": "Invalid Request"
+                    "MESSAGE": "Invalid Submission. Please check your submission data again!"
                 });
             }
             
@@ -965,7 +985,9 @@ module.exports = {
                     githubLink = ?,
                     devmeshLink = ?,
                     submittedBy =?,
-                    seenStatus = ?
+                    seenStatus = ?,
+		    projectTitle = ?,
+		    intelResourcesUsed = ?
                     WHERE teamId = ? AND round = ?`,
                     [
                     req.body.pptFileLink,
@@ -974,6 +996,8 @@ module.exports = {
                     req.body.devmeshLink,
                     req.body.studentId,
                     "2",
+		    req.body.projectTitle,
+		    req.body.intelResourcesUsed,
                     team[0].teamId,2]);
 
                     await db_connection.query('UNLOCK TABLES');
@@ -1057,7 +1081,9 @@ module.exports = {
                     githubLink,
                     youtubeVideoLink,
                     devmeshLink,
-                    pptFileLink
+                    pptFileLink,
+		    projectTitle,
+		    intelResourcesUsed
                     FROM intelSubmissions 
                     WHERE teamId = ? AND round = ?`, [team[0].teamId, 1]);
                     
@@ -1067,7 +1093,9 @@ module.exports = {
                     githubLink,
                     youtubeVideoLink,
                     devmeshLink,
-                    pptFileLink
+                    pptFileLink,
+		    projectTitle,
+		    intelResourcesUsed
                     FROM intelSubmissions 
                     WHERE teamId = ? AND round = ?`, [team[0].teamId, 2]);
 
@@ -1387,7 +1415,9 @@ module.exports = {
                     intelSubmissions.pptFileLink,
                     intelSubmissions.githubLink,
                     intelSubmissions.youtubeVideoLink,
-                    intelSubmissions.devmeshLink
+                    intelSubmissions.devmeshLink,
+		    intelSubmissions.projectTitle,
+		    intelSubmissions.intelResourcesUsed
                     FROM intelSubmissions LEFT JOIN intelTeamData
                     ON intelTeamData.teamId = intelSubmissions.teamId
                     WHERE round = ?`, [req.params.round]);
@@ -1611,7 +1641,9 @@ module.exports = {
                     studentData.studentFullName,
                     intelTeamGroupData.isLeader,
                     studentData.studentEmail,
-                    studentData.studentPhone
+                    studentData.studentPhone,
+                    studentData.studentCollegeName,
+                    studentData.studentCollegeCity
                     FROM studentData INNER JOIN intelTeamGroupData 
                     ON studentData.studentId = intelTeamGroupData.studentId
                     WHERE intelTeamGroupData.teamId = ?`, [req.params.teamId]);
