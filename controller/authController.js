@@ -219,15 +219,17 @@ module.exports = {
                         else {
                             
                             //if user doesn't need passport
-                            if (!dataValidator.needPassport(req.body.studentEmail)) {
-                                req.body.studentAccountStatus = "2";
-                            }
+                            // if (!dataValidator.needPassport(req.body.studentEmail)) {
+                            //     req.body.studentAccountStatus = "2";
+                            // }
                             
                             //if user needs passport
-                            else {
-                                req.body.studentAccountStatus = "1";
-                            }
+                            // else {
+                            //     req.body.studentAccountStatus = "1";
+                            // }
 
+                            // No Passport for Anokha 2024.
+                            req.body.studentAccountStatus = "2";
                             
                             //insert user into studentData
                             await db_connection.query("INSERT INTO studentData (studentFullName, studentEmail, studentPhone, studentPassword, needPassport, studentAccountStatus, studentCollegeName, studentCollegeCity, isInCampus) VALUES (?,?,?,?,?,?,?,?,?)", [req.body.studentFullName, req.body.studentEmail, req.body.studentPhone, req.body.studentPassword, req.body.needPassport, req.body.studentAccountStatus, req.body.studentCollegeName, req.body.studentCollegeCity, req.body.isInCampus]);
