@@ -6,7 +6,7 @@ const TEMPLATE_STUDENT_REGISTERED = require('./template_student_registered');
 const TEMPLATE_FORGOT_PASSWORD = require('./template_forgot_password');
 const TEMPLATE_MANAGER_REGISTERED = require('./template_manager_registered');
 const TEMPLATE_WELCOME_MAIL = require('./welcome_mail');
-
+const TEMPLATE_ANOKHA_DOWN = require('./template_anokha_down');
 
 const transporter = mailer.createTransport(appConfig.mailer.obj);
 
@@ -42,7 +42,7 @@ module.exports = {
             html: TEMPLATE_WELCOME_MAIL(fullName)
         }
 
-        transporter.sendMail(mailOptions, function (error, info) { 
+        transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
             } else {
@@ -91,5 +91,26 @@ module.exports = {
         });
 
     },
-        
+
+    anokhaDown: (devEmail, ccEmail, data) => {
+        var mailOptions = {
+            from: {
+                name: appConfig.mailer.name,
+                address: appConfig.mailer.obj.auth.user
+            },
+            to: devEmail,
+            cc: ccEmail,
+            subject: '[Anokha 2024] - Server Down',
+            html: TEMPLATE_ANOKHA_DOWN(data)
+        }
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Anokha Down Mail sent: ' + devEmail + " and " + ccEmail);
+            }
+        });
+    }
+
 }
