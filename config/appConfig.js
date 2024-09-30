@@ -10,7 +10,13 @@ const appConfig = {
     USER_URL_PREFIX: '/api/user',
     ADMIN_URL_PREFIX: '/api/admin',
     INTEL_URL_PREFIX: '/api/intel',
-    mailer:{
+    statusChecker: {
+        testAccount: {
+            studentEmail: "cb.en.u4cse21008@cb.students.amrita.edu",
+            studentPassword: "6f28f4faf56bb704ae154fc2d2b2ba0d72f8a9ea06c3b8a3ed0be6836da9e258"
+        },
+    },
+    mailer: {
         obj: {
             service: process.env.MAILER_SERVICE,
             host: process.env.MAILER_HOST,
@@ -81,15 +87,15 @@ const appConfig = {
         salt: process.env.PAYU_PROD_SALT,
         verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
-    surlPrefix: BASE_URL+"/transactions/verify",
-    furlPrefix: BASE_URL+"/transactions/verify"
+    surlPrefix: BASE_URL + "/transactions/verify",
+    furlPrefix: BASE_URL + "/transactions/verify"
 }
 
-const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test; 
+const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test;
 
 appConfig.payUKey = payUMode.key,
-appConfig.payUSalt = payUMode.salt,
-appConfig.payUVerifyURL = payUMode.verifyURL
+    appConfig.payUSalt = payUMode.salt,
+    appConfig.payUVerifyURL = payUMode.verifyURL
 
 //console.log(appConfig.payUKey, appConfig.payUSalt, appConfig.payUVerifyURL);
 
