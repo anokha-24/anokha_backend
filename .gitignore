@@ -8,3 +8,4 @@
 /bin/
 .DS_Store
 /backups/anokha_backup.sql
+/logs/

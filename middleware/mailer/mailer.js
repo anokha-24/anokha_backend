@@ -25,8 +25,10 @@ module.exports = {
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - studentRegistered - [ERROR]: ${error}\n`);
             } else {
                 console.log('Student Verification OTP sent: ' + userEmail);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - studentRegistered - [MESSAGE]: Student Verification OTP sent: ${userEmail}\n`);
             }
         });
     },
@@ -45,8 +47,10 @@ module.exports = {
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - welcomeMail - [ERROR]: ${error}\n`);
             } else {
                 console.log('Welcome Mail sent: ' + userEmail);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - welcomeMail - [MESSAGE]: Welcome Mail sent: ${userEmail}\n`);
             }
         });
     },
@@ -65,8 +69,10 @@ module.exports = {
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - managerRegistered - [ERROR]: ${error}\n`);
             } else {
                 console.log('Manager Account Credentials sent: ' + managerEmail);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - managerRegistered - [MESSAGE]: Manager Account Credentials sent: ${managerEmail}\n`);
             }
         });
     },
@@ -85,8 +91,10 @@ module.exports = {
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - forgotPassword - [ERROR]: ${error}\n`);
             } else {
                 console.log('Forgot Password OTP sent: ' + studentEmail);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - forgotPassword - [MESSAGE]: Forgot Password OTP sent: ${studentEmail}\n`);
             }
         });
 
@@ -107,8 +115,10 @@ module.exports = {
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - anokhaDown - [ERROR]: ${error}\n`);
             } else {
                 console.log('Anokha Down Mail sent: ' + devEmail + " and " + ccEmail);
+                fs.appendFileSync('./logs/mailer.log', `${new Date().toLocaleString()} - anokhaDown - [MESSAGE]: Anokha Down Mail sent: ${devEmail} and ${ccEmail}\n`);
             }
         });
     }
