@@ -116,7 +116,7 @@ const TEMPLATE_WELCOME_MAIL = (userName) => {
 
     <div class="feature-item">
       <img src="https://i.pinimg.com/736x/f6/3c/ea/f63cea7ca3521d0a2b8adbe4f3e10aa5.jpg" alt="">
-      <p><b>Date:</b><br>4 April 2024 to 6 April 2024</p>
+      <p><b>Date:</b><br>17 October 2024 to 19 October 2024</p>
     </div>
 
     <div class="feature-item">
