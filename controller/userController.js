@@ -2415,7 +2415,7 @@ module.exports = {
 
                 }
 
-                else if (transactionDetails[transactionData[0].txnId].status === "failure") {
+                else if (transactionDetails[transactionData[0].txnId].status === "failure" || (transactionDetails[transactionData[0].txnId].mihpayid === "Not Found" && transactionDetails[transactionData[0].txnId].status === "Not Found")) {
 
                     // await transaction_db_connection.query("LOCK TABLES transactionData WRITE");
 
