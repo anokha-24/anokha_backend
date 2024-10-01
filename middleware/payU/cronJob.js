@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const verifyTransactionsCronJob = () => {
     console.log("[MESSAGE]: PayU CRON reporting.")
-    cron.schedule('*/5 * * * *', async () => {
+    cron.schedule('*/10 * * * *', async () => {
         fs.appendFileSync('./logs/cronJobLogs.log', `[${new Date().toLocaleString()}]: Cron Job Started\n`);
         try {
             await verifyTransactions();
