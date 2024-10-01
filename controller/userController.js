@@ -1500,13 +1500,20 @@ module.exports = {
                                 // // Set the expiry time for 10mins
                                 // await redisClient.expire('allEvents', 600);
 
+                                let activeEvents = [];
+                                for (let i = 0; i < result.length; i++) {
+                                    if (result[i].eventStatus != '0') {
+                                        activeEvents.push(result[i]);
+                                    }
+                                }
+
                                 
                                 
                                 // MODE 0 - Not Logged In
                                 return res.status(200).send({
                                     "MESSAGE": "Successfully Fetched All Events.",
                                     "MODE": "0",
-                                    "EVENTS": result
+                                    "EVENTS": activeEvents
                                 });
                             //}
                         }
@@ -1782,12 +1789,18 @@ module.exports = {
                         // Convert the map values to an array
                         const result = Array.from(aggregatedDataMap.values());
 
+                        let activeEvents = [];
+                        for (let i = 0; i < result.length; i++) {
+                            if (result[i].eventStatus != '0') {
+                                activeEvents.push(result[i]);
+                            }
+                        }
                         
                         // MODE 1 - Logged In
                         return res.status(200).send({
                             "MESSAGE": "Successfully Fetched All Events.",
                             "MODE": "1",
-                            "EVENTS": result
+                            "EVENTS": activeEvents
                         });
                     }
                     
