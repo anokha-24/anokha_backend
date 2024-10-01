@@ -1827,7 +1827,7 @@ module.exports = {
                     if(req.body.authorizationTier==1 || req.body.authorizationTier==2 || req.body.authorizationTier==6){
 
                         await db_connection.query("LOCK TABLES eventData READ");
-                        const [events] = await db_connection.query("SELECT eventId, eventName, eventImageURL FROM eventData", [req.body.managerId]);
+                        const [events] = await db_connection.query("SELECT eventId, eventName, eventImageURL FROM eventData WHERE eventStatus != '0'", [req.body.managerId]);
                         await db_connection.query("UNLOCK TABLES");
 
                         return res.status(200).send({
@@ -1841,7 +1841,7 @@ module.exports = {
 
                         await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ, managerData READ");
                         
-                        const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN managerData ON managerData.managerId = managerData.managerId WHERE managerData.managerDepartmentId = ? AND managerData.managerId = ?", [managerData[0].managerDepartmentId,req.body.managerId]);
+                        const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN managerData ON managerData.managerId = managerData.managerId WHERE managerData.managerDepartmentId = ? AND managerData.managerId = ? AND eventData.eventStatus != '0'", [managerData[0].managerDepartmentId,req.body.managerId]);
 
                         await db_connection.query("UNLOCK TABLES");
 
@@ -1855,7 +1855,7 @@ module.exports = {
                             
                             await db_connection.query("LOCK TABLES eventOrganizersData WRITE, eventData READ");
                             
-                            const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId WHERE eventOrganizersData.managerId = ?", [req.body.managerId]);
+                            const [events] = await db_connection.query("SELECT eventData.eventId, eventData.eventName, eventData.eventImageURL FROM eventData RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId WHERE eventOrganizersData.managerId = ? AND eventData.eventStatus != '0'", [req.body.managerId]);
     
                             await db_connection.query("UNLOCK TABLES");
     
@@ -3084,4 +3084,45 @@ module.exports = {
             }
         }
     ],
+
+    /* #WIP
+    
+    getAllPendingTransactions: [
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            const transaction_db_conn = await anokha_transactions_db.promise().getConnection();
+
+            try {
+
+                await transaction_db_conn.query("LOCK TABLES transactionData READ");
+
+                const [transactions] = await transaction_db_conn.query("SELECT * FROM transactionData WHERE transactionStatus = 0");
+
+                await transaction_db_conn.query("UNLOCK TABLES");
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Pending Transactions.",
+                    "transactions": transactions
+                });
+
+            } catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllPendingTransactions - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await transaction_db_conn.query("UNLOCK TABLES");
+                transaction_db_conn.release();
+            }
+        }
+    ], */
 }
