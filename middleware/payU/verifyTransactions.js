@@ -15,7 +15,7 @@ const verifyTransactions = async () => {
         // Get all the transactions that are not verified
         await transaction_db_connection.query(`LOCK TABLES transactionData READ`)
         
-        const [transactionD] = await transaction_db_connection.query(`SELECT * FROM transactionData WHERE transactionStatus = "0"`);
+        const [transactionD] = await transaction_db_connection.query(`SELECT * FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP`);
         const txnids = transactionD.map((transaction) => transaction.txnId).join("|");
 
         await transaction_db_connection.query(`UNLOCK TABLES`);
@@ -126,7 +126,7 @@ const verifyTransactions = async () => {
        
        
         //release expired seats
-
+        /*
         let [result] = await transaction_db_connection.query('SELECT txnId FROM transactionData WHERE transactionStatus = "0" AND expiryTime < CURRENT_TIMESTAMP');
 
         const expiredTxns = result.map((obj) => obj.txnId);
@@ -155,6 +155,7 @@ const verifyTransactions = async () => {
             await transaction_db_connection.query('UPDATE transactionData SET seatsReleased = "1" WHERE txnId IN (?)',[expiredTxns]);
         
         }
+        */
 
         await transaction_db_connection.commit();
         await db_connection.commit();
