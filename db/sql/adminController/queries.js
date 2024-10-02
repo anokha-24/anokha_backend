@@ -21,6 +21,21 @@ const editAdminProfile = {
     locks: {
       lockManagerData:"LOCK TABLES managerData WRITE"
     },
-}
+};
 
-export { unlockTables, getAdminProfile };
+const getEventRegistrationCount = {
+    locks: {
+      lockEventData_departmentData:`LOCK TABLES eventData READ, departmentData READ`,
+    },
+    queries: {
+      getEventRegistrationCountData: `SELECT eventId, eventName,
+      eventDescription, eventDate, eventTime, eventVenue, maxSeats,
+      seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
+      FROM eventData LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId`
+    }
+};
+
+module.exports = { unlockTables, 
+  getAdminProfile,
+  getEventRegistrationCount
+};
