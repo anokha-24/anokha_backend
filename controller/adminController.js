@@ -3084,4 +3084,49 @@ module.exports = {
             }
         }
     ],
+    
+    getAllTransactions: [
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            if (!dataValidator.isValidTransactionStatus(req.body)) {
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Transaction Status!"
+                });
+            }
+
+            const transaction_db_conn = await anokha_transactions_db.promise().getConnection();
+
+            try {
+
+                await transaction_db_conn.query("LOCK TABLES transactionData READ");
+
+                const [transactions] = await transaction_db_conn.query("SELECT * FROM transactionData WHERE transactionStatus = ?", [req.body.transactionStatus]);
+
+                await transaction_db_conn.query("UNLOCK TABLES");
+
+                return res.status(200).send({
+                    "MESSAGE": `Successfully Fetched Transactions with status ${req.body.transactionStatus}.`,
+                    "transactions": transactions
+                });
+
+            } catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getAllPendingTransactions - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await transaction_db_conn.query("UNLOCK TABLES");
+                transaction_db_conn.release();
+            }
+        }
+    ],
 }
