@@ -396,5 +396,14 @@ module.exports = {
             return true;
         }
         return false;
-    } 
+    },
+
+    isValidTransactionStatus: (req) => {
+        if (
+            typeof(req.transactionStatus) === "string" && (req.transactionStatus === "1" || req.transactionStatus === "0" || req.transactionStatus === "2")
+        ) {
+            return true;
+        }
+        return false;
+    },
 }

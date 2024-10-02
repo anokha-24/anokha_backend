@@ -3084,10 +3084,8 @@ module.exports = {
             }
         }
     ],
-
-    /* #WIP
     
-    getAllPendingTransactions: [
+    getAllTransactions: [
         adminTokenValidator,
         async (req, res) => {
             if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
@@ -3097,18 +3095,24 @@ module.exports = {
                 });
             }
 
+            if (!dataValidator.isValidTransactionStatus(req.body)) {
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Transaction Status!"
+                });
+            }
+
             const transaction_db_conn = await anokha_transactions_db.promise().getConnection();
 
             try {
 
                 await transaction_db_conn.query("LOCK TABLES transactionData READ");
 
-                const [transactions] = await transaction_db_conn.query("SELECT * FROM transactionData WHERE transactionStatus = 0");
+                const [transactions] = await transaction_db_conn.query("SELECT * FROM transactionData WHERE transactionStatus = ?", [req.body.transactionStatus]);
 
                 await transaction_db_conn.query("UNLOCK TABLES");
 
                 return res.status(200).send({
-                    "MESSAGE": "Successfully Fetched Pending Transactions.",
+                    "MESSAGE": `Successfully Fetched Transactions with status ${req.body.transactionStatus}.`,
                     "transactions": transactions
                 });
 
@@ -3124,5 +3128,5 @@ module.exports = {
                 transaction_db_conn.release();
             }
         }
-    ], */
+    ],
 }
