@@ -3,6 +3,7 @@ const dataValidator = require('../middleware/validator/dataValidator');
 const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
+const {getEventRegistrationCount} = require('../db/sql/adminController/queries');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3126,6 +3127,44 @@ module.exports = {
             } finally {
                 await transaction_db_conn.query("UNLOCK TABLES");
                 transaction_db_conn.release();
+            }
+        }
+    ],
+
+    getEventRegistrationCount: [
+        adminTokenValidator,
+        async (req,res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            const db_conn = await anokha_db.promise().getConnection();
+
+            try{
+                await db_conn.query(getEventRegistrationCount.locks.lockEventData_departmentData);
+
+                const [data] = await db_conn.query(getEventRegistrationCount.queries.getEventRegistrationCountData);
+
+                await db_conn.query("UNLOCK TABLES");
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Registration Count For All Events.",
+                    "data": data
+                });
+                
+            } catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getEventRegistrationCount - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_conn.query("UNLOCK TABLES");
+                db_conn.release();
             }
         }
     ],
