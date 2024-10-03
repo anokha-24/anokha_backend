@@ -21,6 +21,11 @@ module.exports = {
         });
     },
 
+    qrRedirect: async (req, res) => {
+        const dynamicConfigs = JSON.parse(fs.readFileSync('./config/dynamicConfigs.json'));
+        return res.redirect(appConfig.BASE_URL+dynamicConfigs.qrRedirectURL);
+    },
+
     getPassportContent: async(req, res) => {
         return res.status(200).send({
             "amount": 300,
