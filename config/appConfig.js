@@ -4,6 +4,7 @@ const CONCURRENCY_LIMIT = 8;
 const BASE_URL = process.env.BASE_URL
 
 const appConfig = {
+    BASE_URL: BASE_URL,
     CONCURRENCY_LIMIT: CONCURRENCY_LIMIT,
     PORT: process.env.BACKEND_PORT,
     AUTH_URL_PREFIX: '/api/auth',
