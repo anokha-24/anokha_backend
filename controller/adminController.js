@@ -3278,7 +3278,7 @@ module.exports = {
 
                 eventData["registrations"] = registrationData;
 
-                db_conn.query(unlockTables.queries.unlock);
+                await db_conn.query(unlockTables.queries.unlock);
 
                 res.status(200).send({
                     "MESSAGE":`Fetched <"All"/"Department"/"Event"> registration data successfully`,
