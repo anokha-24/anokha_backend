@@ -3263,7 +3263,7 @@ module.exports = {
                 }
 
                 // All Event Registration Data
-                if( req.body.authorizationTier == 2 || req.body.authorizationTier == 6 ) {
+                if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6 ) {
                     placeholder = "All";
                 }
                 // // Department Event Registration Data
@@ -3281,7 +3281,7 @@ module.exports = {
                     placeholder = "Department";
                 }
                 // // Specific Event Registration Data
-                else if(req.body.authorizationTier == 1 || req.authorizationTier == 7) {
+                else if(req.authorizationTier == 7) {
                     await db_conn.query(getEventRegistrationData.locks.eventOrganizersData);
                     const [[check]] = await db_conn.query(getEventRegistrationData.queries.checkIfEventOrganizer, [eventData.eventId, req.body.managerId]); 
                     await db_conn.query(unlockTables.queries.unlock);
