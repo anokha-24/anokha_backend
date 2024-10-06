@@ -3169,8 +3169,8 @@ module.exports = {
         }
     ],
 
-    getEventRegistrationData: //[
-        //adminTokenValidator,
+    getEventRegistrationData: [
+        adminTokenValidator,
         async (req, res) => {
 
             // response
@@ -3233,55 +3233,76 @@ module.exports = {
             // 8 - Gate Entry Exit Marker - No Access
             // 9 - Intel Admin - No Access
 
-            // if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 
-            //     || req.body.authorizationTier == 4 || req.body.authorizationTier == 6
-            //     || req.body.authorizationTier == 7
-            // ))
-            // {
-            //         return res.status(400).send({
-            //             "MESSAGE": "Access Restricted!"
-            //         });
-            // }
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 
+                || req.body.authorizationTier == 4 || req.body.authorizationTier == 6
+                || req.body.authorizationTier == 7
+            ))
+            {
+                    return res.status(400).send({
+                        "MESSAGE": "Access Restricted!"
+                    });
+            }
 
             req.params.eventId = parseInt(req.params.eventId);
             const db_conn = await anokha_db.promise().getConnection();
 
             try {
 
-                let query = "";
+                let placeholder = "";
 
                 await db_conn.query(getEventRegistrationData.locks.lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData_departmentData);
 
                 const [[eventData]] = await db_conn.query(getEventRegistrationData.queries.getEventData, req.params.eventId);
                 
-                console.log(eventData);
+                await db_conn.query(unlockTables.queries.unlock);
+
+                if (eventData === undefined) {
+                    return res.status(400).send({
+                        "MESSAGE": "Event Doesn't Exist!"
+                    });
+                }
 
                 // All Event Registration Data
-                // if(req.authorizationTier == 1 || req.authorizationTier == 2 || req.authorizationTier == 6 ) {
-                    query = getEventRegistrationData.queries.getAllEventRegistrationData;
-                // }
+                if( req.body.authorizationTier == 2 || req.body.authorizationTier == 6 ) {
+                    placeholder = "All";
+                }
                 // // Department Event Registration Data
-                // else if(req.authorizationTier == 4) {
-                //     await db_conn.query();
-                //     query = getEventRegistrationData.queries.getDepartmentEventRegistrationData;
-                // }
+                else if(req.body.authorizationTier == 4) {
+                    await db_conn.query(getEventRegistrationData.locks.lockManagerData);
+                    const [[departmentId]] = await db_conn.query(getEventRegistrationData.queries.getManagerDepartmentId, req.body.managerId);
+                    await db_conn.query(unlockTables.queries.unlock);
+                    
+                    if(departmentId["managerDepartmentId"] !== eventData["eventDepartmentId"]) {
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
+
+                    placeholder = "Department";
+                }
                 // // Specific Event Registration Data
-                // else if(req.authorizationTier == 7) {
-                //     await db_conn.query();
-                //     query = getEventRegistrationData.queries.getSpecificEventRegistrationData;
-                // }
+                else if(req.body.authorizationTier == 1 || req.authorizationTier == 7) {
+                    await db_conn.query(getEventRegistrationData.locks.eventOrganizersData);
+                    const [[check]] = await db_conn.query(getEventRegistrationData.queries.checkIfEventOrganizer, [eventData.eventId, req.body.managerId]); 
+                    await db_conn.query(unlockTables.queries.unlock);
+                    
+                    if(check === undefined) {
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
 
-                // const [registrationData] = await db_conn.query(query);
+                    placeholder = "Event";
+                }
 
-
-                const [registrationData] = await db_conn.query(query, req.params.eventId);
+                const [registrationData] = await db_conn.query(getEventRegistrationData.queries.getAllEventRegistrationData, req.params.eventId);
 
                 eventData["registrations"] = registrationData;
 
-                db_conn.query(unlockTables.queries.unlock);
+                await db_conn.query(unlockTables.queries.unlock);
 
                 res.status(200).send({
-                    "MESSAGE":`Fetched <"All"/"Department"/"Event"> registration data successfully`,
+                    "MESSAGE":`Fetched ${placeholder} registration data successfully`,
                     "DATA": eventData
                 });
 
@@ -3297,5 +3318,5 @@ module.exports = {
                 db_conn.release();
             }
         }
-    //]
+    ]
 }

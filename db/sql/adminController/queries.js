@@ -105,6 +105,16 @@ const getEventRegistrationData = {
       eventRegistrationGroupData READ,
       studentData READ,
       departmentData READ
+      `,
+      lockManagerData:
+      `
+      LOCK TABLES
+      managerData READ
+      `,
+      eventOrganizersData:
+      `
+      LOCK TABLES 
+      eventOrganizersData READ
       `
     },
     queries: {
@@ -160,8 +170,25 @@ const getEventRegistrationData = {
       eventRegistrationData.txnId,
       eventRegistrationData.totalAmountPaid,
       eventRegistrationData.teamName`,
-      getDepartmentEventRegistrationData: ``,
-      getSpecificEventRegistrationData: ``
+      getManagerDepartmentId:
+      `
+      SELECT 
+      managerDepartmentId 
+      FROM
+      managerData 
+      WHERE 
+      managerId = ?
+      `,
+      checkIfEventOrganizer: 
+      `
+      SELECT * 
+      FROM 
+      eventOrganizersData
+      WHERE
+      eventId = ?
+      AND 
+      managerId = ?
+      `,
     }
 };
 
