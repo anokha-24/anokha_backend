@@ -3250,7 +3250,7 @@ module.exports = {
 
                 let query = "";
 
-                await db_conn.query(getEventRegistrationData.locks.lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData);
+                await db_conn.query(getEventRegistrationData.locks.lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData_departmentData);
 
                 const [[eventData]] = await db_conn.query(getEventRegistrationData.queries.getEventData, req.params.eventId);
                 
@@ -3272,6 +3272,11 @@ module.exports = {
                 // }
 
                 // const [registrationData] = await db_conn.query(query);
+
+
+                const [registrationData] = await db_conn.query(query, req.params.eventId);
+
+                eventData["registrations"] = registrationData;
 
                 db_conn.query(unlockTables.queries.unlock);
 

@@ -80,15 +80,31 @@ const getEventRegistrationCount = {
 // ) 
 // AS result`
 
+const studentContactJSON = `
+JSON_ARRAYAGG(
+  JSON_OBJECT(
+    'studentId', eventRegistrationData.studentId,
+    'roleDescription', COALESCE(eventRegistrationGroupData.roleDescription,"N/A"),
+    'isOwnRegistration', COALESCE(eventRegistrationGroupData.isOwnRegistration,"1"),
+    'studentFullName', studentData.studentFullName,
+    'studentCollegeName', studentData.studentCollegeName,
+    'studentCollegeCity', studentData.studentCollegeCity,
+    'studentEmail', studentData.studentEmail,
+    'studentPhone', studentData.studentPhone
+  )
+)
+`
+
 const getEventRegistrationData = {
     locks: {
-      lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData: 
+      lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData_departmentData: 
       `
       LOCK TABLES 
       eventData READ, 
       eventRegistrationData READ, 
       eventRegistrationGroupData READ,
-      studentData READ
+      studentData READ,
+      departmentData READ
       `
     },
     queries: {
@@ -109,12 +125,41 @@ const getEventRegistrationData = {
       isGroup,
       isPerHeadPrice,
       eventStatus,
-      eventDepartmentId
+      eventDepartmentId,
+      departmentName as eventDepartmentName
       FROM eventData 
+      LEFT JOIN 
+      departmentData
+      ON eventData.eventDepartmentId =
+      departmentData.departmentId
       WHERE eventId = ?`,
       getAllEventRegistrationData:`
-
-      `,
+      SELECT 
+      eventRegistrationData.registrationId,
+      eventRegistrationData.createdAt as registrationDate,
+      eventRegistrationData.txnId,
+      eventRegistrationData.totalAmountPaid as amount,
+      teamName,
+      ${studentContactJSON}
+      AS teamData
+      FROM eventRegistrationData 
+      LEFT JOIN
+      eventRegistrationGroupData
+      ON
+      eventRegistrationData.registrationId = 
+      eventRegistrationGroupData.registrationId
+      LEFT JOIN 
+      studentData
+      ON COALESCE(eventRegistrationGroupData.studentId,
+      eventRegistrationData.studentId) =
+      studentData.studentId
+      WHERE eventRegistrationData.eventId = ?
+      GROUP BY 
+      eventRegistrationData.registrationId,
+      eventRegistrationData.createdAt,
+      eventRegistrationData.txnId,
+      eventRegistrationData.totalAmountPaid,
+      eventRegistrationData.teamName`,
       getDepartmentEventRegistrationData: ``,
       getSpecificEventRegistrationData: ``
     }
