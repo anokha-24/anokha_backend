@@ -3,7 +3,7 @@ const dataValidator = require('../middleware/validator/dataValidator');
 const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
-const {getEventRegistrationCount} = require('../db/sql/adminController/queries');
+const {unlockTables, getEventRegistrationCount, getEventRegistrationData} = require('../db/sql/adminController/queries');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3148,7 +3148,7 @@ module.exports = {
 
                 const [data] = await db_conn.query(getEventRegistrationCount.queries.getEventRegistrationCountData);
 
-                await db_conn.query("UNLOCK TABLES");
+                await db_conn.query(unlockTables.queries.unlock);
 
                 return res.status(200).send({
                     "MESSAGE": "Successfully Fetched Registration Count For All Events.",
@@ -3163,9 +3163,160 @@ module.exports = {
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
             } finally {
-                await db_conn.query("UNLOCK TABLES");
+                await db_conn.query(unlockTables.queries.unlock);
                 db_conn.release();
             }
         }
     ],
+
+    getEventRegistrationData: [
+        adminTokenValidator,
+        async (req, res) => {
+
+            // response
+            /*
+            {
+                MESSAGE: "Fetched <"All"/"Department"/"Event"> registration data successfully",
+                DATA:
+                {
+                    eventId: <INTEGER>,
+                    eventName: <STRING>
+                    eventDate: <DATE>
+                    eventTime: <TIME>,
+                    eventVenue: <STRING>,
+                    eventPrice: <INTEGER>,
+                    maxSeats: <INTEGER>,
+                    seatsFilled: <INTEGER>,
+                    minTeamSize: <INTEGER>
+                    maxTeamSize: <INTEGER>,
+                    isWorkshop: <"0/1">,
+                    isTechnical: <"0/1">,
+                    isGroup: <"0/1">,
+                    isPerHeadPrice: <"0"/"1">,
+                    eventStatus: <"0"/"1">,
+                    eventDepartmentId: <INTEGER>,
+                    eventDepartmentName: <STRING>
+                    registrations:
+                    [
+                        {
+                            registrationId: <INTEGER>,
+                            registrationDate: <DATE>,
+                            txnID: <STRING>,
+                            amount: <INTEGER>
+                            teamName: <NULL>/<STRING>,
+                            teamData: 
+                            [
+                                {
+                                    studentId: <INTEGER>,
+                                    roleDescription: <NULL>/<STRING>,
+                                    isOwnRegistration: <"0"/"1">
+                                    studentFullName: <STRING>,
+                                    studentCollegeName: <STRING>,
+                                    studentCollegeCity: <STRING>,
+                                    studentEmail: <STRING>,
+                                    studentPhone: <STRING>
+                                }
+                            ]
+                        }
+                    ]   
+                }
+            } 
+
+            */
+            // 1 - Super Admin - All Events
+            // 2 - Admin - All Events
+            // 3 - Finance - No Access
+            // 4 - Department Head - Department Registrations Only
+            // 5 - Eventide Attendance Marker - No Access
+            // 6 - Global Attendance Marker - All Events
+            // 7 - Local Attendance Marker - Specific Event Only
+            // 8 - Gate Entry Exit Marker - No Access
+            // 9 - Intel Admin - No Access
+
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 
+                || req.body.authorizationTier == 4 || req.body.authorizationTier == 6
+                || req.body.authorizationTier == 7
+            ))
+            {
+                    return res.status(400).send({
+                        "MESSAGE": "Access Restricted!"
+                    });
+            }
+
+            req.params.eventId = parseInt(req.params.eventId);
+            const db_conn = await anokha_db.promise().getConnection();
+
+            try {
+
+                let placeholder = "";
+
+                await db_conn.query(getEventRegistrationData.locks.lockEventData_eventRegistrationData_eventRegistrationGroupData_studentData_departmentData);
+
+                const [[eventData]] = await db_conn.query(getEventRegistrationData.queries.getEventData, req.params.eventId);
+                
+                await db_conn.query(unlockTables.queries.unlock);
+
+                if (eventData === undefined) {
+                    return res.status(400).send({
+                        "MESSAGE": "Event Doesn't Exist!"
+                    });
+                }
+
+                // All Event Registration Data
+                if(req.body.authorizationTier == 1 || req.body.authorizationTier == 2 || req.body.authorizationTier == 6 ) {
+                    placeholder = "All";
+                }
+                // // Department Event Registration Data
+                else if(req.body.authorizationTier == 4) {
+                    await db_conn.query(getEventRegistrationData.locks.lockManagerData);
+                    const [[departmentId]] = await db_conn.query(getEventRegistrationData.queries.getManagerDepartmentId, req.body.managerId);
+                    await db_conn.query(unlockTables.queries.unlock);
+                    
+                    if(departmentId["managerDepartmentId"] !== eventData["eventDepartmentId"]) {
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
+
+                    placeholder = "Department";
+                }
+                // // Specific Event Registration Data
+                else if(req.authorizationTier == 7) {
+                    await db_conn.query(getEventRegistrationData.locks.eventOrganizersData);
+                    const [[check]] = await db_conn.query(getEventRegistrationData.queries.checkIfEventOrganizer, [eventData.eventId, req.body.managerId]); 
+                    await db_conn.query(unlockTables.queries.unlock);
+                    
+                    if(check === undefined) {
+                        return res.status(400).send({
+                            "MESSAGE": "Access Restricted!"
+                        });
+                    }
+
+                    placeholder = "Event";
+                }
+
+                const [registrationData] = await db_conn.query(getEventRegistrationData.queries.getAllEventRegistrationData, req.params.eventId);
+
+                eventData["registrations"] = registrationData;
+
+                await db_conn.query(unlockTables.queries.unlock);
+
+                res.status(200).send({
+                    "MESSAGE":`Fetched ${placeholder} registration data successfully`,
+                    "DATA": eventData
+                });
+
+            } catch(err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getEventRegistrationData - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_conn.query(unlockTables.queries.unlock);
+                db_conn.release();
+            }
+        }
+    ]
 }

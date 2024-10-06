@@ -31,5 +31,6 @@ adminRouter.post('/addCrewMember',adminController.addCrewMember);
 adminRouter.post('/deleteCrewMember',adminController.deleteCrewMember);
 adminRouter.post('/getAllTransactions', adminController.getAllTransactions);
 adminRouter.get('/getEventRegistrationCount',adminController.getEventRegistrationCount);
+adminRouter.get('/getEventRegistrationData/:eventId(\\d+)',adminController.getEventRegistrationData);
 
 module.exports = adminRouter;
