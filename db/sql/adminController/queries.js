@@ -19,23 +19,44 @@ const getAdminProfile = {
   },
 };
 
-const editAdminProfile = {
-    locks: {
-      lockManagerData:"LOCK TABLES managerData WRITE"
-    },
-};
-
-const getEventRegistrationCount = {
-    locks: {
-      lockEventData_departmentData:`LOCK TABLES eventData READ, departmentData READ`,
-    },
-    queries: {
-      getEventRegistrationCountData: `SELECT eventId, eventName,
-      eventDescription, eventDate, eventTime, eventVenue, maxSeats,
+const getEventRegistrationStats = {
+  locks: {
+    lockManagerData:`LOCK TABLES managerData READ`,
+    lockEventData_departmentData : `LOCK TABLES eventData READ, departmentData READ`,
+    lockEventData_departmentData_eventRegistrationData: `LOCK TABLES eventData READ, departmentData READ, eventRegistrationData READ`,
+    lockEventData_departmentData_eventOrganizersData: `LOCK TABLES eventData READ, departmentData READ, eventOrganizersData READ`,
+  },
+  queries: {
+    searchForManager: `SELECT * FROM managerData WHERE managerId=?`,
+    allEventsDataWithRevenue: 
+      `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, 
+      departmentAbbreviation as eventDepartmentAbbreviation, revenueData.totalRevenue
+      FROM eventData 
+      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
+      LEFT JOIN (SELECT eventId, SUM(totalAmountPaid) as totalRevenue FROM eventRegistrationData GROUP BY eventId) as revenueData ON eventData.eventId = revenueData.eventId
+      ORDER BY revenueData.totalRevenue DESC`,
+    allEventsData: 
+     `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, 
+      departmentAbbreviation as eventDepartmentAbbreviation
+      FROM eventData 
+      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId`,
+    managerDepartmentEventsData:
+      `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
-      FROM eventData LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId`
-    }
-};
+      FROM eventData 
+      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
+      WHERE eventData.eventDepartmentId = ?`,
+    localEventAttendanceTakerData:
+      `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
+      FROM eventData 
+      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
+      RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId 
+      WHERE eventOrganizersData.managerId = ?`,
+  }
+}
 
 
 // const jsonSchema = `
@@ -192,9 +213,9 @@ const getEventRegistrationData = {
     }
 };
 
-module.exports = { 
+module.exports = {
   unlockTables, 
   getAdminProfile,
-  getEventRegistrationCount,
+  getEventRegistrationStats,
   getEventRegistrationData
 };

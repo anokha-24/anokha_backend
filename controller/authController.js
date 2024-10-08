@@ -65,7 +65,7 @@ module.exports = {
                 if (result.length > 0) {
                     
                     return res.status(400).send({
-                        "MESSAGE": "Student Already Exists!"
+                        "MESSAGE": "Another account with same email/phone number already exists! Please check your email/phone number again!"
                     });
                 }
                 

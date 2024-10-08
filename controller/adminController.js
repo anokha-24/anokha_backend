@@ -3,7 +3,7 @@ const dataValidator = require('../middleware/validator/dataValidator');
 const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
-const {unlockTables, getEventRegistrationCount, getEventRegistrationData} = require('../db/sql/adminController/queries');
+const {unlockTables, getEventRegistrationStats, getEventRegistrationData} = require('../db/sql/adminController/queries');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3131,40 +3131,94 @@ module.exports = {
         }
     ],
 
-    getEventRegistrationCount: [
+    getEventRegistrationStats: [
         adminTokenValidator,
-        async (req,res) => {
-            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
-            {
-                return res.status(400).send({
-                    "MESSAGE": "Access Restricted!"
-                });
+        async (req, res) => {
+
+            // 1 - Super Admin - All Events with revenue.
+            // 2 - Admin - All Events.
+            // 3 - Finance - No Access.
+            // 4 - Department Head - Department Registrations Only.
+            // 5 - Eventide Attendance Marker - No Access.
+            // 6 - Global Attendance Marker - All Events.
+            // 7 - Local Attendance Marker - Specific Event Only.
+            // 8 - Gate Entry Exit Marker - No Access.
+            // 9 - Intel Admin - No Access.
+
+            const db_connection = await anokha_db.promise().getConnection();
+
+            try {
+                // Check if the manager is authorized to access the data.
+                await db_connection.query(getEventRegistrationStats.locks.lockManagerData);
+                const [managerData] = await db_connection.query(getEventRegistrationStats.queries.searchForManager, [req.body.managerId]);
+                await db_connection.query(unlockTables.queries.unlock);
+
+                if (managerData.length === 0 || (managerData.length > 0 && managerData[0].managerAccountStatus === "0")) {
+                    return res.status(400).send({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                }
+
+                // All Events for Super Admin, Admin.
+                if (req.body.authorizationTier == 1 || req.body.authorizationTier == 2) {
+                    await db_connection.query(getEventRegistrationStats.locks.lockEventData_departmentData_eventRegistrationData);
+                    const [events] = await db_connection.query(getEventRegistrationStats.queries.allEventsDataWithRevenue);
+                    await db_connection.query(unlockTables.queries.unlock);
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Fetched Official Events.",
+                        "events": events
+                    });
+                }
+
+                // Department Events for Department Head.
+                else if (req.body.authorizationTier == 4) {
+                    await db_connection.query(getEventRegistrationStats.locks.lockEventData_departmentData);
+                    const [events] = await db_connection.query(getEventRegistrationStats.queries.managerDepartmentEventsData, [managerData[0].managerDepartmentId]);
+                    await db_connection.query(unlockTables.queries.unlock);
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Fetched Official Events.",
+                        "events": events
+                    });
+                }
+
+                // All events for Global Attendance Marker without revenue.
+                else if (req.body.authorizationTier == 6) {
+                    await db_connection.query(getEventRegistrationStats.locks.lockEventData_departmentData);
+                    const [events] = await db_connection.query(getEventRegistrationStats.queries.allEventsData);
+                    await db_connection.query(unlockTables.queries.unlock);
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Fetched Official Events.",
+                        "events": events
+                    });
+                }
+
+                // Specific Event for Local Attendance Marker.
+                else if (req.body.authorizationTier == 7) {
+                    await db_connection.query(getEventRegistrationStats.locks.lockEventData_departmentData_eventOrganizersData);
+                    const [events] = await db_connection.query(getEventRegistrationStats.queries.localEventAttendanceTakerData, [req.body.managerId]);
+                    await db_connection.query(unlockTables.queries.unlock);
+
+                    return res.status(200).send({
+                        "MESSAGE": "Successfully Fetched Official Events.",
+                        "events": events
+                    });
+                }
             }
-
-            const db_conn = await anokha_db.promise().getConnection();
-
-            try{
-                await db_conn.query(getEventRegistrationCount.locks.lockEventData_departmentData);
-
-                const [data] = await db_conn.query(getEventRegistrationCount.queries.getEventRegistrationCountData);
-
-                await db_conn.query(unlockTables.queries.unlock);
-
-                return res.status(200).send({
-                    "MESSAGE": "Successfully Fetched Registration Count For All Events.",
-                    "data": data
-                });
-                
-            } catch (err) {
+            catch (err) {
                 console.log(err);
                 const time = new Date();
-                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getEventRegistrationCount - ${err}\n`);
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - getEventRegistrationStats - ${err}\n`);
+
                 return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-            } finally {
-                await db_conn.query(unlockTables.queries.unlock);
-                db_conn.release();
+            }
+            finally {
+                await db_connection.query(unlockTables.queries.unlock);
+                db_connection.release();
             }
         }
     ],
