@@ -19,7 +19,7 @@ const getAdminProfile = {
   },
 };
 
-const getEventRegistrationCount = {
+const getEventRegistrationStats = {
   locks: {
     lockManagerData:`LOCK TABLES managerData READ`,
     lockEventData_departmentData : `LOCK TABLES eventData READ, departmentData READ`,
@@ -213,9 +213,9 @@ const getEventRegistrationData = {
     }
 };
 
-module.exports = { 
+module.exports = {
   unlockTables, 
   getAdminProfile,
-  getEventRegistrationCount,
+  getEventRegistrationStats,
   getEventRegistrationData
 };
