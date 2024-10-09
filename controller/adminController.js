@@ -3393,7 +3393,7 @@ module.exports = {
 
                 return res.status(200).send({
                     "MESSAGE": "Successfully Fetched Total Earnings.",
-                    "totalEarnings": totalRevenue
+                    "DATA": totalRevenue
                 });
             } catch(err) {
                 console.log(err);
