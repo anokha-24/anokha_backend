@@ -3388,7 +3388,7 @@ module.exports = {
 
             try {
                 await db_conn.query(totalEarnings.locks.lockEventRegistrationData);
-                const [totalRevenue] = await db_conn.query(totalEarnings.queries.totalEarnings);
+                const [[totalRevenue]] = await db_conn.query(totalEarnings.queries.totalEarnings);
                 await db_conn.query(unlockTables.queries.unlock);
 
                 return res.status(200).send({
