@@ -3,7 +3,7 @@ const dataValidator = require('../middleware/validator/dataValidator');
 const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
 const { db } = require('../config/appConfig');
-const {unlockTables, getEventRegistrationStats, getEventRegistrationData} = require('../db/sql/adminController/queries');
+const {unlockTables, getEventRegistrationStats, getEventRegistrationData, totalEarnings} = require('../db/sql/adminController/queries');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3372,5 +3372,40 @@ module.exports = {
                 db_conn.release();
             }
         }
-    ]
+    ],
+
+    totalEarnings: [
+        adminTokenValidator,
+        async (req, res) => {
+            if(!(req.body.authorizationTier == 1 || req.body.authorizationTier == 2))
+            {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            const db_conn = await anokha_db.promise().getConnection();
+
+            try {
+                await db_conn.query(totalEarnings.locks.lockEventRegistrationData);
+                const [[totalRevenue]] = await db_conn.query(totalEarnings.queries.totalEarnings);
+                await db_conn.query(unlockTables.queries.unlock);
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Total Earnings.",
+                    "DATA": totalRevenue
+                });
+            } catch(err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - totalEarnings - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_conn.query(unlockTables.queries.unlock);
+                db_conn.release();
+            }
+        }
+    ],
 }

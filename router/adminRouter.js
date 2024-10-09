@@ -32,5 +32,6 @@ adminRouter.post('/deleteCrewMember',adminController.deleteCrewMember);
 adminRouter.post('/getAllTransactions', adminController.getAllTransactions);
 adminRouter.post('/getEventRegistrationStats',adminController.getEventRegistrationStats);
 adminRouter.get('/getEventRegistrationData/:eventId(\\d+)',adminController.getEventRegistrationData);
+adminRouter.post('/getTotalEarnings',adminController.totalEarnings);
 
 module.exports = adminRouter;

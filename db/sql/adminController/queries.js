@@ -210,12 +210,22 @@ const getEventRegistrationData = {
       AND 
       managerId = ?
       `,
-    }
+    },
+};
+
+const totalEarnings = {
+  locks: {
+    lockEventRegistrationData: `LOCK TABLES eventRegistrationData READ`,
+  },
+  queries: {
+    totalEarnings: `SELECT SUM(totalAmountPaid) AS totalEarnings, COUNT(totalAmountPaid) AS totalSuccessfulPayments, sum(totalMembers) AS totalParticipants FROM eventRegistrationData WHERE registrationStatus = 2`,
+  },
 };
 
 module.exports = {
   unlockTables, 
   getAdminProfile,
   getEventRegistrationStats,
-  getEventRegistrationData
+  getEventRegistrationData,
+  totalEarnings
 };
