@@ -1,9 +1,10 @@
 const fs = require('fs');
 const dataValidator = require('../middleware/validator/dataValidator');
-const [adminTokenValidator,tokenValidatorRegister, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
+const [adminTokenValidator, adminTokenValidatorSpecial] = require('../middleware/auth/login/adminTokenValidator');
 const [anokha_db, anokha_transactions_db] = require('../connection/poolConnection');
-const { db } = require('../config/appConfig');
-const {unlockTables, getEventRegistrationStats, getEventRegistrationData, totalEarnings} = require('../db/sql/adminController/queries');
+const { unlockTables, getEventRegistrationStats, getEventRegistrationData, totalEarnings, getTransactionStatusDiff, } = require('../db/sql/adminController/queries');
+const {payUKey, payUVerifyURL} = require('../config/appConfig');
+const { generateVerifyHash } = require('../middleware/payU/util');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3408,4 +3409,90 @@ module.exports = {
             }
         }
     ],
+
+    getTransactionStatusDiff: [
+        adminTokenValidator,
+        async (req, res) => {
+
+            // Only Super Admin can access this route.
+            if (req.body.authorizationTier !== 1) {
+                return res.status(400).send({
+                    "MESSAGE": "Access Restricted!"
+                });
+            }
+
+            const transaction_db_connection = await anokha_transactions_db.promise().getConnection();
+            try {
+
+                await transaction_db_connection.query(getTransactionStatusDiff.locks.lockTransactionData);
+                const [transactionData] = await transaction_db_connection.query(getTransactionStatusDiff.queries.getFailureTransactions);
+                await transaction_db_connection.query(unlockTables.queries.unlock);
+
+                // If there are no transactions to verify, return.
+                if (transactionData.length === 0) {
+                    return res.status(404).send({
+                        "MESSAGE": "No Transactions to Verify."
+                    });
+                }
+
+                // Create a map of transaction details.
+                const originalData = transactionData.reduce((acc, transaction) => {
+                    acc[transaction.txnId] = transaction;
+                    return acc;
+                });
+
+                // Get the transaction status from PayU.
+                const txnids = transactionData.map((transaction) => transaction.txnId).join("|");
+                const hash = generateVerifyHash({ command: "verify_payment", var1: txnids });
+                const response = await fetch(payUVerifyURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `key=${payUKey}&command=verify_payment&hash=${hash}&var1=${txnids}`
+                });
+
+                const responseText = await response.json();
+                const data = responseText.transaction_details;
+                
+                // Calculate the diff if the transaction status is not failure.
+                const diff = {};
+                for (const txnid in data) {
+                    if (data[txnid].status !== "failure") {
+                        const original = originalData[txnid];
+
+                        if (typeof(diff[data[txnid].status]) !== "object") {
+                            diff[data[txnid].status] = [];
+                        }
+
+                        diff[data[txnid].status].push({
+                            txnId: txnid,
+                            originalStatus: original.transactionStatus,
+                            newStatus: data[txnid].status,
+                            ourData: original,
+                            payUData: data[txnid]
+                        });
+                    }
+                }
+
+                return res.status(200).send({
+                    "MESSAGE": "Successfully Fetched Transaction Status diff.",
+                    "DATA": diff
+                });
+
+            }
+            catch (err) {
+                console.log(err);
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - verifyTransactionPayU - ${err}\n`);
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            }
+            finally {
+                await transaction_db_connection.query(unlockTables.queries.unlock);
+                transaction_db_connection.release();
+            }
+        },
+    ]
 }
