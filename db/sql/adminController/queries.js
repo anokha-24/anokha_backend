@@ -222,10 +222,20 @@ const totalEarnings = {
   },
 };
 
+const getTransactionStatusDiff = {
+  locks: {
+    lockTransactionData: `LOCK TABLES transactionData READ`,
+  },
+  queries: {
+    getFailureTransactions: `SELECT * FROM transactionData WHERE transactionStatus = '2';`,
+  },
+}
+
 module.exports = {
   unlockTables, 
   getAdminProfile,
   getEventRegistrationStats,
   getEventRegistrationData,
-  totalEarnings
+  totalEarnings,
+  getTransactionStatusDiff
 };
