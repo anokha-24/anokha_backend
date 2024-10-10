@@ -95,8 +95,8 @@ const appConfig = {
 const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test;
 
 appConfig.payUKey = payUMode.key,
-    appConfig.payUSalt = payUMode.salt,
-    appConfig.payUVerifyURL = payUMode.verifyURL
+appConfig.payUSalt = payUMode.salt,
+appConfig.payUVerifyURL = payUMode.verifyURL
 
 //console.log(appConfig.payUKey, appConfig.payUSalt, appConfig.payUVerifyURL);
 
