@@ -35,26 +35,28 @@ const getEventRegistrationStats = {
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
       LEFT JOIN (SELECT eventId, SUM(totalAmountPaid) as totalRevenue FROM eventRegistrationData GROUP BY eventId) as revenueData ON eventData.eventId = revenueData.eventId
+      WHERE eventData.eventStatus != 0
       ORDER BY revenueData.totalRevenue DESC`,
     allEventsData: 
      `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, 
       departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
-      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId`,
+      LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
+      WHERE eventData.eventStatus != 0`,
     managerDepartmentEventsData:
       `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
-      WHERE eventData.eventDepartmentId = ?`,
+      WHERE eventData.eventDepartmentId = ? AND eventData.eventStatus != 0`,
     localEventAttendanceTakerData:
       `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
       RIGHT JOIN eventOrganizersData ON eventData.eventId = eventOrganizersData.eventId 
-      WHERE eventOrganizersData.managerId = ?`,
+      WHERE eventOrganizersData.managerId = ? AND eventData.eventStatus != 0`,
   }
 }
 
