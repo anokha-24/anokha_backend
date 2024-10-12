@@ -29,7 +29,7 @@ const getEventRegistrationStats = {
   queries: {
     searchForManager: `SELECT * FROM managerData WHERE managerId=?`,
     allEventsDataWithRevenue: 
-      `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, 
       departmentAbbreviation as eventDepartmentAbbreviation, revenueData.totalRevenue
       FROM eventData 
@@ -37,19 +37,19 @@ const getEventRegistrationStats = {
       LEFT JOIN (SELECT eventId, SUM(totalAmountPaid) as totalRevenue FROM eventRegistrationData GROUP BY eventId) as revenueData ON eventData.eventId = revenueData.eventId
       ORDER BY revenueData.totalRevenue DESC`,
     allEventsData: 
-     `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+     `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, 
       departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId`,
     managerDepartmentEventsData:
-      `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      `SELECT eventData.eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
       WHERE eventData.eventDepartmentId = ?`,
     localEventAttendanceTakerData:
-      `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats,
+      `SELECT eventId, eventName, eventDate, eventTime, eventVenue, maxSeats, isWorkshop, isTechnical, isGroup,
       seatsFilled, eventDepartmentId, departmentName as eventDepartmentName, departmentAbbreviation as eventDepartmentAbbreviation
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
