@@ -220,7 +220,7 @@ const totalEarnings = {
     lockEventRegistrationData: `LOCK TABLES eventRegistrationData READ`,
   },
   queries: {
-    totalEarnings: `SELECT SUM(totalAmountPaid) AS totalEarnings, COUNT(totalAmountPaid) AS totalSuccessfulPayments, sum(totalMembers) AS totalParticipants FROM eventRegistrationData WHERE registrationStatus = 2`,
+    totalEarnings: `SELECT SUM(totalAmountPaid), count(totalAmountPaid), sum(totalMembers) FROM eventRegistrationData r JOIN eventData e ON e.eventId = r.eventId WHERE e.eventStatus != 0 AND r.registrationStatus=2`,
   },
 };
 
