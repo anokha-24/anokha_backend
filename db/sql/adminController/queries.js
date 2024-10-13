@@ -34,7 +34,7 @@ const getEventRegistrationStats = {
       departmentAbbreviation as eventDepartmentAbbreviation, revenueData.totalRevenue
       FROM eventData 
       LEFT JOIN departmentData ON eventData.eventDepartmentId = departmentData.departmentId
-      LEFT JOIN (SELECT eventId, SUM(totalAmountPaid) as totalRevenue FROM eventRegistrationData GROUP BY eventId) as revenueData ON eventData.eventId = revenueData.eventId
+      LEFT JOIN (SELECT eventId, SUM(totalAmountPaid) as totalRevenue FROM eventRegistrationData GROUP BY eventId WHERE registrationStatus=2) as revenueData ON eventData.eventId = revenueData.eventId
       WHERE eventData.eventStatus != 0
       ORDER BY revenueData.totalRevenue DESC`,
     allEventsData: 
