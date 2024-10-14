@@ -2613,11 +2613,11 @@ module.exports = {
                 
                 
                 // does the event exist
-                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
+                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ? AND eventDate >= CURDATE()", [req.body.eventId]);
 
                 if (!(eventData.length > 0)) {
                     return res.status(400).send({
-                        "MESSAGE": "Event not found!"
+                        "MESSAGE": "Event not found OR Event Over!"
                     });
                 }
                 
