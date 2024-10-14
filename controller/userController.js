@@ -2617,7 +2617,7 @@ module.exports = {
 
                 if (!(eventData.length > 0)) {
                     return res.status(400).send({
-                        "MESSAGE": "Event not found OR Event Over!"
+                        "MESSAGE": "Event is already over! Are you going back to past?"
                     });
                 }
                 

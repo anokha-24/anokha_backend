@@ -2088,21 +2088,21 @@ module.exports = {
                     registrationStatus = ?`, 
                 [req.params.studentId, "2"]);
                     
-                await db_connection.query("UNLOCK TABLES");
+                await db_connection.query(unlockTables.queries.unlock);
                         
                 if (!(regGroup.length > 0)) {        
                     return res.status(400).send({
                         "MESSAGE": "Student Not Registered for Event!"
                     });
                 }
-                
+
             }
 
-            await db_connection.query("UNLOCK TABLES");
+            await db_connection.query(unlockTables.queries.unlock);
 
             await db_connection.query("LOCK TABLES visitLogs READ")
             const [check2] = await db_connection.query("SELECT * FROM visitLogs WHERE studentId=? AND exitTime IS NULL", [req.params.studentId]);
-            await db_connection.query("UNLOCK TABLES");
+            await db_connection.query(unlockTables.queries.unlock);
             
             if (check2.length != 0) {
                             
