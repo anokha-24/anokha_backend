@@ -3441,37 +3441,42 @@ module.exports = {
                     return acc;
                 });
 
-                // Get the transaction status from PayU.
-                const txnids = transactionData.map((transaction) => transaction.txnId).join("|");
-                const hash = generateVerifyHash({ command: "verify_payment", var1: txnids });
-                const response = await fetch(payUVerifyURL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: `key=${payUKey}&command=verify_payment&hash=${hash}&var1=${txnids}`
-                });
-
-                const responseText = await response.json();
-                const data = responseText.transaction_details;
-                
-                // Calculate the diff if the transaction status is not failure.
+                // Process transactions in batches of size 999
+                // to avoid exceeding the payU limit of 1000.
+                const batchSize = 999;
                 const diff = {};
-                for (const txnid in data) {
-                    if (data[txnid].status !== "failure") {
-                        const original = originalData[txnid];
 
-                        if (typeof(diff[data[txnid].status]) !== "object") {
-                            diff[data[txnid].status] = [];
+                for (let i = 0; i < transactionData.length; i += batchSize) {
+                    const batch = transactionData.slice(i, i + batchSize);
+                    const txnids = batch.map((transaction) => transaction.txnId).join("|");
+                    const hash = generateVerifyHash({ command: "verify_payment", var1: txnids });
+                    const response = await fetch(payUVerifyURL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: `key=${payUKey}&command=verify_payment&hash=${hash}&var1=${txnids}`
+                    });
+
+                    const responseText = await response.json();
+                    const data = responseText.transaction_details;
+
+                    // Calculate the diff if the transaction status is not failure.
+                    for (const txnid in data) {
+                        if (data[txnid].status !== "failure") {
+                            const original = originalData[txnid];
+
+                            if (typeof(diff[data[txnid].status]) !== "object") {
+                                diff[data[txnid].status] = [];
+                            }
+
+                            diff[data[txnid].status].push({
+                                txnId: txnid,
+                                newStatus: data[txnid].status,
+                                ourData: original,
+                                payUData: data[txnid]
+                            });
                         }
-
-                        diff[data[txnid].status].push({
-                            txnId: txnid,
-                            originalStatus: original.transactionStatus,
-                            newStatus: data[txnid].status,
-                            ourData: original,
-                            payUData: data[txnid]
-                        });
                     }
                 }
 
