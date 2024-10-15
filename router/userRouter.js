@@ -19,5 +19,6 @@ userRouter.post('/verifyTransaction', userController.verifyTransactionPayU);
 userRouter.get('/getAllTransactions', userController.getAllTransactions);
 userRouter.get('/getCrew', userController.getCrew);
 userRouter.get('/getPassportContent', userController.getPassportContent);
+userRouter.post('/generateFormBricksLink', userController.generateFormBricksLink);
 
 module.exports = userRouter;
