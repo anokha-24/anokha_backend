@@ -10,6 +10,7 @@ const { generateHash, generateVerifyHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
 const generateFormBricksToken = require('../middleware/formBricks/tokenGenerator');
+const generateFormBricksToken = require('../middleware/formBricks/tokenGenerator');
 //const redisClient = require('../connection/redis');
 
 module.exports = {
@@ -3357,11 +3358,11 @@ module.exports = {
 
                 // Does the event exist.
                 await db_connection.query("LOCK TABLES eventData READ");
-                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
+                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ? AND eventDate >= CURDATE()", [req.body.eventId]);
 
                 if (!(eventData.length > 0)) {
                     return res.status(400).send({
-                        "MESSAGE": "Event doesn't exit."
+                        "MESSAGE": "Event is already over! Are you going back to past?"
                     });
                 }
 
@@ -3401,9 +3402,6 @@ module.exports = {
                 return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
-            } finally {
-                await db_connection.query("UNLOCK TABLES");
-                db_connection.release();
             }
         }
     ],
