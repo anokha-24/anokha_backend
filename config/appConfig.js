@@ -89,7 +89,8 @@ const appConfig = {
         verifyURL: "https://info.payu.in/merchant/postservice?form=2",
     },
     surlPrefix: BASE_URL + "/transactions/verify",
-    furlPrefix: BASE_URL + "/transactions/verify"
+    furlPrefix: BASE_URL + "/transactions/verify",
+    formBricksLink: "https://forms.parasu.in/s/cm21i4oeu000c3wvq98imkohm",
 }
 
 const payUMode = process.env.isProduction === '1' ? appConfig.payU_prod : appConfig.payU_test;

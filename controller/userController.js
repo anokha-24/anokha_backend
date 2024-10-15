@@ -9,6 +9,7 @@ const [tokenValidator, validateEventRequest] = require('../middleware/auth/login
 const { generateHash, generateVerifyHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
+const generateFormBricksToken = require('../middleware/formBricks/tokenGenerator');
 //const redisClient = require('../connection/redis');
 
 module.exports = {
@@ -3330,4 +3331,80 @@ module.exports = {
             db_connection.release();
         }
     },
+
+    generateFormBricksLink: [
+        tokenValidator,
+        async (req, res) => {
+            if (!dataValidator.isValidGenerateFormBricksRequest(req.body)) {
+                return res.status(400).send({
+                    "MESSAGE": "Invalid Request!"
+                });
+            }
+
+            const db_connection = await anokha_db.promise().getConnection();
+
+            try {
+                // Check if the student exists and is active.
+                await db_connection.query("LOCK TABLES studentData READ");
+                const [studentData] = await db_connection.query("SELECT * FROM studentData WHERE studentId=?", [req.body.studentId]);
+                await db_connection.query("UNLOCK TABLES");
+                
+                if (studentData.length === 0 || (studentData.length > 1 && studentData[0].studentAccountStatus === "0")) {
+                    return res.status(400).send({
+                        "MESSAGE": "Access Restricted!"
+                    });
+                }
+
+                // Does the event exist.
+                await db_connection.query("LOCK TABLES eventData READ");
+                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
+
+                if (!(eventData.length > 0)) {
+                    return res.status(400).send({
+                        "MESSAGE": "Event doesn't exit."
+                    });
+                }
+
+
+                // Is the student registered for the event. Entry either in eventRegistrationData or eventRegistrationGroupData.
+                await db_connection.query("LOCK TABLES eventRegistrationData READ, eventRegistrationGroupData READ");
+                const [regData] = await db_connection.query('SELECT * FROM eventRegistrationData WHERE studentId = ? AND eventId = ?', [req.body.studentId, req.body.eventId]);
+                const [eventRegGroupData] = await db_connection.query('SELECT * FROM eventRegistrationGroupData WHERE studentId = ? AND eventId = ?', [req.body.studentId, req.body.eventId]);
+                await db_connection.query("UNLOCK TABLES");
+
+                if (regData.length === 0 && eventRegGroupData.length === 0) {
+                    return res.status(400).send({
+                        "MESSAGE": "You are not registered for the event!"
+                    });
+                }
+
+                const registrationId = regData.length > 0 ? regData[0].registrationId : eventRegGroupData[0].registrationId;
+
+                const form_bricks_token = await generateFormBricksToken({
+                    "studentId": req.body.studentId,
+                    "eventId": req.body.eventId,
+                    "registrationId": registrationId,
+                })
+
+                return res.status(200).send({
+                    "MESSAGE": "Form Bricks Link Generated!",
+                    "FORM_BRICKS_LINK": `${appConfig.formBricksLink}?r=${encodeURIComponent(registrationId)}&e=${encodeURIComponent(req.body.eventId)}&t=${encodeURIComponent(form_bricks_token)}`
+                });
+
+
+            } catch (err) {
+                console.log(err);
+
+                const time = new Date();
+                fs.appendFileSync('./logs/userController/errorLogs.log', `${time.toISOString()} - generateFormBricksLink - ${err}\n`);
+
+                return res.status(500).send({
+                    "MESSAGE": "Internal Server Error. Contact Web Team."
+                });
+            } finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
+            }
+        }
+    ],
 }
