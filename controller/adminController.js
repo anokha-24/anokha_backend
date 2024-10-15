@@ -2375,7 +2375,7 @@ module.exports = {
                 }
 
                 //check if event is active
-                else if (eventData[0].eventStatus != "1") {
+                else if (eventData[0].eventStatus === "0") {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
@@ -2615,7 +2615,7 @@ module.exports = {
 
                 
                 //check if event is active
-                else if (eventData[0].eventStatus != "1") {
+                else if (eventData[0].eventStatus === "0") {
                     
                     await db_connection.query("UNLOCK TABLES");
                     
