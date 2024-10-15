@@ -3028,7 +3028,7 @@ module.exports = {
                         if (studentDataCheck.length !== req.body.teamMembers.length) {
                             
                             return res.status(400).send({
-                                "MESSAGE": "Failed to Register. One of your teammates do not have a passport yet or you gave a wrong email!"
+                                "MESSAGE": "Failed to Register. Invalid email or one of the team members not registered for Anokha yet."
                             });
                         }
 
