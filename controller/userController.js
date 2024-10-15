@@ -3357,11 +3357,11 @@ module.exports = {
 
                 // Does the event exist.
                 await db_connection.query("LOCK TABLES eventData READ");
-                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ? AND eventDate >= CURDATE()", [req.body.eventId]);
+                const [eventData] = await db_connection.query("SELECT * from eventData WHERE eventId = ?", [req.body.eventId]);
 
                 if (!(eventData.length > 0)) {
                     return res.status(400).send({
-                        "MESSAGE": "Event is already over! Are you going back to past?"
+                        "MESSAGE": "Event doesn't exit."
                     });
                 }
 
@@ -3401,6 +3401,9 @@ module.exports = {
                 return res.status(500).send({
                     "MESSAGE": "Internal Server Error. Contact Web Team."
                 });
+            } finally {
+                await db_connection.query("UNLOCK TABLES");
+                db_connection.release();
             }
         }
     ],
