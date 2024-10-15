@@ -406,4 +406,15 @@ module.exports = {
         }
         return false;
     },
+
+    isValidGenerateFormBricksRequest: (req) => {
+        if (
+            typeof (req.registrationId) === "number" &&
+            typeof (req.eventId) === "number" 
+        ) {
+            return true;
+        }
+
+        return false;
+    },
 }
