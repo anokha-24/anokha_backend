@@ -2266,7 +2266,7 @@ module.exports = {
                 if (check4.length == 0) {
                 
                     return res.status(400).send({
-                        "MESSAGE": `Malpractice\nName:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nStudent Didn't Mark Entry!`
+                        "MESSAGE": `Malpractice\nName:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nStudent Didn't Mark Exit!`
                     });
                 }
                 
