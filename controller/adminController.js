@@ -2092,7 +2092,7 @@ module.exports = {
                         
                 if (!(regGroup.length > 0)) {        
                     return res.status(400).send({
-                        "MESSAGE": "Student Not Registered for Event!"
+                        "MESSAGE": "Student did not register for any event. Entry not allowed."
                     });
                 }
 
