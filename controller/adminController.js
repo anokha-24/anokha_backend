@@ -2092,7 +2092,7 @@ module.exports = {
                         
                 if (!(regGroup.length > 0)) {        
                     return res.status(400).send({
-                        "MESSAGE": "Student did not register for any event. Entry not allowed."
+                        "MESSAGE": `Entry not allowed.\nName: ${check[0].studentFullName}\nEmail: ${check[0].studentEmail}\nStudent did not register for any event.`
                     });
                 }
 
@@ -2107,7 +2107,7 @@ module.exports = {
             if (check2.length != 0) {
                             
               return res.status(400).send({
-                "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                "MESSAGE": `Malpractice\nName: ${check[0].studentFullName}\nEmail: ${check[0].studentEmail}\nStudent Didn't Mark Exit!`
               });
             }
             
@@ -2124,7 +2124,7 @@ module.exports = {
               await db_connection.commit();
               
               return res.status(200).send({
-                "MESSAGE": "Successfully Marked Gate Entry."
+                "MESSAGE": `Successfully Marked Gate Entry.\nName: ${check[0].studentFullName}\nEmail: ${check[0].studentEmail}`
               });
             }
             
@@ -2242,7 +2242,7 @@ module.exports = {
                 if (check2.length != 0) {
                 
                     return res.status(400).send({
-                        "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        "MESSAGE": `Malpractice\nName:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nStudent Didn't Mark Entry!`
                     });
                 }
                 
@@ -2254,7 +2254,7 @@ module.exports = {
                 if (check3.length == 0) {
                     
                     return res.status(400).send({
-                        "MESSAGE": "Malpractice: Student Didn't Mark Entry!"
+                        "MESSAGE": `Malpractice\nName:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nStudent Didn't Mark Entry!`
                     });
                 }
                 
@@ -2266,7 +2266,7 @@ module.exports = {
                 if (check4.length == 0) {
                 
                     return res.status(400).send({
-                        "MESSAGE": "Malpractice: Student Didn't Mark Exit!"
+                        "MESSAGE": `Malpractice\nName:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nStudent Didn't Mark Exit!`
                     });
                 }
                 
@@ -2283,7 +2283,7 @@ module.exports = {
                     await db_connection.commit();
                 
                     return res.status(200).send({
-                        "MESSAGE": "Successfully Marked Gate Exit."
+                        "MESSAGE": `Name:${check[0].studentFullName}\nEmail:${check[0].studentEmail}\nSuccessfully Marked Gate Exit.`
                     });
                 }
               
