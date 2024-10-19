@@ -34,5 +34,6 @@ adminRouter.post('/getEventRegistrationStats',adminController.getEventRegistrati
 adminRouter.get('/getEventRegistrationData/:eventId(\\d+)',adminController.getEventRegistrationData);
 adminRouter.post('/getTotalEarnings',adminController.totalEarnings);
 adminRouter.post('/transaction/diff',adminController.getTransactionStatusDiff);
+adminRouter.post('/validateFeedback', adminController.validateFeedback);
 
 module.exports = adminRouter;

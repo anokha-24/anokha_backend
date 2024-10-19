@@ -5,6 +5,7 @@ const [anokha_db, anokha_transactions_db] = require('../connection/poolConnectio
 const { unlockTables, getEventRegistrationStats, getEventRegistrationData, totalEarnings, getTransactionStatusDiff, } = require('../db/sql/adminController/queries');
 const {payUKey, payUVerifyURL} = require('../config/appConfig');
 const { generateVerifyHash } = require('../middleware/payU/util');
+const [decryptToken] = require('../middleware/formBricks/tokenValidator');
 
 module.exports = {
     testConnection: async (req, res) => {
@@ -3539,5 +3540,28 @@ module.exports = {
                 transaction_db_connection.release();
             }
         },
-    ]
+    ],
+
+    validateFeedback: async (req, res) => {
+        if (!(typeof(req.body.token) === "string" && req.body.token.length > 0)) {
+            return res.status(400).send({
+                "MESSAGE": "Invalid Request!"
+            });
+        }
+
+        try {
+            const payLoad = await decryptToken(req.body.token);
+            return res.status(200).send({
+                "MESSAGE": "Feedback Token Validated.",
+                "DATA": payLoad
+            });
+        } catch (err) {
+            console.log(err);
+            const time = new Date();
+            fs.appendFileSync('./logs/adminController/errorLogs.log', `${time.toISOString()} - validateFeedback - ${err}\n`);
+            return res.status(400).send({
+                "MESSAGE": "Invalid Token!"
+            });
+        }
+    }
 }
