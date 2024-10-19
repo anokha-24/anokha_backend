@@ -10,7 +10,6 @@ const { generateHash, generateVerifyHash } = require("../middleware/payU/util");
 
 const validator = require("validator");
 const generateFormBricksToken = require('../middleware/formBricks/tokenGenerator');
-const generateFormBricksToken = require('../middleware/formBricks/tokenGenerator');
 //const redisClient = require('../connection/redis');
 
 module.exports = {
